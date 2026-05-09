@@ -1,23 +1,31 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Signup from './pages/Signup';
-import Login from './pages/Login';
-import Preferences from './pages/Preferences';
-import Feed from './pages/Feed';
-import Dashboard from './pages/Dashboard'; // Maintenant le fichier existe !
+import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import PrivateRoute from './components/PrivateRoute';
 
-function App() {
+import LandingPage  from './pages/LandingPage';
+import LoginPage    from './pages/Login';
+import SignupPage   from './pages/Signup';
+import Preferences  from './pages/Preferences';
+import Dashboard    from './pages/Dashboard';
+import Feed         from './pages/Feed';
+
+export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/preferences" element={<Preferences />} />
-        <Route path="/feed" element={<Feed />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/" element={<Navigate to="/login" />} />
-      </Routes>
-    </Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/"            element={<LandingPage />} />
+            <Route path="/login"       element={<LoginPage />} />
+            <Route path="/signup"      element={<SignupPage />} />
+            <Route path="/preferences" element={<PrivateRoute><Preferences /></PrivateRoute>} />
+            <Route path="/dashboard"   element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/feed"        element={<PrivateRoute><Feed /></PrivateRoute>} />
+            <Route path="*"            element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
-
-export default App;
