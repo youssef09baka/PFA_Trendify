@@ -1,23 +1,23 @@
 export const trends = [
   {
     id: 1,
-    title: 'AI Agents are replacing workflows',
+    title: 'AI agents replacing workflows',
     score: 96,
     sentiment: 'Positive',
     category: 'AI',
   },
   {
     id: 2,
-    title: 'Cybersecurity discussions are increasing',
-    score: 89,
+    title: 'Gaming trend exploding online',
+    score: 88,
     sentiment: 'Neutral',
-    category: 'Security',
+    category: 'Gaming',
   },
   {
     id: 3,
-    title: 'Gaming trend exploding on social media',
+    title: 'Cybersecurity discussions increasing',
     score: 91,
     sentiment: 'Positive',
-    category: 'Gaming',
+    category: 'Security',
   },
 ]
