@@ -1,32 +1,11 @@
-const KEYWORDS = [
-  "ai",
-  "startup",
-  "business",
-  "tech",
-  "saas",
-  "automation",
-];
-
 const BAD_PATTERNS = [
-  "accused",
   "sexual",
-  "lawsuit",
-  "politics",
-  "war",
   "kill",
-  "help",
-  "anyone",
-  "do you",
-  "how do",
-  "why",
-  "share",
-  "finally",
-  "my startup",
-  "what",
-  "how",
-  "people",
-  "feels",
-  "would you",
+  "murder",
+  "graphic",
+  "violence",
+  "suicide",
+  "terrorist",
 ];
 
 const cleanTitle = (title) => {
@@ -39,15 +18,11 @@ const cleanTitle = (title) => {
     .replace(/\s+/g, " ");
 };
 
-const isRelevant = (title) => {
-  if (!title) return false; // 🔥 sécurité ajoutée
-  const lower = title.toLowerCase();
-  return KEYWORDS.some((k) => lower.includes(k));
-};
-
 const isGoodContent = (title) => {
-  if (!title) return false; // 🔥 sécurité ajoutée
+  if (!title) return false;
+
   const lower = title.toLowerCase();
+
   return !BAD_PATTERNS.some((p) => lower.includes(p));
 };
 
@@ -64,7 +39,6 @@ const validateTrend = (trend) => {
 
 module.exports = {
   cleanTitle,
-  isRelevant,
   isGoodContent,
   validateTrend,
 };

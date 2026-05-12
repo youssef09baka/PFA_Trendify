@@ -1,19 +1,21 @@
 const { getRedditTrends } = require("./redditService");
 const { getGoogleTrends } = require("./googleTrendsService");
-const { isRelevant } = require("./cleaner"); // 🔥 ajout
 
-// 🔥 cache simple (1 minute)
+// 🔥 cache simple
 let cache = {
   data: null,
   timestamp: 0,
 };
 
-const CACHE_DURATION = 60 * 1000; // 1 min
+const CACHE_DURATION = 60 * 1000;
 
 const getRealTrends = async () => {
   try {
-    // 🔥 utiliser cache si dispo
-    if (cache.data && Date.now() - cache.timestamp < CACHE_DURATION) {
+
+    if (
+      cache.data &&
+      Date.now() - cache.timestamp < CACHE_DURATION
+    ) {
       console.log("DATA: using cache");
       return cache.data;
     }
@@ -21,36 +23,34 @@ const getRealTrends = async () => {
     let reddit = [];
     let google = [];
 
-    // 🔹 récupérer Reddit
     try {
       reddit = await getRedditTrends();
     } catch (err) {
       console.error("Reddit failed:", err.message);
     }
 
-    // 🔹 récupérer Google
     try {
       google = await getGoogleTrends();
     } catch (err) {
       console.error("Google failed:", err.message);
     }
 
-    // 🔹 sécuriser données
     if (!Array.isArray(reddit)) reddit = [];
     if (!Array.isArray(google)) google = [];
 
-    // 🔥 utiliser cleaner (plus propre)
-    const filteredGoogle = google.filter((t) => isRelevant(t.title));
+    // 🔥 fusion globale
+    let trends = [...reddit, ...google];
 
-    // 🔥 fusion
-    let trends = [...reddit, ...filteredGoogle];
-
-    // 🔥 fallback si vide
+    // 🔥 fallback
     if (trends.length === 0) {
-      console.warn("DATA: no trends found, returning fallback");
+
+      console.warn(
+        "DATA: no trends found"
+      );
+
       return [
         {
-          title: "AI tools for productivity",
+          title: "Trending world topics",
           popularity: 50,
           growth: 10,
           source: "fallback",
@@ -59,26 +59,30 @@ const getRealTrends = async () => {
       ];
     }
 
-    // 🔥 limiter résultats
-    trends = trends.slice(0, 15);
+    trends = trends.slice(0, 20);
 
-    // 🔥 log
-    console.log("DATA: trends fetched:", trends.length);
+    console.log(
+      "DATA: trends fetched:",
+      trends.length
+    );
 
-    // 🔥 sauvegarder cache
     cache = {
       data: trends,
       timestamp: Date.now(),
     };
 
     return trends;
-  } catch (error) {
-    console.error("DATA ERROR:", error.message);
 
-    // 🔥 fallback global
+  } catch (error) {
+
+    console.error(
+      "DATA ERROR:",
+      error.message
+    );
+
     return [
       {
-        title: "AI market trends",
+        title: "Global trends",
         popularity: 40,
         growth: 5,
         source: "fallback",

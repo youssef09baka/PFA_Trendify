@@ -2,6 +2,7 @@ const { generateBatchAnalysis } = require("../services/aiService");
 const { getRealTrends } = require("../services/data");
 
 const getTrends = async (req, res) => {
+
   try {
     // 🔥 1. DATA RÉELLE
     let trends = await getRealTrends();
@@ -67,4 +68,6 @@ const getTrends = async (req, res) => {
   }
 };
 
-module.exports = { getTrends };
+module.exports = {
+  getTrends,
+};
