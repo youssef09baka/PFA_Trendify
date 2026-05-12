@@ -1,8 +1,9 @@
 require("dotenv").config();
+
 const axios = require("axios");
+
 const {
   cleanTitle,
-  isRelevant,
   validateTrend,
 } = require("./cleaner");
 
@@ -26,17 +27,22 @@ const getGoogleTrends = async () => {
 
     return raw
       .map((trend, index) => {
-        // 🔥 sécurité
+
         if (!trend || !trend.query) return null;
 
         let title = cleanTitle(trend.query);
+
         if (!title) return null;
 
-        if (!isRelevant(title)) return null;
+        const popularity = Math.max(
+          10000 - index * 500,
+          100
+        );
 
-        // 🔥 score sécurisé (jamais négatif)
-        const popularity = Math.max(10000 - index * 500, 100);
-        const growth = Math.max(50 - index, 5);
+        const growth = Math.max(
+          50 - index,
+          5
+        );
 
         const data = {
           title,
@@ -46,12 +52,20 @@ const getGoogleTrends = async () => {
           link: "",
         };
 
-        return validateTrend(data) ? data : null;
+        return validateTrend(data)
+          ? data
+          : null;
       })
       .filter(Boolean)
-      .slice(0, 5);
+      .slice(0, 10);
+
   } catch (error) {
-    console.error("Google Trends error:", error.message);
+
+    console.error(
+      "Google Trends error:",
+      error.message
+    );
+
     return [];
   }
 };

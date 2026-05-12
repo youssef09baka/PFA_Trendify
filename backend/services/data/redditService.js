@@ -1,7 +1,6 @@
 const axios = require("axios");
 const {
   cleanTitle,
-  isRelevant,
   isGoodContent,
   validateTrend,
 } = require("./cleaner");
@@ -13,6 +12,9 @@ const getRedditTrends = async () => {
       "https://www.reddit.com/r/startups.json?limit=20",
       "https://www.reddit.com/r/Entrepreneur.json?limit=20",
       "https://www.reddit.com/r/technology.json?limit=20",
+      "https://www.reddit.com/r/sports.json?limit=20",
+      "https://www.reddit.com/r/worldnews.json?limit=20",
+      "https://www.reddit.com/r/gaming.json?limit=20",
     ];
 
     let allPosts = [];
@@ -26,13 +28,13 @@ const getRedditTrends = async () => {
 
     const trends = allPosts
       .map((post) => {
-        // 🔥 sécurité ajoutée
+
         if (!post || !post.data) return null;
 
         let title = cleanTitle(post.data.title);
-        if (!title || title.length < 25) return null;
 
-        if (!isRelevant(title)) return null;
+        if (!title || title.length < 15) return null;
+
         if (!isGoodContent(title)) return null;
 
         const trend = {
@@ -46,10 +48,11 @@ const getRedditTrends = async () => {
         return validateTrend(trend) ? trend : null;
       })
       .filter(Boolean)
-      .sort((a, b) => getScore(b) - getScore(a)) // 🔥 plus propre
-      .slice(0, 6);
+      .sort((a, b) => getScore(b) - getScore(a))
+      .slice(0, 10);
 
     return trends;
+
   } catch (err) {
     console.error("Reddit error:", err.message);
     return [];
