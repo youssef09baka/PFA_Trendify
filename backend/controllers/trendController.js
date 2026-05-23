@@ -1,3 +1,4 @@
+const axios = require("axios");
 const { generateBatchAnalysis } = require("../services/aiService");
 const { getRealTrends } = require("../services/data");
 
@@ -51,6 +52,33 @@ const getTrends = async (req, res) => {
 
     // 🔥 7. tri
     trends.sort((a, b) => b.score - a.score);
+        // 🔥 8. ML Prediction
+    for (const trend of trends) {
+
+      try {
+
+        const mlResponse = await axios.post(
+          "http://127.0.0.1:5000/predict",
+          {
+            reddit_score: trend.popularity,
+            comments_count: Math.floor(trend.popularity / 10),
+            google_trend_score: trend.growth,
+            engagement_rate: trend.popularity / 100,
+            growth_rate: trend.growth,
+            sentiment_score: 0.5
+          }
+        );
+
+        // ajouter prédiction ML
+        trend.ml_prediction = mlResponse.data.prediction;
+
+      } catch (mlError) {
+
+        console.error("ML ERROR:", mlError.message);
+
+        trend.ml_prediction = "UNKNOWN";
+      }
+    }
 
     // 🔥 8. logs utiles (debug / soutenance)
     console.log("TRENDS COUNT:", trends.length);
