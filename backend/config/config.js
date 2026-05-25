@@ -7,6 +7,7 @@ const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:5000/pred
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || "production";
 const JWT_EXPIRATION = process.env.JWT_EXPIRATION || "7d";
+const PLACEHOLDER_IMAGE = process.env.PLACEHOLDER_IMAGE || 'https://via.placeholder.com/800x450?text=No+Image';
 
 if (!MONGO_URI) {
   throw new Error("Missing required environment variable: MONGO_URI");
@@ -24,4 +25,5 @@ module.exports = {
   JWT_EXPIRATION,
   ML_SERVICE_URL,
   FRONTEND_URL
+  ,PLACEHOLDER_IMAGE
 };

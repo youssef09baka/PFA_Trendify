@@ -123,4 +123,91 @@ const updatePreferences = asyncHandler(async (req, res, next) => {
   });
 });
 
-module.exports = { registerUser, loginUser, updatePreferences };
+const saveTrend = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user._id);
+  const trendId = req.params.id;
+
+  if (!user) {
+    const error = new Error('User not found');
+    error.statusCode = 404;
+    return next(error);
+  }
+
+  if (user.savedTrends.map(String).includes(String(trendId))) {
+    return res.status(200).json({ message: 'Already saved', isSaved: true });
+  }
+
+  // check trend exists
+  const Trend = require('../models/Trend');
+  const trend = await Trend.findById(trendId);
+  if (!trend) {
+    const error = new Error('Trend not found');
+    error.statusCode = 404;
+    return next(error);
+  }
+
+  user.savedTrends.push(trend._id);
+  await user.save();
+
+  // increment savedCount (best-effort)
+  await Trend.findByIdAndUpdate(trend._id, { $inc: { savedCount: 1 } }).catch(() => null);
+
+  res.status(200).json({ message: 'Saved', isSaved: true });
+});
+
+const unsaveTrend = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user._id);
+  const trendId = req.params.id;
+
+  if (!user) {
+    const error = new Error('User not found');
+    error.statusCode = 404;
+    return next(error);
+  }
+
+  const idx = user.savedTrends.map(String).indexOf(String(trendId));
+  if (idx === -1) {
+    return res.status(200).json({ message: 'Not saved', isSaved: false });
+  }
+
+  user.savedTrends.splice(idx, 1);
+  await user.save();
+
+  const Trend = require('../models/Trend');
+  await Trend.findByIdAndUpdate(trendId, { $inc: { savedCount: -1 } }).catch(() => null);
+
+  res.status(200).json({ message: 'Unsaved', isSaved: false });
+});
+
+const getSavedTrends = asyncHandler(async (req, res, next) => {
+  const user = await User.findById(req.user._id).lean();
+  if (!user) {
+    const error = new Error('User not found');
+    error.statusCode = 404;
+    return next(error);
+  }
+
+  const ids = (user.savedTrends || []).map(String);
+  const Trend = require('../models/Trend');
+  const trends = await Trend.find({ _id: { $in: ids } }).lean();
+
+  // preserve order of saved IDs
+  const ordered = ids.map(id => trends.find(t => String(t._id) === id)).filter(Boolean);
+
+  const items = ordered.map(t => ({
+    id: t._id,
+    title: t.title,
+    score: t.score,
+    source: t.source,
+    category: t.category,
+    image: t.image,
+    shortAnalysis: t.analysis ? (t.analysis.length > 240 ? t.analysis.slice(0,237)+'...' : t.analysis) : '',
+    ml_prediction: t.ml_prediction,
+    createdAt: t.createdAt,
+    savedCount: t.savedCount || 0
+  }));
+
+  res.status(200).json({ items, total: items.length });
+});
+
+module.exports = { registerUser, loginUser, updatePreferences, saveTrend, unsaveTrend, getSavedTrends };

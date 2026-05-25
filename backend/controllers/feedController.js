@@ -18,6 +18,7 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
   const stored = await getFeedTrends({ page, limit, category, source, sort, viral });
   const storedTrends = stored.data || [];
+  const savedSet = new Set((user?.savedTrends || []).map(String));
 
   if (storedTrends && storedTrends.length > 0 && !forceRefresh) {
     return res.status(200).json({
@@ -29,10 +30,13 @@ const getFeed = asyncHandler(async (req, res, next) => {
         category: trend.category,
         image: trend.image,
         video: trend.video,
+        thumbnail: trend.thumbnail || '',
+        mediaType: trend.mediaType || 'none',
         shortAnalysis: trend.analysis ? (trend.analysis.length > 240 ? trend.analysis.slice(0, 237) + '...' : trend.analysis) : '',
         ml_prediction: trend.ml_prediction,
         createdAt: trend.createdAt,
-        savedCount: trend.savedCount || 0
+        savedCount: trend.savedCount || 0,
+        isSaved: savedSet.has(String(trend._id))
       })),
       meta: stored.meta || { total: storedTrends.length, page, limit, totalPages: 1, hasMore: false }
     });
@@ -86,10 +90,13 @@ const getFeed = asyncHandler(async (req, res, next) => {
       category: trend.category,
       image: trend.image,
       video: trend.video,
+      thumbnail: trend.thumbnail || '',
+      mediaType: trend.mediaType || 'none',
       shortAnalysis: trend.analysis ? (trend.analysis.length > 240 ? trend.analysis.slice(0, 237) + '...' : trend.analysis) : '',
       ml_prediction: trend.ml_prediction,
       createdAt: trend.createdAt,
-      savedCount: trend.savedCount || 0
+      savedCount: trend.savedCount || 0,
+      isSaved: savedSet.has(String(trend._id))
     })),
     meta: {
       total: stored.meta?.total || finalTrends.length,

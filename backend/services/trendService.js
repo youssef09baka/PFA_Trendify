@@ -15,9 +15,27 @@ const buildSlug = (trend) => {
   return `${source}-${titleSlug}`;
 };
 
+const { extractMediaForTrend } = require('./data/mediaExtractor');
+
 const saveTrends = async (trends) => {
   const ops = trends.map(async (trend) => {
     const slug = trend.slug || buildSlug(trend);
+    // ensure media fields are present; attempt lightweight extraction if missing
+    try {
+      const needsMedia = !trend.image && !trend.thumbnail && !trend.video;
+      if (needsMedia) {
+        const m = await extractMediaForTrend(trend, trend._raw).catch(() => null);
+        if (m) {
+          trend.image = trend.image || m.image || '';
+          trend.video = trend.video || m.video || '';
+          trend.thumbnail = trend.thumbnail || m.thumbnail || '';
+          trend.mediaType = trend.mediaType || (m.mediaType || 'none');
+        }
+      }
+    } catch (e) {
+      // ignore media extraction failures
+    }
+
     const update = {
       title: trend.title,
       source: trend.source || "unknown",
@@ -35,6 +53,8 @@ const saveTrends = async (trends) => {
       growth: trend.growth || 0,
       image: trend.image || "",
       video: trend.video || "",
+      thumbnail: trend.thumbnail || '',
+      mediaType: trend.mediaType || 'none',
       link: trend.link || "",
       fetchedAt: trend.fetchedAt || new Date(),
       tags: Array.isArray(trend.tags) ? trend.tags : [],

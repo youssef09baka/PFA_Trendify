@@ -22,6 +22,12 @@ const userSchema = new mongoose.Schema({
     default: []
   }
 
+  ,savedTrends: {
+    type: [require('mongoose').Schema.Types.ObjectId],
+    ref: 'Trend',
+    default: []
+  }
+
 }, {
   timestamps: true
 });

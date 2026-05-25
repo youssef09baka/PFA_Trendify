@@ -6,6 +6,8 @@ const {
   estimateSentimentScore,
 } = require("./cleaner");
 
+const { extractFromReddit, extractMediaForTrend } = require('./mediaExtractor');
+
 const getRedditTrends = async () => {
   const urls = [
     "https://www.reddit.com/r/artificial.json?limit=20",
@@ -51,12 +53,20 @@ const getRedditTrends = async () => {
       const postLength = rawText.length > 0 ? rawText.length : title.length;
       const sentiment = estimateSentimentScore(post.data.title);
 
+      const mediaInfo = extractFromReddit(post.data);
+
       const trend = {
         title,
         popularity: post.data.score || 0,
         growth: post.data.num_comments || 0,
         source: "reddit",
         link: `https://reddit.com${post.data.permalink}`,
+        image: mediaInfo.image || '',
+        video: mediaInfo.video || '',
+        thumbnail: mediaInfo.thumbnail || '',
+        mediaType: mediaInfo.mediaType || 'none',
+        // attach raw reddit data for later extraction if needed
+        _raw: post.data,
         num_comments: post.data.num_comments || 0,
         post_length: postLength,
         hour: createdUtc ? new Date(createdUtc * 1000).getUTCHours() : new Date().getUTCHours(),

@@ -52,6 +52,15 @@ const trendSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  thumbnail: {
+    type: String,
+    default: ""
+  },
+  mediaType: {
+    type: String,
+    enum: ["image", "video", "none"],
+    default: "none"
+  },
   link: {
     type: String,
     default: ""

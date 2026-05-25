@@ -3,7 +3,7 @@ const rateLimit = require("express-rate-limit");
 const router = express.Router();
 
 const { protect } = require("../middleware/authMiddleware");
-const { registerUser, loginUser, updatePreferences } = require("../controllers/userController");
+const { registerUser, loginUser, updatePreferences, getSavedTrends } = require("../controllers/userController");
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -20,5 +20,7 @@ router.put("/preferences", protect, updatePreferences);
 router.get("/profile", protect, (req, res) => {
   res.json(req.user);
 });
+
+router.get('/saved-trends', protect, getSavedTrends);
 
 module.exports = router;
