@@ -7,12 +7,11 @@ model = joblib.load("models/trend_predictor.pkl")
 # Nouvelle tendance à tester
 new_trend = pd.DataFrame([
     {
-        "reddit_score": 1300,
-        "comments_count": 400,
-        "google_trend_score": 88,
-        "engagement_rate": 0.85,
-        "growth_rate": 92,
-        "sentiment_score": 0.80
+        "num_comments": 400,
+        "post_length": 320,
+        "hour": 14,
+        "title_length": 78,
+        "sentiment": 0.80
     }
 ])
 

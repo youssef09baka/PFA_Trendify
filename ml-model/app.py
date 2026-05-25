@@ -20,12 +20,11 @@ def predict():
 
         # Vérifier les champs requis
         required_fields = [
-            "reddit_score",
-            "comments_count",
-            "google_trend_score",
-            "engagement_rate",
-            "growth_rate",
-            "sentiment_score"
+            "num_comments",
+            "post_length",
+            "hour",
+            "title_length",
+            "sentiment"
         ]
 
         for field in required_fields:
@@ -36,12 +35,11 @@ def predict():
 
         # Transformer les données
         input_data = pd.DataFrame([{
-            "reddit_score": data["reddit_score"],
-            "comments_count": data["comments_count"],
-            "google_trend_score": data["google_trend_score"],
-            "engagement_rate": data["engagement_rate"],
-            "growth_rate": data["growth_rate"],
-            "sentiment_score": data["sentiment_score"]
+            "num_comments": data["num_comments"],
+            "post_length": data["post_length"],
+            "hour": data["hour"],
+            "title_length": data["title_length"],
+            "sentiment": data["sentiment"]
         }])
 
         # Faire la prédiction

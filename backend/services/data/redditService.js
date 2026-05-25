@@ -3,6 +3,7 @@ const {
   cleanTitle,
   isGoodContent,
   validateTrend,
+  estimateSentimentScore,
 } = require("./cleaner");
 
 const getRedditTrends = async () => {
@@ -37,12 +38,22 @@ const getRedditTrends = async () => {
 
         if (!isGoodContent(title)) return null;
 
+        const createdUtc = post.data.created_utc;
+        const rawText = (post.data.selftext || "").trim();
+        const postLength = rawText.length > 0 ? rawText.length : title.length;
+        const sentiment = estimateSentimentScore(post.data.title);
+
         const trend = {
           title,
           popularity: post.data.score || 0,
           growth: post.data.num_comments || 0,
           source: "reddit",
           link: `https://reddit.com${post.data.permalink}`,
+          num_comments: post.data.num_comments || 0,
+          post_length: postLength,
+          hour: createdUtc ? new Date(createdUtc * 1000).getUTCHours() : new Date().getUTCHours(),
+          title_length: title.length,
+          sentiment,
         };
 
         return validateTrend(trend) ? trend : null;

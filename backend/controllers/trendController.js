@@ -54,18 +54,28 @@ const getTrends = async (req, res) => {
     trends.sort((a, b) => b.score - a.score);
         // 🔥 8. ML Prediction
     for (const trend of trends) {
-
       try {
+        const modelInputReady = [
+          "num_comments",
+          "post_length",
+          "hour",
+          "title_length",
+          "sentiment"
+        ].every(field => typeof trend[field] === "number");
+
+        if (!modelInputReady) {
+          trend.ml_prediction = "UNAVAILABLE";
+          continue;
+        }
 
         const mlResponse = await axios.post(
           "http://127.0.0.1:5000/predict",
           {
-            reddit_score: trend.popularity,
-            comments_count: Math.floor(trend.popularity / 10),
-            google_trend_score: trend.growth,
-            engagement_rate: trend.popularity / 100,
-            growth_rate: trend.growth,
-            sentiment_score: 0.5
+            num_comments: trend.num_comments,
+            post_length: trend.post_length,
+            hour: trend.hour,
+            title_length: trend.title_length,
+            sentiment: trend.sentiment
           }
         );
 
@@ -73,9 +83,7 @@ const getTrends = async (req, res) => {
         trend.ml_prediction = mlResponse.data.prediction;
 
       } catch (mlError) {
-
-        console.error("ML ERROR:", mlError.message);
-
+        console.error("ML ERROR:", mlError.response?.data || mlError.message);
         trend.ml_prediction = "UNKNOWN";
       }
     }
