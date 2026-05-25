@@ -2,7 +2,7 @@ const asyncHandler = require("../middleware/asyncHandler");
 const { getRealTrends } = require("../services/data");
 const { generateBatchAnalysis } = require("../services/aiService");
 const { predictTrend } = require("../services/mlService");
-const { saveTrends, getFeedTrends } = require("../services/trendService");
+const { saveTrends, getFeedTrends, getTrendById, getRelatedTrends } = require("../services/trendService");
 
 const getFeed = asyncHandler(async (req, res, next) => {
   const user = req.user;
@@ -111,3 +111,55 @@ const getFeed = asyncHandler(async (req, res, next) => {
 });
 
 module.exports = { getFeed };
+
+const getTrendDetail = asyncHandler(async (req, res, next) => {
+  const user = req.user;
+  const id = req.params.id;
+
+  const trend = await getTrendById(id);
+  if (!trend) {
+    const err = new Error('Trend not found');
+    err.statusCode = 404;
+    return next(err);
+  }
+
+  const isSaved = new Set((user?.savedTrends || []).map(String)).has(String(trend._id));
+
+  // simple related trends: same category and/or sharing tags
+  const related = await getRelatedTrends(trend._id, { category: trend.category, tags: trend.tags || [], source: trend.source, limit: 6 }).catch(() => []);
+
+  const relatedLight = (related || []).map((t) => ({
+    id: t._id,
+    title: t.title,
+    thumbnail: t.thumbnail || t.image || '',
+    mediaType: t.mediaType || 'none',
+    score: t.score || 0,
+    source: t.source
+  }));
+
+  res.status(200).json({
+    id: trend._id,
+    title: trend.title,
+    analysis: trend.analysis || '',
+    idea: trend.idea || '',
+    ml_prediction: trend.ml_prediction,
+    score: trend.score || 0,
+    scoreDetails: trend.scoreDetails || {},
+    source: trend.source,
+    category: trend.category,
+    image: trend.image || '',
+    video: trend.video || '',
+    thumbnail: trend.thumbnail || '',
+    mediaType: trend.mediaType || 'none',
+    link: trend.link || '',
+    createdAt: trend.createdAt,
+    updatedAt: trend.updatedAt,
+    fetchedAt: trend.fetchedAt,
+    savedCount: trend.savedCount || 0,
+    tags: Array.isArray(trend.tags) ? trend.tags : [],
+    isSaved,
+    related: relatedLight
+  });
+});
+
+module.exports = { getFeed, getTrendDetail };

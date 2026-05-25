@@ -116,5 +116,18 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 's
 module.exports = {
   saveTrends,
   getFeedTrends,
+  // fetch single trend and related helpers
+  getTrendById: async (id) => {
+    if (!id) return null;
+    return Trend.findById(id).lean();
+  },
+  getRelatedTrends: async (id, { category, tags, source, limit = 5 } = {}) => {
+    const query = { _id: { $ne: id } };
+    if (category) query.category = category;
+    if (source) query.source = source;
+    if (Array.isArray(tags) && tags.length > 0) query.tags = { $in: tags };
+
+    return Trend.find(query).sort({ score: -1 }).limit(Number(limit)).lean();
+  },
   buildSlug
 };
