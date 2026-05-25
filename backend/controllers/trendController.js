@@ -2,6 +2,7 @@ const axios = require("axios");
 const asyncHandler = require("../middleware/asyncHandler");
 const { generateBatchAnalysis } = require("../services/aiService");
 const { getRealTrends } = require("../services/data");
+const { ML_SERVICE_URL } = require("../config/config");
 
 const getTrends = asyncHandler(async (req, res, next) => {
   const rawTrends = await getRealTrends();
@@ -73,7 +74,7 @@ const getTrends = asyncHandler(async (req, res, next) => {
 
     try {
       const mlResponse = await axios.post(
-        "http://127.0.0.1:5000/predict",
+        ML_SERVICE_URL,
         {
           num_comments: trend.num_comments,
           post_length: trend.post_length,

@@ -1,0 +1,61 @@
+version: '3.9'
+
+services:
+  mongo:
+    image: mongo:6.0
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: trend_predictor
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app-network
+
+  ml:
+    build:
+      context: ./ml-model
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5001"
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    depends_on:
+      - mongo
+      - ml
+    environment:
+      - PORT=5000
+      - MONGO_URI=mongodb://mongo:27017/trend_predictor
+      - JWT_SECRET=change-me
+      - OPENROUTER_API_KEY=
+      - SERPAPI_KEY=
+      - ML_SERVICE_URL=http://ml:5001/predict
+      - NODE_ENV=production
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "4173:4173"
+    networks:
+      - app-network
+
+volumes:
+  mongo_data:
+
+networks:
+  app-network:
+    driver: bridge
