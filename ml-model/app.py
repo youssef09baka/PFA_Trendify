@@ -45,9 +45,9 @@ def predict():
         # Faire la prédiction
         prediction = model.predict(input_data)
 
-        # Retourner le résultat
+        # Retourner le résultat avec un int Python natif
         return jsonify({
-            "prediction": prediction[0]
+            "prediction": int(prediction[0])
         })
 
     except Exception as e:

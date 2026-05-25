@@ -47,7 +47,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 # 🔥 BASELINE MODEL
 baseline_model = LogisticRegression(
-    max_iter=1000
+    max_iter=1000,
+    class_weight="balanced"
 )
 
 # 🔥 entraînement baseline
@@ -84,7 +85,7 @@ print(xgb_accuracy)
 # 🔥 PIPELINE ML
 pipeline = Pipeline([
     ("scaler", StandardScaler()),
-    ("model", RandomForestClassifier(random_state=42))
+    ("model", RandomForestClassifier(random_state=42, class_weight="balanced"))
 ])
 
 # 🔥 paramètres à tester
