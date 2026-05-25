@@ -8,17 +8,6 @@ const MOCK = [];
 
 const FILTERS = ['All','Tech','Gaming','Business','Health','Education'];
 
-function catTag(cat) {
-  const m = { tech:'tag-y', gaming:'tag-b', business:'tag-g', health:'tag-p', education:'tag-b' };
-  return m[cat] || 'tag-g';
-}
-
-function scoreColor(s) {
-  if (s >= 90) return 'var(--y)';
-  if (s >= 80) return 'var(--b)';
-  return 'var(--g)';
-}
-
 export default function Feed() {
   const [trends, setTrends]   = useState(MOCK);
   const [filter, setFilter]   = useState('All');
