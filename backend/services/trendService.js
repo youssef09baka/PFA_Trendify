@@ -51,15 +51,46 @@ const saveTrends = async (trends) => {
   return Promise.all(ops);
 };
 
-const getFeedTrends = async ({ limit = 12, category, source } = {}) => {
+const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 'score', viral } = {}) => {
   const query = {};
   if (category) query.category = category;
   if (source) query.source = source;
+  if (viral) {
+    query.$or = [
+      { ml_prediction: 1 },
+      { ml_prediction: '1' },
+      { ml_prediction: 'viral' }
+    ];
+  }
 
-  return Trend.find(query)
-    .sort({ score: -1, updatedAt: -1 })
-    .limit(limit)
-    .lean();
+  const skip = Math.max(0, (Number(page) - 1)) * Number(limit);
+
+  // sorting options
+  let sortOption = { score: -1, updatedAt: -1 };
+  if (sort === 'newest') sortOption = { createdAt: -1 };
+  else if (sort === 'trending') sortOption = { score: -1, fetchedAt: -1 };
+
+  const [total, items] = await Promise.all([
+    Trend.countDocuments(query),
+    Trend.find(query)
+      .sort(sortOption)
+      .skip(skip)
+      .limit(Number(limit))
+      .lean()
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(total / Number(limit)));
+
+  return {
+    data: items,
+    meta: {
+      total,
+      page: Number(page),
+      limit: Number(limit),
+      totalPages,
+      hasMore: Number(page) < totalPages
+    }
+  };
 };
 
 module.exports = {

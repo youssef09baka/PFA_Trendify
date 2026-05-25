@@ -9,22 +9,33 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
   // Serve persisted trends by default. Pass ?refresh=true to force live fetch.
   const forceRefresh = String(req.query.refresh || "false").toLowerCase() === "true";
-  const storedTrends = await getFeedTrends({ limit: 12 });
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const limit = req.query.limit ? Number(req.query.limit) : 12;
+  const sort = req.query.sort || 'score';
+  const category = req.query.category || undefined;
+  const source = req.query.source || undefined;
+  const viral = req.query.viral === 'true' || req.query.viral === '1';
+
+  const stored = await getFeedTrends({ page, limit, category, source, sort, viral });
+  const storedTrends = stored.data || [];
 
   if (storedTrends && storedTrends.length > 0 && !forceRefresh) {
-    return res.status(200).json(storedTrends.map((trend) => ({
-      id: trend._id,
-      title: trend.title,
-      source: trend.source,
-      category: trend.category,
-      score: trend.score,
-      analysis: trend.analysis,
-      idea: trend.idea,
-      ml_prediction: trend.ml_prediction,
-      link: trend.link,
-      image: trend.image,
-      createdAt: trend.createdAt
-    })));
+    return res.status(200).json({
+      items: storedTrends.map((trend) => ({
+        id: trend._id,
+        title: trend.title,
+        score: trend.score,
+        source: trend.source,
+        category: trend.category,
+        image: trend.image,
+        video: trend.video,
+        shortAnalysis: trend.analysis ? (trend.analysis.length > 240 ? trend.analysis.slice(0, 237) + '...' : trend.analysis) : '',
+        ml_prediction: trend.ml_prediction,
+        createdAt: trend.createdAt,
+        savedCount: trend.savedCount || 0
+      })),
+      meta: stored.meta || { total: storedTrends.length, page, limit, totalPages: 1, hasMore: false }
+    });
   }
 
   // If DB empty or forceRefresh, run live fetch once and persist results.
@@ -66,18 +77,30 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
   const finalTrends = filteredTrends.length > 0 ? filteredTrends : persistedTrends;
 
-  const feed = finalTrends.map((trend) => ({
-    id: trend._id,
-    title: trend.title,
-    score: trend.score,
-    analysis: trend.analysis,
-    idea: trend.idea,
-    source: trend.source,
-    link: trend.link || "",
-    createdAt: trend.createdAt
-  }));
+  const response = {
+    items: finalTrends.map((trend) => ({
+      id: trend._id,
+      title: trend.title,
+      score: trend.score,
+      source: trend.source,
+      category: trend.category,
+      image: trend.image,
+      video: trend.video,
+      shortAnalysis: trend.analysis ? (trend.analysis.length > 240 ? trend.analysis.slice(0, 237) + '...' : trend.analysis) : '',
+      ml_prediction: trend.ml_prediction,
+      createdAt: trend.createdAt,
+      savedCount: trend.savedCount || 0
+    })),
+    meta: {
+      total: stored.meta?.total || finalTrends.length,
+      page: stored.meta?.page || page,
+      limit: stored.meta?.limit || limit,
+      totalPages: stored.meta?.totalPages || 1,
+      hasMore: stored.meta?.hasMore || false
+    }
+  };
 
-  res.status(200).json(feed);
+  res.status(200).json(response);
 });
 
 module.exports = { getFeed };
