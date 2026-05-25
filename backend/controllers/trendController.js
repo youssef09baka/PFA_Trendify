@@ -42,13 +42,38 @@ const getTrends = async (req, res) => {
       }));
 
     // 🔥 5. limiter (perf IA)
-    trends = trends.slice(0, 5);
+    trends = trends.slice(0, 10);
 
-    // 🔥 6. scoring UNIFIÉ (propre)
-    trends = trends.map(trend => ({
-      ...trend,
-      score: Math.round(trend.popularity * 0.7 + trend.growth * 0.3)
-    }));
+    // 🔥 6. scoring normalisé et explicable
+    const popularityValues = trends.map((trend) => Math.max(trend.popularity || 0, 0));
+    const growthValues = trends.map((trend) => Math.max(trend.growth || 0, 0));
+
+    const normalize = (values) => {
+      const max = Math.max(...values, 0);
+      return values.map((value) => (max > 0 ? value / max : 0));
+    };
+
+    const normalizedPopularity = normalize(popularityValues);
+    const normalizedGrowth = normalize(growthValues);
+
+    trends = trends.map((trend, index) => {
+      const popScore = normalizedPopularity[index];
+      const growthScore = normalizedGrowth[index];
+      const score = Math.round((popScore * 0.7 + growthScore * 0.3) * 100);
+
+      return {
+        ...trend,
+        score,
+        scoreDetails: {
+          popularityRaw: trend.popularity,
+          growthRaw: trend.growth,
+          popularityNormalized: Number(popScore.toFixed(3)),
+          growthNormalized: Number(growthScore.toFixed(3)),
+          formula: "0.7 * popularity + 0.3 * growth (normalized)",
+          explanation: "Le score combine la visibilité et l&#39;évolution relative de la tendance parmi les résultats actuels.",
+        },
+      };
+    });
 
     // 🔥 7. tri
     trends.sort((a, b) => b.score - a.score);

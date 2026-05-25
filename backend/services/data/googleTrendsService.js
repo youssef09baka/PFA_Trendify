@@ -5,6 +5,7 @@ const axios = require("axios");
 const {
   cleanTitle,
   validateTrend,
+  estimateSentimentScore,
 } = require("./cleaner");
 
 const API_KEY = process.env.SERPAPI_KEY;
@@ -26,23 +27,27 @@ const getGoogleTrends = async () => {
     const raw = response.data.trending_searches || [];
 
     return raw
-      .map((trend, index) => {
-
+      .map((trend) => {
         if (!trend || !trend.query) return null;
 
-        let title = cleanTitle(trend.query);
-
+        const title = cleanTitle(trend.query);
         if (!title) return null;
 
-        const popularity = Math.max(
-          10000 - index * 500,
-          100
-        );
+        const parseNumber = (value) => {
+          if (typeof value === 'number') return value;
+          if (typeof value === 'string') {
+            const digits = value.replace(/[^\d.-]/g, '');
+            return digits ? Number(digits) : 0;
+          }
+          return 0;
+        };
 
-        const growth = Math.max(
-          50 - index,
-          5
-        );
+        const searchVolume = parseNumber(trend.value || trend.formatted_value || trend.traffic || trend.search_volume);
+        const deltaValue = trend.delta ? parseNumber(trend.delta.value || trend.delta || trend.delta_percentage || trend.delta_percentage_str) : 0;
+
+        const popularity = searchVolume;
+        const growth = deltaValue;
+        const sentiment = estimateSentimentScore(trend.query);
 
         const data = {
           title,
@@ -50,22 +55,22 @@ const getGoogleTrends = async () => {
           growth,
           source: "google",
           link: "",
+          num_comments: 0,
+          post_length: title.length,
+          hour: new Date().getUTCHours(),
+          title_length: title.length,
+          sentiment,
+          searchVolume,
+          deltaValue,
         };
 
-        return validateTrend(data)
-          ? data
-          : null;
+        return validateTrend(data) ? data : null;
       })
       .filter(Boolean)
       .slice(0, 10);
 
   } catch (error) {
-
-    console.error(
-      "Google Trends error:",
-      error.message
-    );
-
+    console.error("Google Trends error:", error.message);
     return [];
   }
 };
