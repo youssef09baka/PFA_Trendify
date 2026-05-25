@@ -2,5 +2,7 @@ const { getRealTrends } = require("./index");
 
 (async () => {
   const trends = await getRealTrends();
-  console.log(trends);
+  // Console output is only allowed for local debugging.
+  // Remove or comment this file in production.
+  console.info(`[DATA] testData loaded ${trends.length} trends`);
 })();

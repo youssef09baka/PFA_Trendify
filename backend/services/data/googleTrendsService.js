@@ -70,8 +70,9 @@ const getGoogleTrends = async () => {
       .slice(0, 10);
 
   } catch (error) {
-    console.error("Google Trends error:", error.message);
-    return [];
+    const serviceError = new Error(`Google Trends service failed: ${error.message}`);
+    serviceError.statusCode = 502;
+    throw serviceError;
   }
 };
 
