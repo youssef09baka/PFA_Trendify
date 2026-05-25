@@ -2,15 +2,9 @@ import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
 import { TrendingUp, Clock, Share2, ExternalLink, Filter, Zap, RefreshCw } from 'lucide-react';
+import { catTag, scoreColor } from '../utils/ui';
 
-const MOCK = [
-  { _id:'1', title:'Les AI Agents vont remplacer les SaaS traditionnels', category:'tech',     source:'Reddit', score:98, description:'3.2K posts Reddit + Google Trends +340% en 48h. Signal exceptionnel détecté par l\'IA. Opportunité de contenu et de business unique dans cette fenêtre temporelle.', time:'2h ago', link:'#' },
-  { _id:'2', title:'VR Gaming : explosion des ventes Q2 2025',            category:'gaming',   source:'Google', score:91, description:'Google Trends enregistre +220% sur les recherches VR en 3 jours. Meta Quest et Sony PSVR2 en rupture de stock dans 12 pays.', time:'4h ago', link:'#' },
-  { _id:'3', title:'Green Tech Startups : le boom silencieux',             category:'business', source:'Multi',  score:87, description:'VC funding pour les Green Tech en hausse de +180%. Tendance de fond confirmée par 5 sources indépendantes.', time:'6h ago', link:'#' },
-  { _id:'4', title:'Prompt Engineering devient un métier officiel',        category:'tech',     source:'Reddit', score:83, description:'LinkedIn recense 45K+ offres d\'emploi "Prompt Engineer" en 30 jours. Salaires moyens dépassant $120K aux US.', time:'8h ago', link:'#' },
-  { _id:'5', title:'Online Health Coaching : marché en ébullition',       category:'health',   source:'Google', score:79, description:'Recherches "online health coach" en hausse de +130% depuis janvier. Niche peu saturée avec fort potentiel.', time:'10h ago', link:'#' },
-  { _id:'6', title:'No-Code Tools : adoption record en 2025',             category:'tech',     source:'Reddit', score:76, description:'Bubble, Webflow et Glide totalisent 2M+ nouveaux utilisateurs en Q1. La démocratisation du développement s\'accélère.', time:'12h ago', link:'#' },
-];
+const MOCK = [];
 
 const FILTERS = ['All','Tech','Gaming','Business','Health','Education'];
 
@@ -36,8 +30,8 @@ export default function Feed() {
     try {
       const { data } = await api.get('/trends');
       if (Array.isArray(data) && data.length) setTrends(data);
-    } catch {
-      // fallback to mock
+    } catch (error) {
+      console.warn("Feed fetch failed", error.message);
     } finally {
       setLoading(false);
     }

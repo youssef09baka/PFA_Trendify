@@ -6,25 +6,9 @@ import {
   TrendingUp, Cpu, Zap, RefreshCw,
   BarChart3, Clock, Radio
 } from 'lucide-react';
+import { catTag, scoreColor } from '../utils/ui';
 
-const MOCK_TRENDS = [
-  { _id:'1', title:'AI Agents autonomes',    category:'tech',     source:'Reddit',  score:98, change:'+340%' },
-  { _id:'2', title:'VR Gaming 2025',          category:'gaming',   source:'Google',  score:91, change:'+220%' },
-  { _id:'3', title:'Green Tech Startups',     category:'business', source:'Multi',   score:87, change:'+180%' },
-  { _id:'4', title:'Prompt Engineering Jobs', category:'tech',     source:'Reddit',  score:83, change:'+155%' },
-  { _id:'5', title:'Online Health Coaching',  category:'health',   source:'Google',  score:79, change:'+130%' },
-];
-
-function scoreColor(s) {
-  if (s >= 90) return 'var(--y)';
-  if (s >= 80) return 'var(--b)';
-  return 'var(--g)';
-}
-
-function catTag(cat) {
-  const map = { tech:'tag-y', gaming:'tag-b', business:'tag-g', health:'tag-p', education:'tag-b', society:'tag-g' };
-  return map[cat] || 'tag-g';
-}
+const MOCK_TRENDS = [];
 
 export default function Dashboard() {
   const { user }            = useAuth();
@@ -35,10 +19,10 @@ export default function Dashboard() {
   const fetchTrends = async () => {
     setLoading(true);
     try {
-      const { data } = await api.get('/trends/top');
+      const { data } = await api.get('/trends');
       if (Array.isArray(data) && data.length) setTrends(data);
-    } catch {
-      // fallback to mock
+    } catch (error) {
+      console.warn("Dashboard trends fetch failed", error.message);
     } finally {
       setLoading(false);
       setLastUpdate(new Date());

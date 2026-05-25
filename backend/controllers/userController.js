@@ -2,12 +2,24 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("../middleware/asyncHandler");
+const { JWT_EXPIRATION, JWT_SECRET } = require("../config/config");
+
+const sanitizeString = (value) => String(value || "").trim();
+const validateEmail = (email) => typeof email === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+const validateName = (name) => typeof name === "string" && name.trim().length >= 2 && name.trim().length <= 50;
+const normalizePreferences = (preferences) => preferences
+  .filter((item) => typeof item === "string")
+  .map((item) => sanitizeString(item).slice(0, 50))
+  .filter(Boolean)
+  .slice(0, 20);
 
 const registerUser = asyncHandler(async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const name = sanitizeString(req.body.name);
+  const email = sanitizeString(req.body.email).toLowerCase();
+  const password = String(req.body.password || "");
 
-  if (!name || !email || !password) {
-    const error = new Error("Name, email and password are required");
+  if (!validateName(name) || !validateEmail(email) || password.length < 8 || password.length > 128) {
+    const error = new Error("Invalid registration data");
     error.statusCode = 400;
     return next(error);
   }
@@ -39,10 +51,11 @@ const registerUser = asyncHandler(async (req, res, next) => {
 });
 
 const loginUser = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
+  const email = sanitizeString(req.body.email).toLowerCase();
+  const password = String(req.body.password || "");
 
-  if (!email || !password) {
-    const error = new Error("Email and password are required");
+  if (!validateEmail(email) || password.length < 8 || password.length > 128) {
+    const error = new Error("Invalid email or password");
     error.statusCode = 400;
     return next(error);
   }
@@ -73,16 +86,23 @@ const loginUser = asyncHandler(async (req, res, next) => {
 });
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "7d"
+  return jwt.sign({ id }, JWT_SECRET, {
+    expiresIn: JWT_EXPIRATION
   });
 };
 
 const updatePreferences = asyncHandler(async (req, res, next) => {
-  const { preferences } = req.body;
+  const preferences = req.body.preferences;
 
   if (!Array.isArray(preferences)) {
     const error = new Error("Preferences must be an array");
+    error.statusCode = 400;
+    return next(error);
+  }
+
+  const sanitizedPreferences = normalizePreferences(preferences);
+  if (sanitizedPreferences.length === 0) {
+    const error = new Error("Preferences must contain at least one valid item");
     error.statusCode = 400;
     return next(error);
   }
@@ -94,7 +114,7 @@ const updatePreferences = asyncHandler(async (req, res, next) => {
     return next(error);
   }
 
-  user.preferences = preferences;
+  user.preferences = sanitizedPreferences;
   const updatedUser = await user.save();
 
   res.status(200).json({

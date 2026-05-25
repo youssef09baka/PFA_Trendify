@@ -1,45 +1,7 @@
 const axios = require("axios");
 
-// 🔥 ancienne version (utile en fallback)
-const generateAnalysis = async (trend) => {
-  try {
-    // 🔥 sécurité
-    if (!trend || !trend.title) {
-      return "No trend data available";
-    }
-
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: "openai/gpt-3.5-turbo",
-        messages: [
-          {
-            role: "user",
-            content: `Explain why this trend is growing and give one content idea: ${trend.title}`
-          }
-        ]
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        timeout: 7000 // 🔥 ajout
-      }
-    );
-
-    return response.data?.choices?.[0]?.message?.content || "No AI response";
-
-  } catch (error) {
-    console.error("AI ERROR:", error.response?.data || error.message);
-    return "AI analysis unavailable";
-  }
-};
-
-// 🔥 VERSION OPTIMISÉE (BATCH)
 const generateBatchAnalysis = async (trends) => {
   try {
-    // 🔥 construire prompt propre
     const prompt = trends.map((t, i) => 
       `${i + 1}. ${t.title}`
     ).join("\n");
@@ -78,8 +40,6 @@ ${prompt}
     );
 
     const text = response.data.choices[0].message.content;
-
-    // 🔥 SPLIT intelligent
     const parts = text.split(/\d+\.\s+/).filter(Boolean);
 
     return trends.map((trend, index) => {
@@ -98,7 +58,6 @@ ${prompt}
   } catch (error) {
     console.error("BATCH AI ERROR:", error.response?.data || error.message);
 
-    // 🔥 fallback propre
     return trends.map(trend => ({
       ...trend,
       analysis: "AI unavailable",
@@ -107,4 +66,4 @@ ${prompt}
   }
 };
 
-module.exports = { generateAnalysis, generateBatchAnalysis };
+module.exports = { generateBatchAnalysis };
