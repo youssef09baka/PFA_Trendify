@@ -4,8 +4,39 @@ const { generateBatchAnalysis } = require("../services/aiService");
 const { getRealTrends } = require("../services/data");
 const { ML_SERVICE_URL } = require("../config/config");
 
+<<<<<<< HEAD
+const getTrends = async (req, res) => {
+  try {
+    let trends = [
+      {
+        title: "AI tools for students",
+        popularity: 85,
+        growth: 20,
+        source: "reddit"
+      },
+      {
+        title: "Fitness at home",
+        popularity: 70,
+        growth: 15,
+        source: "google trends"
+      },
+      {
+        title: "Online business ideas 2026",
+        popularity: 90,
+        growth: 25,
+        source: "youtube"
+      },
+      {
+        title: "Work from home jobs",
+        popularity: 83,
+        growth: 22,
+        source: "google Trends"
+      }
+    ];
+=======
 const getTrends = asyncHandler(async (req, res, next) => {
   const rawTrends = await getRealTrends();
+>>>>>>> origin/main
 
   if (!Array.isArray(rawTrends)) {
     const error = new Error("Trend data format invalid");
@@ -72,6 +103,14 @@ const getTrends = asyncHandler(async (req, res, next) => {
       continue;
     }
 
+<<<<<<< HEAD
+    res.status(200).json(trends);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  } 
+};
+=======
     try {
       const mlResponse = await axios.post(
         ML_SERVICE_URL,
@@ -91,6 +130,7 @@ const getTrends = asyncHandler(async (req, res, next) => {
       trend.ml_prediction = "UNKNOWN";
     }
   }
+>>>>>>> origin/main
 
   const enrichedTrends = await generateBatchAnalysis(scoredTrends);
 
