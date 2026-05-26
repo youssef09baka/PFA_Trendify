@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { Zap, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import Button from '../components/Button';
+import Input from '../components/Input';
 
 export default function Login() {
   const [email, setEmail]     = useState('');
@@ -99,46 +101,38 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:12 }}>
-          <div style={{ position:'relative' }}>
-            <Mail size={15} style={{
-              position:'absolute', left:13, top:'50%', transform:'translateY(-50%)',
-              color:'var(--text3)', pointerEvents:'none',
-            }}/>
-            <input
-              className="input-field"
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              style={{ paddingLeft:38 }}
-            />
-          </div>
+          <Input
+            id="login-email"
+            type="email"
+            placeholder="Email"
+            aria-label="Adresse e-mail"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            icon={<Mail size={15} />}
+            helper="Utilisez l’adresse e-mail de votre compte."
+            required
+          />
 
-          <div style={{ position:'relative' }}>
-            <Lock size={15} style={{
-              position:'absolute', left:13, top:'50%', transform:'translateY(-50%)',
-              color:'var(--text3)', pointerEvents:'none',
-            }}/>
-            <input
-              className="input-field"
-              type="password"
-              placeholder="Mot de passe"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              style={{ paddingLeft:38 }}
-            />
-          </div>
+          <Input
+            id="login-password"
+            type="password"
+            placeholder="Mot de passe"
+            aria-label="Mot de passe"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            icon={<Lock size={15} />}
+            helper="Votre mot de passe reste confidentiel."
+            required
+          />
 
-          <button
+          <Button
             type="submit"
-            className="btn-primary"
+            variant="primary"
             disabled={loading}
-            style={{ width:'100%', justifyContent:'center', marginTop:6, padding:'13px', fontSize:14, opacity: loading ? .7 : 1 }}
+            style={{ width: '100%', justifyContent: 'center', marginTop: 6, padding: 13, fontSize: 14, opacity: loading ? 0.7 : 1 }}
           >
-            {loading ? 'Connexion...' : <><span>Se connecter</span><ArrowRight size={15}/></>}
-          </button>
+            {loading ? 'Connexion...' : <><span>Se connecter</span><ArrowRight size={15} /></>}
+          </Button>
         </form>
 
         <div style={{

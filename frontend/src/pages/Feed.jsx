@@ -14,27 +14,10 @@ import {
 } from 'lucide-react';
 import Button from '../components/Button';
 import Card from '../components/Card';
+import EmptyState from '../components/EmptyState';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 import MediaBox from '../components/MediaBox';
-
-function formatNum(n) {
-  if (!n && n !== 0) return '—';
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-  return String(n);
-}
-
-function Toast({ msg, onClose }) {
-  useEffect(() => {
-    const timer = setTimeout(onClose, 2200);
-    return () => clearTimeout(timer);
-  }, [msg, onClose]);
-
-  return (
-    <div style={{ position: 'fixed', bottom: 28, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, background: 'var(--bg3)', border: '1px solid var(--glass-b)', borderRadius: 12, padding: '10px 20px', fontSize: 13, fontWeight: 600, color: 'var(--text)', boxShadow: '0 8px 32px rgba(0,0,0,0.25)', whiteSpace: 'nowrap', animation: 'fadeUp .2s ease' }}>
-      {msg}
-    </div>
-  );
-}
-
+import Input from '../components/Input';
 function SavedDrawer({ savedIds, trends, onClose, onRemove }) {
   const list = trends.filter((t) => savedIds.includes(t.id || t._id));
 
@@ -53,10 +36,12 @@ function SavedDrawer({ savedIds, trends, onClose, onRemove }) {
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
           {list.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '48px 20px', color: 'var(--text3)' }}>
-              <Bookmark size={28} style={{ marginBottom: 10, opacity: 0.35 }} />
-              <p style={{ fontSize: 13 }}>Aucun signal sauvegardé</p>
-            </div>
+            <EmptyState
+              icon={<Bookmark size={32} />}
+              title="Aucun signal sauvegardé"
+              subtitle="Enregistrez un signal depuis le flux pour le retrouver ici plus tard."
+              action={<Button variant="ghost" onClick={onClose}>Fermer</Button>}
+            />
           ) : list.map((t) => {
             const id = t.id || t._id;
             return (
@@ -119,12 +104,8 @@ function FeedCard({ trend, isSaved, onSave, onHide, onView, onAnalyze }) {
         </div>
 
         <div className="feed-card-foot">
-          <button type="button" className="feed-action-text" onClick={() => onAnalyze(trend)}>
-            ✨ Analyser avec IA
-          </button>
-          <button type="button" className="feed-action-text" onClick={() => onHide(id)}>
-            Masquer
-          </button>
+          <Button variant="ghost" onClick={() => onAnalyze(trend)} className="feed-action-text">✨ Analyser avec IA</Button>
+          <Button variant="ghost" onClick={() => onHide(id)} className="feed-action-text">Masquer</Button>
         </div>
       </div>
     </article>
@@ -297,24 +278,19 @@ export default function Feed() {
           <section className="feed-tools">
             <div className="feed-search">
               <Search size={16} />
-              <input
-                className="input-field"
+              <Input
+                id="feed-search"
                 type="search"
+                aria-label="Recherche de tendances"
                 placeholder="Recherche par mot-clé, source ou catégorie"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
+                helper="Appuyez sur Entrée pour filtrer le flux."
               />
             </div>
             <div className="feed-chip-row">
               {sources.map((source) => (
-                <button
-                  key={source}
-                  type="button"
-                  className={filter === source ? 'feed-chip active' : 'feed-chip'}
-                  onClick={() => setFilter(source)}
-                >
-                  {source}
-                </button>
+                <Button key={source} type="button" variant={filter === source ? 'primary' : 'ghost'} className={filter === source ? 'feed-chip active' : 'feed-chip'} onClick={() => setFilter(source)} style={{ padding: '6px 12px' }}>{source}</Button>
               ))}
             </div>
           </section>
@@ -328,13 +304,16 @@ export default function Feed() {
 
           <div style={{ display: 'grid', gap: 18, marginTop: 14 }}>
             {loading ? (
-                [1, 2, 3].map((i) => <div key={i} className="skeleton" style={{ height: 260, borderRadius: 20 }} />)
+                [1, 2, 3].map((i) => (
+                  <LoadingSkeleton key={i} height="260px" radius={20} />
+                ))
               ) : !filteredTrends.length ? (
-              <div className="feed-empty">
-                <Filter size={28} style={{ marginBottom: 12, opacity: 0.35 }} />
-                <p>Aucune tendance trouvée pour ces filtres.</p>
-                {hidden.length > 0 && <Button variant="ghost" onClick={() => setHidden([])} style={{ padding: '10px 18px', marginTop: 12 }}>Réafficher les tendances masquées</Button>}
-              </div>
+              <EmptyState
+                icon={<Filter size={28} />}
+                title="Aucune tendance trouvée"
+                subtitle="Essayez un autre mot-clé ou changez la source pour explorer plus de signaux."
+                action={hidden.length > 0 ? <Button variant="ghost" onClick={() => setHidden([])}>Réafficher les tendances masquées</Button> : null}
+              />
             ) : filteredTrends.map((trend) => (
               <FeedCard
                 key={trend._id || trend.title}

@@ -5,6 +5,8 @@ import api from '../api/axios';
 import { ArrowLeft, ExternalLink, Sparkles, Clock, ArrowRight } from 'lucide-react';
 import MediaBox from '../components/MediaBox';
 import Button from '../components/Button';
+import EmptyState from '../components/EmptyState';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 
 
 export default function TrendDetail() {
@@ -89,9 +91,7 @@ export default function TrendDetail() {
         <div className="detail-page-shell">
           <div className="detail-header">
             <div className="detail-title-group">
-              <button type="button" className="detail-back" onClick={() => navigate('/feed')}>
-                <ArrowLeft size={16} /> Retour au feed
-              </button>
+              <Button type="button" variant="ghost" className="detail-back" onClick={() => navigate('/feed')} icon={<ArrowLeft size={16} />}>Retour au feed</Button>
               <div className="eyebrow">Signal de recherche</div>
               <h1>{trend?.title || 'Chargement du signal...'}</h1>
               <p className="detail-intro">{summary}</p>
@@ -99,9 +99,16 @@ export default function TrendDetail() {
 
             <div className="detail-actions">
               {trend?.link && (
-                <a href={trend.link} target="_blank" rel="noreferrer" className="btn-ghost" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  Voir la source <ExternalLink size={14} />
-                </a>
+                <Button
+                  href={trend.link}
+                  variant="ghost"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="detail-source-link"
+                  icon={<ExternalLink size={14} />}
+                >
+                  Voir la source
+                </Button>
               )}
               <Button type="button" variant="primary" onClick={handleToggleSave} disabled={saving} style={{ opacity: saving ? 0.8 : 1 }}>
                 {trend?.isSaved ? 'Retirer' : 'Sauvegarder'}
@@ -111,20 +118,22 @@ export default function TrendDetail() {
 
           {showLoading ? (
             <div className="detail-loading-grid">
-              <div className="skeleton" style={{ height: 420, borderRadius: 22 }} />
-              <div className="skeleton" style={{ height: 28, width: '45%', borderRadius: 12 }} />
-              <div className="skeleton" style={{ height: 18, width: '60%', borderRadius: 12 }} />
-              <div className="skeleton" style={{ height: 160, borderRadius: 22 }} />
+              <LoadingSkeleton height="420px" radius={22} />
+              <LoadingSkeleton height="28px" width="45%" radius={12} />
+              <LoadingSkeleton height="18px" width="60%" radius={12} />
+              <LoadingSkeleton height="160px" radius={22} />
             </div>
           ) : showError ? (
-            <div className="detail-error-card">
-              <div className="detail-error-title">{error || 'Impossible de charger la tendance.'}</div>
-              <p className="detail-error-copy">Le lien peut être expiré ou cette tendance n’existe plus.</p>
-                <div className="detail-error-actions">
-                <Button variant="primary" onClick={() => navigate('/feed')}>Retour au feed</Button>
-                <Button variant="ghost" onClick={() => window.location.reload()}>Réessayer</Button>
-              </div>
-            </div>
+            <EmptyState
+              title={error || 'Impossible de charger la tendance.'}
+              subtitle="Le lien peut être expiré ou cette tendance n’existe plus."
+              action={
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <Button variant="primary" onClick={() => navigate('/feed')}>Retour au feed</Button>
+                  <Button variant="ghost" onClick={() => window.location.reload()}>Réessayer</Button>
+                </div>
+              }
+            />
           ) : (
             trend && (
               <div className="detail-layout">
@@ -225,9 +234,9 @@ export default function TrendDetail() {
                         <small>Points de repère pour une veille plus rapide.</small>
                       </div>
                     </div>
-                    <button type="button" className="btn-outline" onClick={() => setAiOpen((value) => !value)}>
+                    <Button type="button" variant="ghost" onClick={() => setAiOpen((value) => !value)}>
                       {aiOpen ? 'Masquer l’analyse IA' : 'Afficher l’analyse IA'}
-                    </button>
+                    </Button>
                     {aiOpen && (
                       <div className="ai-result">
                         <p>{trend.analysis || 'Aucune analyse fournie par le flux actuel. Réessayez plus tard après la génération de l’IA.'}</p>

@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
+import Button from '../components/Button';
+import Input from '../components/Input';
+import EmptyState from '../components/EmptyState';
+import LoadingSkeleton from '../components/LoadingSkeleton';
 import { Search, Zap, RefreshCw, ArrowRight } from 'lucide-react';
 
 function formatNum(n) {
@@ -166,21 +170,18 @@ export default function Dashboard() {
                   Recherche dans votre espace
                 </label>
                 <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <div style={{ position: 'relative', flex: 1 }}>
-                    <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
-                    <input
+                  <div style={{ flex: 1 }}>
+                    <Input
                       id="dashboard-search-input"
-                      className="input-field search-input"
-                      type="text"
+                      aria-label="Rechercher dans l'espace"
                       placeholder="Rechercher un thème, une source ou une catégorie"
                       value={search}
                       onChange={(event) => setSearch(event.target.value)}
-                      style={{ paddingLeft: 42 }}
+                      icon={<Search size={16} />}
+                      helper="Appuyez sur Entrée pour enregistrer cette recherche."
                     />
                   </div>
-                  <button type="submit" className="btn-primary" style={{ padding: '12px 18px' }}>
-                    Rechercher
-                  </button>
+                  <Button type="submit" variant="primary" style={{ padding: '12px 18px' }}>Rechercher</Button>
                 </div>
               </form>
             </div>
@@ -193,20 +194,25 @@ export default function Dashboard() {
                   <h2>Sauvegardés</h2>
                   <p>Accès rapide aux signaux que vous suivez.</p>
                 </div>
-                <button type="button" className="btn-outline" onClick={fetchSaved} style={{ fontSize: 12, padding: '8px 14px' }}>
-                  Actualiser
-                </button>
+                <Button type="button" variant="ghost" onClick={fetchSaved} style={{ fontSize: 12, padding: '8px 14px' }}>Actualiser</Button>
               </div>
 
               <div className="workspace-panel-content">
                 {loading ? (
                   <div style={{ display: 'grid', gap: 12 }}>
                     {[1, 2, 3].map((item) => (
-                      <div key={item} className="workspace-item" style={{ minHeight: 78 }} />
+                      <div key={item} className="workspace-item" style={{ minHeight: 78, padding: 18, display: 'grid', gap: 10, background: 'var(--glass)', border: '1px solid var(--glass-b)', borderRadius: 16 }}>
+                        <LoadingSkeleton height="14px" radius={8} />
+                        <LoadingSkeleton height="12px" width="60%" radius={8} />
+                      </div>
                     ))}
                   </div>
                 ) : savedTrends.length === 0 ? (
-                  <div className="workspace-empty">Aucune tendance sauvegardée pour le moment.</div>
+                  <EmptyState
+                    title="Aucune tendance sauvegardée"
+                    subtitle="Découvrez des signaux et enregistrez ceux qui vous intéressent pour les retrouver ici."
+                    action={<Button type="button" variant="ghost" onClick={fetchSaved}>Rafraîchir</Button>}
+                  />
                 ) : (
                   savedTrends.slice(0, 3).map((trend) => (
                     <a
@@ -242,9 +248,7 @@ export default function Dashboard() {
 
                 <div className="workspace-chip-row">
                   {topCategories.map((category) => (
-                    <button key={category.category} type="button" className="chip">
-                      {category.category} • {category.count}
-                    </button>
+                    <Button key={category.category} type="button" variant="ghost" className="chip" onClick={() => setFilterSource(category.category.toLowerCase())} style={{ padding: '9px 14px' }}>{category.category} • {category.count}</Button>
                   ))}
                 </div>
 
@@ -276,14 +280,7 @@ export default function Dashboard() {
               <div className="workspace-panel-content">
                 <div className="workspace-chip-row">
                   {sourceOptions.map((source) => (
-                    <button
-                      key={source.key}
-                      type="button"
-                      className={source.key === filterSource ? 'chip active' : 'chip'}
-                      onClick={() => setFilterSource(source.key)}
-                    >
-                      {source.label}
-                    </button>
+                    <Button key={source.key} type="button" variant={source.key === filterSource ? 'primary' : 'ghost'} className={source.key === filterSource ? 'chip active' : 'chip'} onClick={() => setFilterSource(source.key)} style={{ padding: '9px 14px' }}>{source.label}</Button>
                   ))}
                 </div>
 
@@ -294,9 +291,7 @@ export default function Dashboard() {
                     </div>
                     <div className="recent-search">
                       {recentSearches.map((value) => (
-                        <button key={value} type="button" onClick={() => handleRecentSearch(value)}>
-                          {value}
-                        </button>
+                        <Button key={value} type="button" variant="ghost" onClick={() => handleRecentSearch(value)} style={{ padding: '8px 14px' }}>{value}</Button>
                       ))}
                     </div>
                   </div>
@@ -334,15 +329,7 @@ export default function Dashboard() {
                   ou d’une opportunité concrète.
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleAnalyze}
-                  disabled={aiLeft <= 0}
-                  className="btn-primary"
-                  style={{ width: '100%' }}
-                >
-                  Analyser avec IA
-                </button>
+                <Button type="button" variant="primary" onClick={handleAnalyze} disabled={aiLeft <= 0} style={{ width: '100%' }}>Analyser avec IA</Button>
 
                 {analysisMessage && (
                   <div style={{ fontSize: 13, color: 'var(--text3)' }}>{analysisMessage}</div>

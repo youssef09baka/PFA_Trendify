@@ -10,6 +10,9 @@ export default function Button({
   iconOnly = false,
   loading = false,
   disabled = false,
+  href,
+  target,
+  rel,
   ...props
 }) {
   const base = 'btn';
@@ -23,6 +26,31 @@ export default function Button({
   }
 
   const cls = `${base} ${kind} ${className}`.trim();
+  const content = loading ? (
+    <span style={{ opacity: 0.9 }}>Chargement…</span>
+  ) : iconOnly ? (
+    icon || null
+  ) : (
+    <>
+      {icon ? <span style={{ display: 'inline-flex', marginRight: 8 }}>{icon}</span> : null}
+      <span>{children}</span>
+    </>
+  );
+
+  if (href) {
+    return (
+      <a
+        href={!disabled ? href : undefined}
+        target={target}
+        rel={target === '_blank' ? rel || 'noreferrer noopener' : rel}
+        className={cls}
+        aria-disabled={disabled || loading}
+        {...props}
+      >
+        {content}
+      </a>
+    );
+  }
 
   return (
     <button
@@ -33,16 +61,7 @@ export default function Button({
       aria-busy={loading}
       {...props}
     >
-      {loading ? (
-        <span style={{ opacity: 0.9 }}>Chargement…</span>
-      ) : iconOnly ? (
-        icon || null
-      ) : (
-        <>
-          {icon ? <span style={{ display: 'inline-flex', marginRight: 8 }}>{icon}</span> : null}
-          <span>{children}</span>
-        </>
-      )}
+      {content}
     </button>
   );
 }
