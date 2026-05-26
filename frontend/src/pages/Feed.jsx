@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
-import { enrichTrends } from '../services/aiEnrich';
 import {
   TrendingUp, Bookmark, BookmarkCheck,
   ThumbsDown, ExternalLink, Zap, RefreshCw,
