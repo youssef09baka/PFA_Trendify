@@ -9,6 +9,28 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const formatAuthError = (err, fallback) => {
+    if (!err?.response) {
+      return 'Serveur indisponible. Veuillez réessayer plus tard.';
+    }
+
+    const status = err.response.status;
+    const serverMessage = err.response.data?.message;
+    const validationErrors = err.response.data?.errors;
+    const details = Array.isArray(validationErrors) ? validationErrors.join(' ') : null;
+
+    if (status === 409) {
+      return serverMessage || 'Un compte avec cet e-mail existe déjà.';
+    }
+    if (status === 422) {
+      return details || serverMessage || 'Données invalides. Vérifiez le formulaire.';
+    }
+    if (status === 500) {
+      return 'Erreur serveur. Réessayez plus tard.';
+    }
+    return serverMessage || details || fallback;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -17,7 +39,7 @@ export default function Signup() {
       await api.post('/users/signup', form);
       navigate('/login');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de l\'inscription.');
+      setError(formatAuthError(err, 'Erreur lors de l\'inscription.'));
     } finally {
       setLoading(false);
     }
@@ -72,7 +94,7 @@ export default function Signup() {
         </div>
 
         <h1 style={{ fontSize:24, fontWeight:800, letterSpacing:'-.5px', marginBottom:6 }}>
-          Join TrendAI
+          Rejoindre TrendAI
         </h1>
         <p style={{ fontSize:12, color:'var(--text3)', marginBottom:28 }}>
           L'algorithme qui devance demain.
@@ -92,15 +114,15 @@ export default function Signup() {
         <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:12 }}>
           <div style={{ position:'relative' }}>
             <User size={15} style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:'var(--text3)', pointerEvents:'none' }}/>
-            <input className="input-field" type="text" placeholder="Full name" onChange={set('name')} required style={{ paddingLeft:38 }}/>
+            <input className="input-field" type="text" placeholder="Nom complet" onChange={set('name')} required style={{ paddingLeft:38 }}/>
           </div>
           <div style={{ position:'relative' }}>
             <Mail size={15} style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:'var(--text3)', pointerEvents:'none' }}/>
-            <input className="input-field" type="email" placeholder="Email address" onChange={set('email')} required style={{ paddingLeft:38 }}/>
+            <input className="input-field" type="email" placeholder="Email" onChange={set('email')} required style={{ paddingLeft:38 }}/>
           </div>
           <div style={{ position:'relative' }}>
             <Lock size={15} style={{ position:'absolute', left:13, top:'50%', transform:'translateY(-50%)', color:'var(--text3)', pointerEvents:'none' }}/>
-            <input className="input-field" type="password" placeholder="Create a password" onChange={set('password')} required style={{ paddingLeft:38 }}/>
+            <input className="input-field" type="password" placeholder="Créer un mot de passe" onChange={set('password')} required style={{ paddingLeft:38 }}/>
           </div>
 
           <button
@@ -109,7 +131,7 @@ export default function Signup() {
             disabled={loading}
             style={{ width:'100%', justifyContent:'center', marginTop:6, padding:'13px', fontSize:14, opacity: loading ? .7 : 1 }}
           >
-            {loading ? 'Creating account...' : <><span>Launch the experience</span><ArrowRight size={15}/></>}
+            {loading ? 'Création du compte...' : <><span>Créer un compte</span><ArrowRight size={15}/></>}
           </button>
         </form>
 
@@ -118,8 +140,8 @@ export default function Signup() {
           borderTop:'1px solid var(--divider)',
           textAlign:'center', fontSize:12, color:'var(--text3)',
         }}>
-          Already a member?{' '}
-          <Link to="/login" style={{ color:'var(--y)', fontWeight:700 }}>Sign in</Link>
+          Déjà membre ?{' '}
+          <Link to="/login" style={{ color:'var(--y)', fontWeight:700 }}>Se connecter</Link>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
 import { Cpu, Gamepad2, Briefcase, GraduationCap, HeartPulse, Globe, Rocket, Music, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
@@ -16,20 +17,38 @@ const CATEGORIES = [
 ];
 
 export default function Preferences() {
-  const [selected, setSelected] = useState([]);
+  const { user } = useAuth();
+  const [selected, setSelected] = useState(user?.preferences || []);
   const [loading,  setLoading]  = useState(false);
+  const [message, setMessage] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.preferences && Array.isArray(user.preferences)) {
+      setSelected(user.preferences);
+    }
+  }, [user]);
 
   const toggle = id => setSelected(p => p.includes(id) ? p.filter(x=>x!==id) : [...p, id]);
 
   const handleSave = async () => {
-    if (!selected.length) return;
+    if (!selected.length) {
+      setMessage('Choisissez au moins une catégorie avant de sauvegarder.');
+      return;
+    }
+
     setLoading(true);
+    setMessage('');
     try {
-      await api.put('/users/preferences', { preferences: selected });
-      navigate('/dashboard');
-    } catch { alert('Erreur lors de la sauvegarde.'); }
-    finally { setLoading(false); }
+      const { data } = await api.put('/users/preferences', { preferences: selected });
+      setSelected(data.preferences || selected);
+      setMessage('Préférences enregistrées. Redirection vers le dashboard...');
+      setTimeout(() => navigate('/dashboard'), 700);
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Erreur lors de la sauvegarde.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const pct = Math.round((selected.length / CATEGORIES.length) * 100);
@@ -45,6 +64,11 @@ export default function Preferences() {
             <div style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'5px 14px', borderRadius:20, border:'1px solid var(--y-border)', background:'var(--y-dim)', fontSize:11, fontWeight:700, color:'var(--y)', letterSpacing:'.5px', textTransform:'uppercase', marginBottom:20 }}>
               <Sparkles size={13}/> Personnalisation IA
             </div>
+            {message && (
+              <div style={{ margin:'0 auto 18px', maxWidth:520, color:'var(--text)', fontSize:13, padding:'12px 16px', borderRadius:12, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)' }}>
+                {message}
+              </div>
+            )}
             <h1 style={{ fontSize:'clamp(26px,3vw,38px)', fontWeight:800, letterSpacing:'-1.2px', color:'var(--text)', marginBottom:12 }}>
               Choisissez vos domaines d'intérêt
             </h1>

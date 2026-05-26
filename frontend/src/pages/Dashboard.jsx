@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
@@ -27,22 +28,8 @@ function srcEmoji(s) {
   return '📡';
 }
 
-/* ─── MINI SPARKLINE ─── */
-function Sparkline({ color }) {
-  const points = Array.from({length:8}, () => 30 + Math.random()*60);
-  const max = Math.max(...points);
-  const w = 80, h = 32;
-  const pts = points.map((p,i) => `${(i/(points.length-1))*w},${h-(p/max)*h}`).join(' ');
-  return (
-    <svg width={w} height={h} style={{ overflow:'visible' }}>
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" opacity=".8"/>
-      <polyline points={`0,${h} ${pts} ${w},${h}`} fill={color} fillOpacity=".08" stroke="none"/>
-    </svg>
-  );
-}
-
 /* ─── METRIC CARD ─── */
-function MetricCard({ icon, label, value, change, up, color, sparkColor }) {
+function MetricCard({ icon, label, value, description, color }) {
   return (
     <div style={{ background:'var(--glass)', border:'1px solid var(--glass-b)', borderRadius:16, padding:'20px', display:'flex', flexDirection:'column', gap:12, transition:'var(--transition)' }}
       onMouseEnter={e=>e.currentTarget.style.borderColor=color==='var(--y)'?'rgba(255,220,80,0.3)':color==='var(--b)'?'rgba(96,165,250,0.3)':'rgba(74,222,128,0.3)'}
@@ -52,15 +39,12 @@ function MetricCard({ icon, label, value, change, up, color, sparkColor }) {
         <div style={{ width:36,height:36,borderRadius:10,background:`rgba(${color==='var(--y)'?'255,220,80':color==='var(--b)'?'96,165,250':'74,222,128'},0.1)`,display:'flex',alignItems:'center',justifyContent:'center',color }}>
           {icon}
         </div>
-        <span style={{ fontSize:9,fontWeight:700,padding:'3px 8px',borderRadius:5, background: up?'rgba(74,222,128,0.1)':'rgba(248,113,113,0.1)', color: up?'#4ADE80':'#F87171' }}>
-          {up?'↑':'↓'} {change}
-        </span>
       </div>
       <div>
         <div style={{ fontSize:28, fontWeight:800, letterSpacing:'-1.5px', color, lineHeight:1, fontFamily:'var(--mono)' }}>{value}</div>
         <div style={{ fontSize:11, color:'var(--text3)', marginTop:5 }}>{label}</div>
       </div>
-      <Sparkline color={sparkColor}/>
+      {description ? <div style={{ fontSize:12, color:'var(--text3)', lineHeight:1.5 }}>{description}</div> : null}
     </div>
   );
 }
@@ -75,8 +59,10 @@ export default function Dashboard() {
   async function fetchTrends() {
     setLoading(true);
     try {
-      const { data } = await api.get('/trends');
-      if (Array.isArray(data) && data.length) setTrends(data);
+      const { data } = await api.get('/feed');
+      if (data && data.items && Array.isArray(data.items) && data.items.length) {
+        setTrends(data.items);
+      }
     } catch (e) { console.error(e); }
     finally { setLoading(false); setLastUpdate(new Date()); }
   }
@@ -87,8 +73,12 @@ export default function Dashboard() {
     : trends.filter(t => (t.source||'').toLowerCase().includes(activeTab));
 
   const topTrend = trends[0];
-  const avgScore = trends.length ? Math.round(trends.reduce((a,t)=>a+t.score,0)/trends.length) : 0;
-  const totalPop = trends.reduce((a,t)=>a+(t.popularity||0),0);
+  const trendsCount = trends.length;
+  const avgScore = trendsCount ? Math.round(trends.reduce((a,t)=>a+t.score,0)/trendsCount) : 0;
+  const totalPop = trendsCount ? trends.reduce((a,t)=>a+(t.popularity||0),0) : 0;
+  const highPotential = trends.filter(t => typeof t.score === 'number' && t.score > 80).length;
+  const sourcesCount = new Set(trends.map(t => t.source).filter(Boolean)).size;
+  const categoriesCount = new Set(trends.map(t => t.category).filter(Boolean)).size;
 
   return (
     <div className="page-layout">
@@ -100,12 +90,12 @@ export default function Dashboard() {
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:28, flexWrap:'wrap', gap:12 }}>
             <div>
               <h1 style={{ fontSize:24, fontWeight:800, letterSpacing:'-.8px', marginBottom:5, color:'var(--text)' }}>
-                Intelligence Dashboard
+                Tableau de bord
               </h1>
               <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:12, color:'var(--text3)', flexWrap:'wrap' }}>
                 <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-                  <div style={{ width:7,height:7,borderRadius:'50%',background:'#4ADE80',animation:'pulse 1.5s ease-in-out infinite' }}/>
-                  <span style={{ color:'#4ADE80', fontWeight:600 }}>Live</span>
+                  <div style={{ width:7,height:7,borderRadius:'50%',background:'#4ADE80' }}/>
+                  <span style={{ color:'#4ADE80', fontWeight:600 }}>Données du feed</span>
                 </div>
                 · Mis à jour {lastUpdate.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}
                 {user && <> · <span style={{ color:'var(--y)', fontWeight:600 }}>👋 {user.name || user.email?.split('@')[0]}</span></>}
@@ -118,11 +108,11 @@ export default function Dashboard() {
           </div>
 
           {/* ── METRICS ── */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:14, marginBottom:24 }}>
-            <MetricCard icon={<TrendingUp size={16}/>} label="Trends détectées"   value={formatNum(trends.length*47+200)} change="18 today"  up={true}  color="var(--y)" sparkColor="#FFDC50"/>
-            <MetricCard icon={<Cpu size={16}/>}         label="Score moyen IA"     value={avgScore||94}                     change="2.1%"     up={true}  color="var(--b)" sparkColor="#60A5FA"/>
-            <MetricCard icon={<Flame size={16}/>}        label="Popularité totale"  value={formatNum(totalPop||18400)}       change="vs hier"  up={true}  color="#4ADE80"  sparkColor="#4ADE80"/>
-            <MetricCard icon={<Zap size={16}/>}          label="High potential"     value={trends.filter(t=>t.score>80).length||31} change="3" up={false} color="var(--y)" sparkColor="#FFDC50"/>
+                  <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:14, marginBottom:24 }}>
+            <MetricCard icon={<TrendingUp size={16}/>} label="Tendances détectées"   value={trendsCount !== null ? formatNum(trendsCount) : 'N/A'} description={trendsCount !== null ? 'Basé sur les tendances du feed' : 'Aucune donnée disponible'} color="var(--y)"/>
+            <MetricCard icon={<Cpu size={16}/>}         label="Score moyen IA"     value={avgScore !== null ? avgScore : 'N/A'}                     description={avgScore !== null ? 'Calculé sur les tendances actuelles' : 'Aucune donnée de score'} color="var(--b)"/>
+            <MetricCard icon={<Flame size={16}/>}        label="Popularité totale"  value={totalPop !== null ? formatNum(totalPop) : 'N/A'}       description={totalPop !== null ? 'Somme des signaux disponibles' : 'Aucune donnée de popularité'} color="#4ADE80"/>
+            <MetricCard icon={<Zap size={16}/>}          label="Haute opportunité"  value={trendsCount !== null ? formatNum(highPotential) : 'N/A'} description={trendsCount !== null ? 'Score supérieur à 80' : 'Aucune donnée'} color="var(--y)"/>
           </div>
 
           {/* ── MAIN GRID ── */}
@@ -134,7 +124,7 @@ export default function Dashboard() {
               <div style={{ padding:'18px 20px', borderBottom:'1px solid var(--divider)', display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:10 }}>
                 <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                   <BarChart2 size={16} color="var(--y)"/>
-                  <span style={{ fontSize:14, fontWeight:700, color:'var(--text)' }}>Top Trends</span>
+                  <span style={{ fontSize:14, fontWeight:700, color:'var(--text)' }}>Top tendances</span>
                 </div>
                 {/* Tabs */}
                 <div style={{ display:'flex', gap:4 }}>
@@ -148,7 +138,7 @@ export default function Dashboard() {
 
               {/* Column headers */}
               <div style={{ display:'grid', gridTemplateColumns:'28px 1fr 70px 70px 60px', gap:12, padding:'10px 20px', borderBottom:'1px solid var(--divider)' }}>
-                {['#','Trend','Popularité','Croissance','Score'].map(h => (
+                {['#','Tendance','Popularité','Croissance','Score'].map(h => (
                   <span key={h} style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:1.5, color:'var(--text3)' }}>{h}</span>
                 ))}
               </div>
@@ -163,9 +153,8 @@ export default function Dashboard() {
               ) : filtered.map((t, i) => {
                 const sc = scoreColor(t.score);
                 return (
-                  <div key={t._id||t.title} style={{ display:'grid', gridTemplateColumns:'28px 1fr 70px 70px 60px', gap:12, alignItems:'center', padding:'12px 20px', borderBottom:'1px solid var(--divider)', transition:'var(--transition)', cursor:'pointer' }}
-                    onMouseEnter={e=>e.currentTarget.style.background='var(--glass)'}
-                    onMouseLeave={e=>e.currentTarget.style.background='transparent'}
+                  <div key={t._id||t.title} className="table-row" style={{ display:'grid', gridTemplateColumns:'28px 1fr 70px 70px 60px', gap:12, alignItems:'center', padding:'12px 20px', borderBottom:'1px solid var(--divider)', transition:'var(--transition)', cursor:'pointer' }}
+                    onClick={() => navigate(`/feed/${t._id || t.id}`)}
                   >
                     <span style={{ fontFamily:'var(--mono)', fontSize:11, color:'var(--text3)', fontWeight:600 }}>
                       {String(i+1).padStart(2,'0')}
@@ -197,7 +186,7 @@ export default function Dashboard() {
               {topTrend && (
                 <div style={{ background:'linear-gradient(135deg,rgba(255,220,80,0.08),rgba(96,165,250,0.05))', border:'1px solid var(--y-border)', borderRadius:16, padding:18 }}>
                   <div style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:1.5, color:'var(--y)', marginBottom:12, display:'flex', alignItems:'center', gap:6 }}>
-                    <Flame size={12}/> Trend #1
+                    <Flame size={12}/> Tendance #1
                   </div>
                   <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', lineHeight:1.4, marginBottom:12 }}>{topTrend.title}</p>
                   <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
@@ -222,15 +211,21 @@ export default function Dashboard() {
                 ].map(row => {
                   const count = trends.filter(t=>(t.source||'').toLowerCase().includes(row.src.toLowerCase())).length;
                   const pct = trends.length ? (count/trends.length)*100 : 0;
+                  const hasCount = count > 0;
                   return (
                     <div key={row.src} style={{ marginBottom:12 }}>
                       <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, color:'var(--text2)', marginBottom:5 }}>
                         <span>{row.emoji} {row.src}</span>
-                        <span style={{ fontFamily:'var(--mono)', fontWeight:700, color:row.c }}>{count}</span>
+                        <span style={{ fontFamily:'var(--mono)', fontWeight:700, color:row.c }}>{hasCount ? count : '0'}</span>
                       </div>
                       <div style={{ height:4, borderRadius:2, background:'var(--glass-b)' }}>
-                        <div style={{ height:'100%', borderRadius:2, width:`${pct||30}%`, background:row.c, transition:'width 1s ease' }}/>
+                        <div style={{ height:'100%', borderRadius:2, width: hasCount ? `${Math.max(pct, 10)}%` : '100%', background: hasCount ? row.c : 'rgba(148,163,184,0.24)', transition:'width 1s ease' }}/>
                       </div>
+                      {!hasCount && (
+                        <div style={{ marginTop:8, fontSize:11, color:'var(--text3)' }}>
+                          Aucun signal {row.src.toLowerCase()} n'a encore été collecté.
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -238,18 +233,16 @@ export default function Dashboard() {
 
               {/* Last update */}
               <div style={{ background:'var(--glass)', border:'1px solid var(--glass-b)', borderRadius:16, padding:18 }}>
-                <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:1.5, color:'var(--text3)', marginBottom:14 }}>Statut système</div>
+                <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:1.5, color:'var(--text3)', marginBottom:14 }}>Résumé du feed</div>
                 {[
-                  { label:'Reddit crawl',  val:'2 min ago',  ok:true },
-                  { label:'Google sync',   val:'5 min ago',  ok:true },
-                  { label:'AI scoring',    val:'Active',     ok:true },
-                  { label:'MongoDB',       val:'Connected',  ok:true },
+                  { label:'Tendances totales', val: trendsCount ? formatNum(trendsCount) : 'N/A' },
+                  { label:'Sources actives', val: sourcesCount ? sourcesCount : '0' },
+                  { label:'Catégories détectées', val: categoriesCount ? categoriesCount : '0' },
+                  { label:'Dernière actualisation', val: lastUpdate ? lastUpdate.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '–' },
                 ].map(row => (
                   <div key={row.label} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'7px 0', borderBottom:'1px solid var(--divider)' }}>
-                    <div style={{ display:'flex', alignItems:'center', gap:7, fontSize:11, color:'var(--text2)' }}>
-                      <Clock size={11} color="var(--text3)"/> {row.label}
-                    </div>
-                    <span style={{ fontSize:11, fontWeight:700, color: row.ok?'#4ADE80':'#F87171' }}>{row.val}</span>
+                    <span style={{ fontSize:12, color:'var(--text2)' }}>{row.label}</span>
+                    <span style={{ fontSize:12, fontWeight:700, color:'var(--text)' }}>{row.val}</span>
                   </div>
                 ))}
               </div>

@@ -12,6 +12,28 @@ export default function Login() {
   const { login }  = useAuth();
   const navigate   = useNavigate();
 
+  const formatAuthError = (err, fallback) => {
+    if (!err?.response) {
+      return 'Serveur indisponible. Veuillez réessayer plus tard.';
+    }
+
+    const status = err.response.status;
+    const serverMessage = err.response.data?.message;
+    const validationErrors = err.response.data?.errors;
+    const details = Array.isArray(validationErrors) ? validationErrors.join(' ') : null;
+
+    if (status === 401) {
+      return serverMessage || 'Adresse e-mail ou mot de passe incorrect.';
+    }
+    if (status === 422) {
+      return details || serverMessage || 'Données invalides. Vérifiez le formulaire.';
+    }
+    if (status === 500) {
+      return 'Erreur serveur. Réessayez plus tard.';
+    }
+    return serverMessage || details || fallback;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -21,7 +43,7 @@ export default function Login() {
       login(data.user, data.token);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Identifiants incorrects.');
+      setError(formatAuthError(err, 'Identifiants incorrects.'));
     } finally {
       setLoading(false);
     }
@@ -62,8 +84,8 @@ export default function Login() {
           TrendAI
         </div>
 
-        <h1 style={{ fontSize:24, fontWeight:800, letterSpacing:'-.5px', marginBottom:6 }}>Welcome back</h1>
-        <p style={{ fontSize:12, color:'var(--text3)', marginBottom:28 }}>Sign in to your intelligence hub</p>
+        <h1 style={{ fontSize:24, fontWeight:800, letterSpacing:'-.5px', marginBottom:6 }}>Bienvenue</h1>
+        <p style={{ fontSize:12, color:'var(--text3)', marginBottom:28 }}>Connectez-vous à votre espace tendances</p>
 
         {error && (
           <div style={{
@@ -85,7 +107,7 @@ export default function Login() {
             <input
               className="input-field"
               type="email"
-              placeholder="Email address"
+              placeholder="Email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               required
@@ -101,7 +123,7 @@ export default function Login() {
             <input
               className="input-field"
               type="password"
-              placeholder="Password"
+              placeholder="Mot de passe"
               value={password}
               onChange={e => setPassword(e.target.value)}
               required
@@ -115,7 +137,7 @@ export default function Login() {
             disabled={loading}
             style={{ width:'100%', justifyContent:'center', marginTop:6, padding:'13px', fontSize:14, opacity: loading ? .7 : 1 }}
           >
-            {loading ? 'Signing in...' : <><span>Sign in</span><ArrowRight size={15}/></>}
+            {loading ? 'Connexion...' : <><span>Se connecter</span><ArrowRight size={15}/></>}
           </button>
         </form>
 
@@ -124,8 +146,8 @@ export default function Login() {
           borderTop:'1px solid var(--divider)',
           textAlign:'center', fontSize:12, color:'var(--text3)',
         }}>
-          No account?{' '}
-          <Link to="/signup" style={{ color:'var(--y)', fontWeight:700 }}>Create one</Link>
+          Pas encore de compte ?{' '}
+          <Link to="/signup" style={{ color:'var(--y)', fontWeight:700 }}>Créer un compte</Link>
         </div>
       </div>
     </div>

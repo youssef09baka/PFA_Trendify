@@ -31,122 +31,6 @@ function Orb({ size, top, left, right, bottom, color, delay = 0, blur = 120 }) {
   );
 }
 
-/* ─── ANIMATED COUNTER ─── */
-function Counter({ target, suffix = '' }) {
-  const [val, setVal] = useState(0);
-  const ref = useRef(null);
-  const started = useRef(false);
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && !started.current) {
-        started.current = true;
-        let start = 0;
-        const step = target / 60;
-        const timer = setInterval(() => {
-          start += step;
-          if (start >= target) { setVal(target); clearInterval(timer); }
-          else setVal(Math.floor(start));
-        }, 16);
-      }
-    });
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, [target]);
-
-  return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
-}
-
-/* ─── MINI DASHBOARD MOCKUP ─── */
-function DashboardMockup() {
-  const bars = [65, 82, 91, 74, 88, 98, 79];
-  const [active, setActive] = useState(5);
-
-  useEffect(() => {
-    const t = setInterval(() => setActive(p => (p + 1) % bars.length), 1200);
-    return () => clearInterval(t);
-  }, []);
-
-  const trends = [
-    { name:'AI Agents autonomes', score:98, c:'var(--y)' },
-    { name:'VR Gaming 2025',       score:91, c:'var(--b)' },
-    { name:'Green Tech',           score:87, c:'#4ADE80'  },
-    { name:'Prompt Engineering',   score:83, c:'var(--b)' },
-  ];
-
-  return (
-    <div style={{
-      background:'var(--glass)', border:'1px solid var(--glass-b)',
-      borderRadius:20, padding:20, backdropFilter:'blur(16px)',
-      WebkitBackdropFilter:'blur(16px)',
-    }}>
-      {/* Header */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-        <div>
-          <div style={{ fontSize:13, fontWeight:700, color:'var(--text)' }}>Intelligence Dashboard</div>
-          <div style={{ fontSize:10, color:'var(--text3)', marginTop:2 }}>Live · mis à jour il y a 2 min</div>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:5, padding:'4px 10px', borderRadius:20, background:'rgba(74,222,128,0.1)', border:'1px solid rgba(74,222,128,0.2)', fontSize:9, fontWeight:700, color:'#4ADE80' }}>
-          <div style={{ width:5,height:5,borderRadius:'50%',background:'#4ADE80',animation:'pulse 1.5s ease-in-out infinite' }}/>
-          LIVE
-        </div>
-      </div>
-
-      {/* Mini bar chart */}
-      <div style={{ display:'flex', gap:5, alignItems:'flex-end', height:60, marginBottom:16, padding:'0 4px' }}>
-        {bars.map((h, i) => (
-          <div key={i} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:3 }}>
-            <div style={{
-              width:'100%', height:h*0.6+'%', borderRadius:4,
-              background: i===active
-                ? 'linear-gradient(to top, var(--y), #FFB800)'
-                : 'var(--glass-b)',
-              transition:'all .4s ease',
-              minHeight:4,
-            }}/>
-          </div>
-        ))}
-      </div>
-
-      {/* Trend list */}
-      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-        {trends.map((t, i) => (
-          <div key={i} style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <span style={{ fontFamily:'var(--mono)', fontSize:10, color:'var(--text3)', width:16 }}>
-              {String(i+1).padStart(2,'0')}
-            </span>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:11, fontWeight:600, color:'var(--text)', marginBottom:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.name}</div>
-              <div style={{ height:3, borderRadius:2, background:'var(--glass-b)' }}>
-                <div style={{ height:'100%', width:t.score+'%', borderRadius:2, background:t.c, transition:'width 1s ease' }}/>
-              </div>
-            </div>
-            <span style={{ fontFamily:'var(--mono)', fontSize:12, fontWeight:800, color:t.c, flexShrink:0 }}>{t.score}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ─── TICKER ─── */
-function LiveTicker() {
-  const items = [...TICKER_ITEMS, ...TICKER_ITEMS];
-  return (
-    <div style={{ overflow:'hidden', borderTop:'1px solid var(--divider)', borderBottom:'1px solid var(--divider)', background:'var(--bg2)', padding:'12px 0' }}>
-      <div style={{ display:'flex', gap:0, animation:'ticker 30s linear infinite', width:'max-content' }}>
-        {items.map((item, i) => (
-          <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'0 28px', borderRight:'1px solid var(--divider)', whiteSpace:'nowrap' }}>
-            <span>{item.emoji}</span>
-            <span style={{ fontSize:12, fontWeight:600, color:'var(--text2)' }}>{item.label}</span>
-            <span style={{ fontSize:11, fontWeight:800, color:'#4ADE80', fontFamily:'var(--mono)' }}>{item.change}</span>
-            <span style={{ fontSize:9, padding:'2px 7px', borderRadius:4, background:'var(--glass)', color:'var(--text3)', border:'1px solid var(--glass-b)' }}>{item.cat}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /* ─── FEATURE CARD ─── */
 function FeatureCard({ icon, title, desc, color, delay }) {
@@ -204,62 +88,49 @@ export default function LandingPage() {
               <div style={{ width:18,height:18,borderRadius:'50%',background:'rgba(255,220,80,0.2)',display:'flex',alignItems:'center',justifyContent:'center' }}>
                 <div style={{ width:7,height:7,borderRadius:'50%',background:'var(--y)',animation:'pulse 2s ease-in-out infinite' }}/>
               </div>
-              Powered by AI · Signaux en direct
+              Propulsé par l'IA · Signaux en direct
             </div>
 
             <h1 style={{ fontSize:'clamp(36px,4vw,62px)', fontWeight:800, lineHeight:1.08, letterSpacing:'-2.5px', color:'var(--text)', marginBottom:22 }}>
-              Predict{' '}
-              <span style={{ color:'var(--y)' }}>Tomorrow's</span>
-              <br/>Trends{' '}
-              <span style={{ color:'var(--b)' }}>Today</span>
+              Prédisez les tendances de demain
+              <br/>et agissez avec confiance.
             </h1>
 
             <p style={{ fontSize:16, color:'var(--text2)', lineHeight:1.7, maxWidth:460, marginBottom:36, fontWeight:300 }}>
-              Analyse Reddit, Google Trends et YouTube en temps réel.
-              L'IA calcule le score d'opportunité <strong style={{ color:'var(--text)', fontWeight:600 }}>avant que la tendance explose.</strong>
+              Surveillez Reddit, Google Trends et YouTube dans un tableau de bord unique, avec des tendances ordonnées par score d'opportunité.
             </p>
 
             <div style={{ display:'flex', gap:12, flexWrap:'wrap', marginBottom:48 }}>
               <Link to="/signup" style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'14px 28px', borderRadius:11, background:'var(--y)', color:'#06070D', fontSize:14, fontWeight:800, textDecoration:'none', boxShadow:'0 8px 32px rgba(255,220,80,0.2)', transition:'var(--transition)' }}>
-                <Zap size={16} fill="#06070D" color="#06070D"/>Commencer gratuitement
+                <Zap size={16} fill="#06070D" color="#06070D"/>Commencer
               </Link>
               <Link to="/login" style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'14px 22px', borderRadius:11, background:'var(--glass)', border:'1px solid var(--glass-b)', color:'var(--text)', fontSize:14, fontWeight:600, textDecoration:'none', transition:'var(--transition)' }}>
                 Se connecter <ArrowRight size={15}/>
               </Link>
             </div>
 
-            {/* Stats */}
-            <div style={{ display:'flex', gap:32, flexWrap:'wrap' }}>
-              {[
-                { target:12000, suffix:'+', label:'Trends analysées',  c:'var(--y)' },
-                { target:98,    suffix:'%', label:'Précision IA',       c:'var(--y)' },
-                { target:500,   suffix:'+', label:'Utilisateurs',       c:'var(--b)' },
-              ].map(s => (
-                <div key={s.label}>
-                  <div style={{ fontSize:26, fontWeight:800, letterSpacing:'-1px', color:s.c, fontFamily:'var(--mono)' }}>
-                    <Counter target={s.target} suffix={s.suffix}/>
-                  </div>
-                  <div style={{ fontSize:11, color:'var(--text3)', marginTop:3 }}>{s.label}</div>
-                </div>
-              ))}
+            <div style={{ maxWidth:440, marginBottom:48, fontSize:14, color:'var(--text2)', lineHeight:1.7 }}>
+              Un suivi continu, des tendances classées par potentiel et un flux qui privilégie les signaux les plus pertinents.
             </div>
           </div>
 
           {/* RIGHT — Dashboard Mockup */}
           <div style={{ animation:'fadeUp .8s ease .3s both' }}>
-            <DashboardMockup/>
+            <div style={{ background:'var(--glass)', border:'1px solid var(--glass-b)', borderRadius:20, padding:28, minHeight:420, display:'flex', flexDirection:'column', justifyContent:'center', gap:18 }}>
+              <div style={{ fontSize:12, textTransform:'uppercase', letterSpacing:1.5, color:'var(--text3)' }}>Analyse en continu</div>
+              <h2 style={{ fontSize:28, fontWeight:800, color:'var(--text)', lineHeight:1.1 }}>Un aperçu clair des opportunités émergentes.</h2>
+              <p style={{ fontSize:14, color:'var(--text2)', lineHeight:1.7 }}>Consultez les tendances les plus pertinentes et adaptez votre stratégie sans vous perdre dans des chiffres exagérés.</p>
+            </div>
           </div>
         </div>
 
         {/* Scroll indicator */}
         <div style={{ position:'absolute', bottom:28, left:'50%', transform:'translateX(-50%)', display:'flex', flexDirection:'column', alignItems:'center', gap:6, color:'var(--text3)', fontSize:10, letterSpacing:2, textTransform:'uppercase', opacity: scrolled?0:1, transition:'opacity .3s' }}>
-          <span>Scroll</span>
+          <span>Faites défiler</span>
           <div style={{ width:1, height:28, background:'linear-gradient(to bottom, var(--text3), transparent)' }}/>
         </div>
       </section>
 
-      {/* ══ LIVE TICKER ══ */}
-      <LiveTicker/>
 
       {/* ══ FEATURES ══ */}
       <section style={{ padding:'88px 6vw', background:'var(--bg)' }}>
@@ -272,7 +143,7 @@ export default function LandingPage() {
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))', gap:16, maxWidth:1100, margin:'0 auto' }}>
           <FeatureCard delay={0}   icon={<TrendingUp size={22}/>} color="var(--y)" title="Signaux Reddit"     desc="Crawl en temps réel des posts qui explosent. Détecte les tendances 24h avant tout le monde."/>
-          <FeatureCard delay={0.1} icon={<Brain size={22}/>}       color="var(--b)" title="Score IA Claude"   desc="Chaque trend reçoit un score d'opportunité calculé par Claude AI. Priorise ce qui compte."/>
+          <FeatureCard delay={0.1} icon={<Brain size={22}/>}       color="var(--b)" title="Score IA"   desc="Chaque tendance reçoit un score d'opportunité calculé par l'IA. Priorise ce qui compte."/>
           <FeatureCard delay={0.2} icon={<Globe size={22}/>}       color="#4ADE80"  title="Google Trends"     desc="Données croisées Google Trends, YouTube et Reddit pour un signal ultra-précis."/>
           <FeatureCard delay={0.3} icon={<Zap size={22}/>}         color="var(--y)" title="Idées de contenu"  desc="L'IA génère automatiquement une idée business ou contenu pour chaque tendance détectée."/>
         </div>
@@ -289,8 +160,8 @@ export default function LandingPage() {
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:20, maxWidth:900, margin:'0 auto' }}>
           {[
-            { step:'01', icon:<BarChart2 size={24}/>, title:'Collecte des données', desc:'Reddit, Google Trends et YouTube crawlés en permanence. 12K+ signaux analysés par jour.', color:'var(--y)' },
-            { step:'02', icon:<Cpu size={24}/>,        title:'Scoring par l\'IA',    desc:'Claude AI calcule un score d\'opportunité unique pour chaque trend basé sur popularité et croissance.', color:'var(--b)' },
+            { step:'01', icon:<BarChart2 size={24}/>, title:'Collecte des tendances', desc:'Reddit, Google Trends et YouTube sont surveillés en continu pour détecter des signaux émergents.', color:'var(--y)' },
+            { step:'02', icon:<Cpu size={24}/>,        title:'Scoring par l\'IA',    desc:'Une IA calcule un score d\'opportunité basé sur popularité et croissance.', color:'var(--b)' },
             { step:'03', icon:<Rss size={24}/>,        title:'Feed personnalisé',    desc:'Reçois les tendances triées par score dans ton feed. Sauvegarde, filtre, agis.', color:'#4ADE80' },
           ].map((step, i) => (
             <div key={i} style={{ position:'relative', background:'var(--glass)', border:'1px solid var(--glass-b)', borderRadius:18, padding:'28px 24px', backdropFilter:'blur(12px)' }}>
@@ -320,7 +191,7 @@ export default function LandingPage() {
             Prêt à prévoir <span style={{ color:'var(--y)' }}>demain</span> aujourd'hui ?
           </h2>
           <p style={{ fontSize:14, color:'var(--text2)', marginBottom:32, lineHeight:1.6 }}>
-            Rejoins 500+ utilisateurs qui ont une longueur d'avance sur les tendances.
+            Passe du signal à l'action avec un feed clair et des opportunités identifiées par l'IA.
           </p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
             <Link to="/signup" style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'14px 32px', borderRadius:11, background:'var(--y)', color:'#06070D', fontSize:14, fontWeight:800, textDecoration:'none', boxShadow:'0 8px 32px rgba(255,220,80,0.2)' }}>

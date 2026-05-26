@@ -15,9 +15,9 @@ export default function Navbar() {
   const is = p => location.pathname === p;
 
   const links = user ? [
-    { to:'/dashboard',   label:'Dashboard',   icon:<LayoutDashboard size={15}/> },
-    { to:'/feed',        label:'Feed',         icon:<Rss size={15}/> },
-    { to:'/preferences', label:'Preferences',  icon:<Settings size={15}/> },
+    { to:'/dashboard',   label:'Tableau',      icon:<LayoutDashboard size={15}/> },
+    { to:'/feed',        label:'Flux',          icon:<Rss size={15}/> },
+    { to:'/preferences', label:'Préférences',   icon:<Settings size={15}/> },
   ] : [];
 
   /* Ferme le menu si on resize vers desktop */
@@ -59,12 +59,12 @@ export default function Navbar() {
         </Link>
 
         {/* ── DESKTOP CENTER LINKS (≥768px) ── */}
-        <div className="nav-desktop-links" style={{ display:'flex', gap:2 }}>
+        <div className="nav-desktop-links" style={{ display:'flex', gap:10 }}>
           {links.map(l => (
             <Link key={l.to} to={l.to} style={{
-              display:'flex', alignItems:'center', gap:6,
-              padding:'6px 13px', borderRadius:7,
-              fontSize:12, fontWeight:600, textDecoration:'none',
+              display:'flex', alignItems:'center', gap:8,
+              padding:'8px 14px', borderRadius:10,
+              fontSize:13, fontWeight:600, textDecoration:'none',
               color:      is(l.to) ? 'var(--y)'     : 'var(--text2)',
               background: is(l.to) ? 'var(--y-dim)' : 'transparent',
               transition:'var(--transition)',
@@ -95,21 +95,19 @@ export default function Navbar() {
               </div>
               <button onClick={handleLogout} style={{
                 display:'flex', alignItems:'center', gap:6, cursor:'pointer',
-                padding:'6px 12px', borderRadius:7,
+                padding:'8px 14px', borderRadius:10,
                 background:'transparent', border:'1px solid var(--glass-b)',
-                color:'var(--text2)', fontSize:12, fontWeight:600,
+                color:'var(--text2)', fontSize:13, fontWeight:600,
                 transition:'var(--transition)',
               }}
-                onMouseEnter={e=>{ e.currentTarget.style.background='rgba(248,113,113,0.08)'; e.currentTarget.style.color='#F87171'; e.currentTarget.style.borderColor='rgba(248,113,113,0.3)'; }}
-                onMouseLeave={e=>{ e.currentTarget.style.background='transparent'; e.currentTarget.style.color='var(--text2)'; e.currentTarget.style.borderColor='var(--glass-b)'; }}
               >
-                <LogOut size={13}/> Logout
+                <LogOut size={13}/> Déconnexion
               </button>
             </div>
           ) : (
             <div className="nav-desktop-links" style={{ display:'flex', gap:8 }}>
-              <Link to="/login" style={{ padding:'7px 16px',borderRadius:7,textDecoration:'none',background:'transparent',border:'1px solid var(--glass-b)',color:'var(--text2)',fontSize:12,fontWeight:600,display:'inline-flex',alignItems:'center' }}>Log in</Link>
-              <Link to="/signup" style={{ padding:'7px 18px',borderRadius:7,textDecoration:'none',background:'var(--y)',color:'#06070D',fontSize:12,fontWeight:800,display:'inline-flex',alignItems:'center' }}>Get started</Link>
+              <Link to="/login" style={{ padding:'7px 16px',borderRadius:7,textDecoration:'none',background:'transparent',border:'1px solid var(--glass-b)',color:'var(--text2)',fontSize:12,fontWeight:600,display:'inline-flex',alignItems:'center' }}>Se connecter</Link>
+              <Link to="/signup" style={{ padding:'7px 18px',borderRadius:7,textDecoration:'none',background:'var(--y)',color:'#06070D',fontSize:12,fontWeight:800,display:'inline-flex',alignItems:'center' }}>Commencer</Link>
             </div>
           )}
 
@@ -176,7 +174,7 @@ export default function Navbar() {
                   Se connecter
                 </Link>
                 <Link to="/signup" onClick={() => setMenuOpen(false)} style={{ display:'block',padding:'14px 16px',borderRadius:12,textDecoration:'none',background:'var(--y)',color:'#06070D',fontSize:14,fontWeight:800,textAlign:'center' }}>
-                  Créer un compte
+                  Commencer
                 </Link>
               </>
             )}
