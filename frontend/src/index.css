@@ -39,16 +39,16 @@
 
 /* ── LIGHT ── */
 [data-theme="light"] {
-  --bg:        #F5F6FA;
-  --bg2:       #ECEEF5;
-  --bg3:       #E2E5EF;
-  --glass:     rgba(255,255,255,0.7);
-  --glass-b:   rgba(0,0,0,0.08);
-  --glass-h:   rgba(255,255,255,0.9);
-  --text:      #0F1120;
-  --text2:     rgba(15,17,32,0.55);
-  --text3:     rgba(15,17,32,0.3);
-  --divider:   rgba(0,0,0,0.07);
+  --bg:        #F4F5FA;
+  --bg2:       #EAECF5;
+  --bg3:       #DEE1EF;
+  --glass:     rgba(255,255,255,0.85);
+  --glass-b:   rgba(0,0,0,0.10);
+  --glass-h:   rgba(255,255,255,0.95);
+  --text:      #0A0C1A;       /* noir profond — logo, titres */
+  --text2:     #3D4266;       /* gris-bleu — liens nav, sous-titres */
+  --text3:     #8B90A8;       /* gris clair — labels, meta */
+  --divider:   rgba(0,0,0,0.08);
 }
 
 html, body, #root { height: 100%; }

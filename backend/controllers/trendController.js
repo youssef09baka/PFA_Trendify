@@ -20,6 +20,12 @@ const getTrends = async (req, res) => {
         popularity: 90,
         growth: 25,
         source: "youtube"
+      },
+      {
+        title: "Work from home jobs",
+        popularity: 83,
+        growth: 22,
+        source: "google Trends"
       }
     ];
 
@@ -44,7 +50,7 @@ const getTrends = async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ message: error.message });
-  }
+  } 
 };
 
 module.exports = { getTrends };
