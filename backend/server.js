@@ -1,34 +1,13 @@
-const express = require("express");
-const cors = require("cors");
-
-const connectDB = require("./config/db");
+const app = require("./app");
 const { PORT } = require("./config/config");
-const userRoutes = require("./routes/userRoutes");
-const trendRoutes = require("./routes/trendRoutes");
-const feedRoutes = require("./routes/feedRoutes");
+const { start } = require("./services/feedSync");
 
-const app = express();
-
-// 🔥 1. Connect DB
-connectDB();
-
-// 🔥 2. Middlewares (AVANT routes)
-app.use(cors());
-app.use(express.json());
-
-// 🔥 3. Routes
-app.use("/api/users", userRoutes);
-
-app.use("/api/trends", trendRoutes);
-
-app.use("/api/feed", feedRoutes);
-
-// 🔥 4. Test route
-app.get("/", (req, res) => {
-  res.json({ message: "Backend running" });
-});
-
-// 🔥 5. Start server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.info(`Server running on http://localhost:${PORT}`);
+  // Start background feed synchronization (non-blocking)
+  try {
+    start();
+  } catch (err) {
+    console.error('[SYNC] failed to start feed sync:', err.message || err);
+  }
 });

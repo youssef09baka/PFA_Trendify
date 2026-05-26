@@ -1,7 +1,11 @@
 const axios = require("axios");
 
-const generateAnalysis = async (trend) => {
+const generateBatchAnalysis = async (trends) => {
   try {
+    const prompt = trends.map((t, i) => 
+      `${i + 1}. ${t.title}`
+    ).join("\n");
+
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -9,7 +13,21 @@ const generateAnalysis = async (trend) => {
         messages: [
           {
             role: "user",
-            content: `Explain why this trend is growing and give one content idea: ${trend.title}`
+            content: `
+For each trend below, return:
+Analysis: why it is trending
+Idea: one content or business idea
+
+Format STRICT:
+1. Analysis: ...
+   Idea: ...
+
+2. Analysis: ...
+   Idea: ...
+
+Trends:
+${prompt}
+            `
           }
         ]
       },
@@ -21,12 +39,31 @@ const generateAnalysis = async (trend) => {
       }
     );
 
-    return response.data.choices[0].message.content;
+    const text = response.data.choices[0].message.content;
+    const parts = text.split(/\d+\.\s+/).filter(Boolean);
+
+    return trends.map((trend, index) => {
+      const part = parts[index] || "";
+
+      const analysisMatch = part.match(/Analysis:\s*(.*)/i);
+      const ideaMatch = part.match(/Idea:\s*(.*)/i);
+
+      return {
+        ...trend,
+        analysis: analysisMatch ? analysisMatch[1].trim() : "AI unavailable",
+        idea: ideaMatch ? ideaMatch[1].trim() : "No idea available"
+      };
+    });
 
   } catch (error) {
-    console.error("AI ERROR:", error.response?.data || error.message);
-    return "AI analysis unavailable";
+    console.error("BATCH AI ERROR:", error.response?.data || error.message);
+
+    return trends.map(trend => ({
+      ...trend,
+      analysis: "AI unavailable",
+      idea: "No idea available"
+    }));
   }
 };
 
-module.exports = { generateAnalysis };
+module.exports = { generateBatchAnalysis };

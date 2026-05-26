@@ -1,0 +1,12 @@
+reddit_score,comments_count,google_trend_score,engagement_rate,growth_rate,sentiment_score,final_label
+
+1200,340,85,0.82,90,0.76,HIGH
+950,210,70,0.68,75,0.60,HIGH
+400,80,45,0.40,38,0.10,MEDIUM
+300,50,30,0.32,25,-0.15,LOW
+1500,500,95,0.90,98,0.88,HIGH
+200,20,18,0.15,10,-0.40,LOW
+650,120,55,0.52,50,0.30,MEDIUM
+110,10,12,0.08,5,-0.60,LOW
+800,190,65,0.61,70,0.55,HIGH
+350,70,40,0.35,33,0.05,MEDIUM

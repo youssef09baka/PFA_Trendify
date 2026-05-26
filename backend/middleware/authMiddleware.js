@@ -1,30 +1,39 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { JWT_SECRET } = require("../config/config");
 
 const protect = async (req, res, next) => {
-  let token;
-
-  // vérifier si header existe
-  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-    try {
-      // récupérer token
-      token = req.headers.authorization.split(" ")[1];
-
-      // vérifier token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // récupérer user sans password
-      req.user = await User.findById(decoded.id).select("-password");
-
-      next();
-
-    } catch (error) {
-      return res.status(401).json({ message: "Not authorized, token failed" });
-    }
-  }
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.split(" ")[1] : null;
 
   if (!token) {
-    return res.status(401).json({ message: "Not authorized, no token" });
+    const error = new Error("Not authorized, no token provided");
+    error.statusCode = 401;
+    return next(error);
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+
+    if (!decoded || !decoded.id) {
+      const error = new Error("Invalid authentication token");
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    req.user = await User.findById(decoded.id).select("-password -__v");
+
+    if (!req.user) {
+      const error = new Error("Not authorized, user not found");
+      error.statusCode = 401;
+      return next(error);
+    }
+
+    return next();
+  } catch (err) {
+    const error = new Error("Not authorized, token invalid or expired");
+    error.statusCode = 401;
+    return next(error);
   }
 };
 
