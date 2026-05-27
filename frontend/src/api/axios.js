@@ -11,4 +11,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    const status = err.response?.status;
+    const requestUrl = err.config?.url || '';
+
+    if (status === 401 && !requestUrl.includes('/users/login') && !requestUrl.includes('/users/signup')) {
+      // session expired or invalid token: clear and redirect to login
+      localStorage.removeItem('token');
+      try { window.location.href = '/login?expired=1'; } catch { /* ignore */ }
+    }
+
+    return Promise.reject(err);
+  }
+);
+
 export default api;

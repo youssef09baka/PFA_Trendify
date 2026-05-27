@@ -36,8 +36,8 @@ export default function TrendDetail() {
       try {
         const { data } = await api.get(`/feed/${id}`);
         setTrend(data);
-      } catch (err) {
-        if (err.response?.status === 404) {
+      } catch (error) {
+        if (error.response?.status === 404) {
           setError('Tendance introuvable.');
         } else {
           setError('Impossible de charger cette tendance. Vérifiez votre connexion.');
@@ -63,7 +63,7 @@ export default function TrendDetail() {
         await api.post(`/feed/${id}/save`);
         setTrend((prev) => prev ? { ...prev, isSaved: true, savedCount: (prev.savedCount || 0) + 1 } : prev);
       }
-    } catch (err) {
+    } catch {
       setError('Impossible de mettre à jour l’état de sauvegarde.');
     } finally {
       setSaving(false);

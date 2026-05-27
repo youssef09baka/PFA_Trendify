@@ -118,6 +118,7 @@ export default function Signup() {
             id="signup-name"
             placeholder="Nom complet"
             aria-label="Nom complet"
+            value={form.name}
             onChange={set('name')}
             icon={<User size={15} />}
             helper="Le nom utilisé pour votre compte TrendAI."
@@ -128,6 +129,7 @@ export default function Signup() {
             type="email"
             placeholder="Email"
             aria-label="Adresse e-mail"
+            value={form.email}
             onChange={set('email')}
             icon={<Mail size={15} />}
             helper="Nous vous enverrons des notifications sur cette adresse."
@@ -138,6 +140,7 @@ export default function Signup() {
             type="password"
             placeholder="Créer un mot de passe"
             aria-label="Mot de passe"
+            value={form.password}
             onChange={set('password')}
             icon={<Lock size={15} />}
             helper="Minimum 8 caractères recommandés."

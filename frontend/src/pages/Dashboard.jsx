@@ -2,17 +2,12 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
+import { Link } from 'react-router-dom';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import { Search, Zap, RefreshCw, ArrowRight } from 'lucide-react';
-
-function formatNum(n) {
-  if (!n && n !== 0) return '—';
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
-  return String(n);
-}
 
 function displaySourceLabel(source) {
   const key = (source || '').toLowerCase();
@@ -30,8 +25,9 @@ export default function Dashboard() {
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [search, setSearch] = useState('');
   const [filterSource, setFilterSource] = useState('all');
+  const [filterCategory, setFilterCategory] = useState('all');
   const [recentSearches, setRecentSearches] = useState([]);
-  const [aiLeft, setAiLeft] = useState(5);
+  const [aiLeft, setAiLeft] = useState(user?.aiRemaining ?? 5);
   const [analysisMessage, setAnalysisMessage] = useState('');
 
   async function fetchTrends() {
@@ -41,8 +37,12 @@ export default function Dashboard() {
       if (data && Array.isArray(data.items)) {
         setTrends(data.items);
       }
-    } catch (error) {
-      console.error('Unable to load feed trends', error);
+      if (data?.user?.aiRemaining !== undefined) {
+        setAiLeft(data.user.aiRemaining);
+      }
+    } catch {
+      setAnalysisMessage('Impossible de charger les tendances pour le moment.');
+      setTimeout(() => setAnalysisMessage(''), 4200);
     } finally {
       setLoading(false);
       setLastUpdate(new Date());
@@ -55,8 +55,9 @@ export default function Dashboard() {
       if (data && Array.isArray(data.items)) {
         setSavedTrends(data.items);
       }
-    } catch (error) {
-      console.error('Unable to load saved trends', error);
+    } catch {
+      setAnalysisMessage('Impossible de charger les tendances sauvegardées.');
+      setTimeout(() => setAnalysisMessage(''), 4200);
     }
   }
 
@@ -64,6 +65,12 @@ export default function Dashboard() {
     fetchTrends();
     fetchSaved();
   }, []);
+
+  useEffect(() => {
+    if (user?.aiRemaining !== undefined) {
+      setAiLeft(user.aiRemaining);
+    }
+  }, [user?.aiRemaining]);
 
   const preferencesCount = user?.preferences?.length || 0;
   const savedCount = savedTrends.length;
@@ -91,13 +98,17 @@ export default function Dashboard() {
       filterSource === 'all' ||
       (trend.source || '').toLowerCase().includes(filterSource);
 
+    const categoryMatchFilter =
+      filterCategory === 'all' ||
+      (trend.category || '').toLowerCase() === (filterCategory === 'all' ? '' : filterCategory.toLowerCase());
+
     const searchValue = search.trim().toLowerCase();
-    if (!searchValue) return sourceMatch;
+    if (!searchValue) return sourceMatch && categoryMatchFilter;
 
     const titleMatch = (trend.title || '').toLowerCase().includes(searchValue);
     const categoryMatch = (trend.category || '').toLowerCase().includes(searchValue);
     const sourceMatchText = (trend.source || '').toLowerCase().includes(searchValue);
-    return sourceMatch && (titleMatch || categoryMatch || sourceMatchText);
+    return sourceMatch && categoryMatchFilter && (titleMatch || categoryMatch || sourceMatchText);
   });
 
   const recentDiscoveries = trends.slice(0, 4);
@@ -112,17 +123,34 @@ export default function Dashboard() {
     });
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (aiLeft <= 0) {
       setAnalysisMessage('Vous avez atteint la limite quotidienne d’analyses IA. Revenez demain.');
       return;
     }
 
-    setAiLeft((previous) => previous - 1);
-    setAnalysisMessage('Analyse IA lancée. Choisissez une tendance pour voir les résultats.');
-    setTimeout(() => {
-      setAnalysisMessage('');
-    }, 4200);
+    setAnalysisMessage('Analyse IA lancée. Mise à jour des tendances en cours...');
+
+    try {
+      const { data } = await api.get('/feed', { params: { refresh: true } });
+      if (data && Array.isArray(data.items)) {
+        setTrends(data.items);
+      }
+      if (data?.user?.aiRemaining !== undefined) {
+        setAiLeft(data.user.aiRemaining);
+      }
+      setAnalysisMessage('Les dernières tendances ont été réévaluées et enregistrées.');
+    } catch (error) {
+      if (error.response?.status === 429) {
+        setAnalysisMessage(error.response.data?.message || 'Quota IA atteint. Revenez demain.');
+      } else {
+        setAnalysisMessage('Impossible de renouveler les analyses IA pour le moment.');
+      }
+    } finally {
+      setTimeout(() => {
+        setAnalysisMessage('');
+      }, 4200);
+    }
   };
 
   const handleRecentSearch = (value) => {
@@ -215,9 +243,9 @@ export default function Dashboard() {
                   />
                 ) : (
                   savedTrends.slice(0, 3).map((trend) => (
-                    <a
+                    <Link
                       key={trend._id || trend.id || trend.title}
-                      href={`/feed/${trend._id || trend.id}`}
+                      to={`/feed/${trend._id || trend.id}`}
                       className="workspace-item"
                       style={{ textDecoration: 'none', color: 'inherit' }}
                     >
@@ -226,7 +254,7 @@ export default function Dashboard() {
                         <span>{displaySourceLabel(trend.source)}</span>
                         <span>{trend.category || 'Sans catégorie'}</span>
                       </div>
-                    </a>
+                    </Link>
                   ))
                 )}
               </div>
@@ -248,7 +276,7 @@ export default function Dashboard() {
 
                 <div className="workspace-chip-row">
                   {topCategories.map((category) => (
-                    <Button key={category.category} type="button" variant="ghost" className="chip" onClick={() => setFilterSource(category.category.toLowerCase())} style={{ padding: '9px 14px' }}>{category.category} • {category.count}</Button>
+                    <Button key={category.category} type="button" variant="ghost" className="chip" onClick={() => setFilterCategory(category.category)} style={{ padding: '9px 14px' }}>{category.category} • {category.count}</Button>
                   ))}
                 </div>
 
@@ -325,11 +353,10 @@ export default function Dashboard() {
                 </div>
 
                 <div className="ai-note">
-                  L’IA est déclenchée uniquement lorsque vous avez besoin d’un insight, d’une idée
-                  ou d’une opportunité concrète.
+                  L’IA est utilisée pour mettre à jour et enrichir les analyses de tendance lorsque cela apporte de la valeur.
                 </div>
 
-                <Button type="button" variant="primary" onClick={handleAnalyze} disabled={aiLeft <= 0} style={{ width: '100%' }}>Analyser avec IA</Button>
+                <Button type="button" variant="primary" onClick={handleAnalyze} disabled={aiLeft <= 0} style={{ width: '100%' }}>Rafraîchir les analyses IA</Button>
 
                 {analysisMessage && (
                   <div style={{ fontSize: 13, color: 'var(--text3)' }}>{analysisMessage}</div>

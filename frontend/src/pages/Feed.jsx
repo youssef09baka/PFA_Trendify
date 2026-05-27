@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
@@ -18,14 +18,14 @@ import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import MediaBox from '../components/MediaBox';
 import Input from '../components/Input';
-function SavedDrawer({ savedIds, trends, onClose, onRemove }) {
-  const list = trends.filter((t) => savedIds.includes(t.id || t._id));
+function SavedDrawer({ trends, onClose, onRemove }) {
+  const list = Array.isArray(trends) ? trends : [];
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', justifyContent: 'flex-end' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />
-      <div style={{ position: 'relative', zIndex: 1, width: 360, height: '100%', background: 'var(--bg2)', borderLeft: '1px solid var(--divider)', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ padding: '20px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ position: 'relative', zIndex: 1, width: 'min(360px,100%)', maxWidth: 360, height: '100%', background: 'var(--bg2)', borderLeft: '1px solid var(--divider)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>Sauvegardés</h2>
             <p style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{list.length} trend{list.length !== 1 ? 's' : ''}</p>
@@ -47,7 +47,7 @@ function SavedDrawer({ savedIds, trends, onClose, onRemove }) {
             return (
               <div key={id} style={{ padding: '14px', background: 'var(--glass)', border: '1px solid var(--glass-b)', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
                 <div style={{ width: 54, height: 54, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: 'var(--glass)' }}>
-                  <MediaBox src={t.thumbnail} alt={t.title} aspect="square" />
+                  <MediaBox src={t.thumbnail || t.image} alt={t.title} aspect="square" />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', lineHeight: 1.4, marginBottom: 6 }}>{t.title}</p>
@@ -66,9 +66,25 @@ function SavedDrawer({ savedIds, trends, onClose, onRemove }) {
   );
 }
 
+function formatNum(n) {
+  if (n === null || n === undefined) return '—';
+  if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+  return String(n);
+}
+
+function Toast({ msg, onClose }) {
+  return (
+    <div style={{ position: 'fixed', right: 20, bottom: 20, zIndex: 300 }}>
+      <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(0,0,0,0.8)', color: '#fff', minWidth: 180, display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div style={{ flex: 1 }}>{msg}</div>
+        <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#fff', fontSize: 14, cursor: 'pointer' }}>✕</button>
+      </div>
+    </div>
+  );
+}
+
 function MediaPreview({ thumb, url, alt }) {
-  const [err, setErr] = useState(false);
-  if (err || !thumb) return null;
+  if (!thumb) return null;
   return (
     <a href={url} target="_blank" rel="noreferrer" style={{ display: 'block', position: 'relative', overflow: 'hidden' }}>
       <MediaBox src={thumb} alt={alt || ''} aspect="16:9" />
@@ -119,6 +135,7 @@ export default function Feed() {
   const [baseData, setBaseData] = useState([]);
   const [hidden, setHidden] = useState([]);
   const [saved, setSaved] = useState([]);
+  const [savedItems, setSavedItems] = useState([]);
   const [filter, setFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -131,18 +148,26 @@ export default function Feed() {
 
   const showToast = (msg) => setToast(msg);
 
-  async function fetchSavedTrends() {
+  // auto-hide toast after a short delay
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 3500);
+    return () => clearTimeout(id);
+  }, [toast]);
+
+  const fetchSavedTrends = useCallback(async () => {
     try {
       const { data } = await api.get('/users/saved-trends');
       if (data && Array.isArray(data.items)) {
+        setSavedItems(data.items);
         setSaved(data.items.map((t) => t.id || t._id));
       }
-    } catch (err) {
-      console.warn('Failed to load saved trends:', err);
+    } catch {
+      showToast('Impossible de charger les signaux sauvegardés.');
     }
-  }
+  }, []);
 
-  async function fetchFeed(requestedPage = 1, reset = false) {
+  const fetchFeed = useCallback(async (requestedPage = 1, reset = false) => {
     if (reset) setLoading(true);
     else setLoadingMore(true);
 
@@ -162,25 +187,25 @@ export default function Feed() {
         hasMore: Boolean(data.meta?.hasMore),
       });
       setPage(requestedPage);
-    } catch (e) {
-      console.error('Feed error:', e);
+    } catch {
+      showToast('Impossible de charger le flux pour le moment.');
     } finally {
       if (reset) setLoading(false);
       else setLoadingMore(false);
     }
-  }
+  }, [filter]);
 
   useEffect(() => {
     (async () => {
       await Promise.all([fetchFeed(1, true), fetchSavedTrends()]);
     })();
-  }, []);
+  }, [fetchFeed, fetchSavedTrends]);
 
   useEffect(() => {
     setBaseData([]);
     setPage(1);
     fetchFeed(1, true);
-  }, [filter]);
+  }, [filter, fetchFeed]);
 
   useEffect(() => {
     if (!loaderRef.current) return;
@@ -194,7 +219,7 @@ export default function Feed() {
     );
     observer.observe(loaderRef.current);
     return () => observer.disconnect();
-  }, [meta.hasMore, loadingMore, loading, page]);
+  }, [meta.hasMore, loadingMore, loading, page, fetchFeed]);
 
   const handleHide = (id) => {
     setHidden((prev) => [...prev, id]);
@@ -215,8 +240,7 @@ export default function Feed() {
         setBaseData((prev) => prev.map((item) => (item._id === id ? { ...item, isSaved: true } : item)));
         showToast('Sauvegardé');
       }
-    } catch (err) {
-      console.error(isSaved ? 'Error unsaving:' : 'Error saving:', err);
+    } catch {
       showToast(isSaved ? 'Erreur lors du retrait' : 'Erreur lors de la sauvegarde');
     }
   };
@@ -227,8 +251,9 @@ export default function Feed() {
       setSaved((prev) => prev.filter((x) => x !== id));
       setBaseData((prev) => prev.map((item) => (item._id === id ? { ...item, isSaved: false } : item)));
       showToast('Retiré');
-    } catch (err) {
-      console.error('Error removing saved trend:', err);
+      // refresh saved items list
+      fetchSavedTrends();
+    } catch {
       showToast('Erreur lors du retrait');
     }
   };
@@ -269,7 +294,7 @@ export default function Feed() {
               <Button variant="ghost" onClick={() => fetchFeed(1, true)} disabled={loading} className="" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <RefreshCw size={14} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} /> Rafraîchir
               </Button>
-              <Button variant="ghost" onClick={() => setDrawerOpen(true)} className="" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Button variant="ghost" onClick={async () => { await fetchSavedTrends(); setDrawerOpen(true); }} className="" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 <Bookmark size={14} /> Sauvegardés{saved.length > 0 ? ` (${saved.length})` : ''}
               </Button>
             </div>
@@ -332,7 +357,7 @@ export default function Feed() {
           </div>
         </div>
       </main>
-      {drawerOpen && <SavedDrawer savedIds={saved} trends={baseData} onClose={() => setDrawerOpen(false)} onRemove={handleRemoveSaved} />}
+      {drawerOpen && <SavedDrawer savedIds={saved} trends={savedItems} onClose={() => { setDrawerOpen(false); }} onRemove={handleRemoveSaved} />}
       {toast && <Toast msg={toast} onClose={() => setToast(null)} />}
       <style>{`
         @keyframes spin   { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }

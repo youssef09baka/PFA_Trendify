@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { Zap, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
@@ -13,6 +13,14 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login }  = useAuth();
   const navigate   = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('expired')) {
+      setError('Session expirée. Connectez-vous de nouveau.');
+    }
+  }, [location.search]);
 
   const formatAuthError = (err, fallback) => {
     if (!err?.response) {

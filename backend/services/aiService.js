@@ -45,13 +45,13 @@ ${prompt}
     return trends.map((trend, index) => {
       const part = parts[index] || "";
 
-      const analysisMatch = part.match(/Analysis:\s*(.*)/i);
-      const ideaMatch = part.match(/Idea:\s*(.*)/i);
+      const analysisMatch = part.match(/Analysis:\s*([\s\S]*?)(?:\n\s*Idea:|$)/i);
+      const ideaMatch = part.match(/Idea:\s*([\s\S]*)/i);
 
       return {
         ...trend,
-        analysis: analysisMatch ? analysisMatch[1].trim() : "AI unavailable",
-        idea: ideaMatch ? ideaMatch[1].trim() : "No idea available"
+        analysis: analysisMatch ? analysisMatch[1].trim() : (trend.analysis || ""),
+        idea: ideaMatch ? ideaMatch[1].trim() : (trend.idea || "")
       };
     });
 
@@ -60,8 +60,8 @@ ${prompt}
 
     return trends.map(trend => ({
       ...trend,
-      analysis: "AI unavailable",
-      idea: "No idea available"
+      analysis: trend.analysis || "",
+      idea: trend.idea || ""
     }));
   }
 };

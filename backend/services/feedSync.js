@@ -1,7 +1,7 @@
 const { getRealTrends } = require("./data");
 const { generateBatchAnalysis } = require("./aiService");
 const { predictTrend } = require("./mlService");
-const { saveTrends } = require("./trendService");
+const { saveTrends, scoreTrends } = require("./trendService");
 const mongoose = require('mongoose');
 
 const DEFAULT_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
@@ -25,12 +25,7 @@ const runSync = async () => {
       return;
     }
 
-    const scored = raw.map((trend) => ({
-      ...trend,
-      score: typeof trend.score === 'number'
-        ? trend.score
-        : Math.round((Math.max(trend.popularity || 0, 0) * 0.7) + (Math.max(trend.growth || 0, 0) * 0.3))
-    })).slice(0, 50);
+    const scored = scoreTrends(raw).slice(0, 50);
 
     const enriched = await generateBatchAnalysis(scored);
 

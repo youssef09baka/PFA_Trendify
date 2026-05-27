@@ -2,12 +2,11 @@ const asyncHandler = require("../middleware/asyncHandler");
 const { getRealTrends } = require("../services/data");
 const { generateBatchAnalysis } = require("../services/aiService");
 const { predictTrend } = require("../services/mlService");
-const { saveTrends, getFeedTrends, getTrendById, getRelatedTrends } = require("../services/trendService");
+const { saveTrends, scoreTrends, getFeedTrends, getTrendById, getRelatedTrends } = require("../services/trendService");
 
 const getFeed = asyncHandler(async (req, res, next) => {
   const user = req.user;
 
-  // Serve persisted trends by default. Pass ?refresh=true to force live fetch.
   const forceRefresh = String(req.query.refresh || "false").toLowerCase() === "true";
   const page = req.query.page ? Number(req.query.page) : 1;
   const limit = req.query.limit ? Number(req.query.limit) : 12;
@@ -20,9 +19,24 @@ const getFeed = asyncHandler(async (req, res, next) => {
   const storedTrends = stored.data || [];
   const savedSet = new Set((user?.savedTrends || []).map(String));
 
+  if (forceRefresh && user && typeof user.aiRemaining === 'number' && user.aiRemaining <= 0) {
+    const error = new Error("Votre quota d'analyses IA est épuisé. Revenez demain.");
+    error.statusCode = 429;
+    return next(error);
+  }
+
   if (storedTrends && storedTrends.length > 0 && !forceRefresh) {
+    let filteredStored = storedTrends;
+    if (user?.preferences?.length > 0) {
+      const prefs = user.preferences.map(p => p.toLowerCase());
+      const matched = storedTrends.filter(trend => prefs.some(pref => String(trend.title || '').toLowerCase().includes(pref)));
+      if (matched.length > 0) filteredStored = matched;
+    }
+
+    const finalStored = filteredStored.length > 0 ? filteredStored : storedTrends;
+
     return res.status(200).json({
-      items: storedTrends.map((trend) => ({
+      items: finalStored.map((trend) => ({
         id: trend._id,
         _id: trend._id,
         title: trend.title,
@@ -43,11 +57,13 @@ const getFeed = asyncHandler(async (req, res, next) => {
         savedCount: trend.savedCount || 0,
         isSaved: savedSet.has(String(trend._id))
       })),
-      meta: stored.meta || { total: storedTrends.length, page, limit, totalPages: 1, hasMore: false }
+      meta: stored.meta || { total: finalStored.length, page, limit, totalPages: 1, hasMore: false },
+      user: {
+        aiRemaining: user?.aiRemaining ?? 0
+      }
     });
   }
 
-  // If DB empty or forceRefresh, run live fetch once and persist results.
   const rawTrends = await getRealTrends();
   if (!Array.isArray(rawTrends) || rawTrends.length === 0) {
     const error = new Error("No feed data available");
@@ -55,14 +71,14 @@ const getFeed = asyncHandler(async (req, res, next) => {
     return next(error);
   }
 
-  const trendsWithScore = rawTrends.map((trend) => ({
-    ...trend,
-    score: typeof trend.score === "number"
-      ? trend.score
-      : Math.round((Math.max(trend.popularity || 0, 0) * 0.7) + (Math.max(trend.growth || 0, 0) * 0.3))
-  }));
+  const scoredTrends = scoreTrends(rawTrends).slice(0, 24);
 
-  const trends = await generateBatchAnalysis(trendsWithScore.slice(0, 12));
+  if (forceRefresh && user) {
+    user.aiRemaining = Math.max(0, (user.aiRemaining || 0) - 1);
+    await user.save();
+  }
+
+  const trends = await generateBatchAnalysis(scoredTrends);
 
   const predictions = await Promise.all(
     trends.map((trend) => predictTrend(trend))
@@ -114,13 +130,14 @@ const getFeed = asyncHandler(async (req, res, next) => {
       limit: stored.meta?.limit || limit,
       totalPages: stored.meta?.totalPages || 1,
       hasMore: stored.meta?.hasMore || false
+    },
+    user: {
+      aiRemaining: user?.aiRemaining ?? 0
     }
   };
 
   res.status(200).json(response);
 });
-
-module.exports = { getFeed };
 
 const getTrendDetail = asyncHandler(async (req, res, next) => {
   const user = req.user;
@@ -135,7 +152,6 @@ const getTrendDetail = asyncHandler(async (req, res, next) => {
 
   const isSaved = new Set((user?.savedTrends || []).map(String)).has(String(trend._id));
 
-  // simple related trends: same category and/or sharing tags
   const related = await getRelatedTrends(trend._id, { category: trend.category, tags: trend.tags || [], source: trend.source, limit: 6 }).catch(() => []);
 
   const relatedLight = (related || []).map((t) => ({

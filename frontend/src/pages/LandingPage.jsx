@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { Zap, TrendingUp, Brain, Globe, ArrowRight, CheckCircle, BarChart2, Cpu, Rss } from 'lucide-react';
