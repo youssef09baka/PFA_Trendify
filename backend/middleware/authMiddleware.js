@@ -29,6 +29,14 @@ const protect = async (req, res, next) => {
       return next(error);
     }
 
+    const now = new Date();
+    const lastReset = req.user.aiLastReset ? new Date(req.user.aiLastReset) : null;
+    if (!lastReset || now - lastReset > 24 * 60 * 60 * 1000) {
+      req.user.aiRemaining = 5;
+      req.user.aiLastReset = now;
+      await req.user.save();
+    }
+
     return next();
   } catch (err) {
     const error = new Error("Not authorized, token invalid or expired");

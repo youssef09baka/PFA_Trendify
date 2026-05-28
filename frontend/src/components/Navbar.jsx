@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Zap, LayoutDashboard, Rss, Settings, Sun, Moon, LogOut, Menu, X } from 'lucide-react';
+import Button from './Button';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -78,14 +79,7 @@ export default function Navbar() {
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
 
           {/* Theme toggle */}
-          <button onClick={toggle} aria-label="Toggle theme" style={{
-            width:34, height:34, borderRadius:9, cursor:'pointer',
-            background:'var(--glass)', border:'1px solid var(--glass-b)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            color:'var(--text2)', transition:'var(--transition)', flexShrink:0,
-          }}>
-            {dark ? <Sun size={15}/> : <Moon size={15}/>}
-          </button>
+          <Button onClick={toggle} aria-label="Toggle theme" iconOnly variant="ghost" icon={dark ? <Sun size={15} /> : <Moon size={15} />} />
 
           {/* Desktop: avatar + logout */}
           {user ? (
@@ -93,38 +87,17 @@ export default function Navbar() {
               <div style={{ width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,var(--y),#FFB800)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,color:'#06070D',flexShrink:0 }}>
                 {(user.name || user.email || 'U')[0].toUpperCase()}
               </div>
-              <button onClick={handleLogout} style={{
-                display:'flex', alignItems:'center', gap:6, cursor:'pointer',
-                padding:'8px 14px', borderRadius:10,
-                background:'transparent', border:'1px solid var(--glass-b)',
-                color:'var(--text2)', fontSize:13, fontWeight:600,
-                transition:'var(--transition)',
-              }}
-              >
-                <LogOut size={13}/> Déconnexion
-              </button>
+              <Button onClick={handleLogout} variant="ghost" icon={<LogOut size={13} />}>Déconnexion</Button>
             </div>
           ) : (
             <div className="nav-desktop-links" style={{ display:'flex', gap:8 }}>
-              <Link to="/login" style={{ padding:'7px 16px',borderRadius:7,textDecoration:'none',background:'transparent',border:'1px solid var(--glass-b)',color:'var(--text2)',fontSize:12,fontWeight:600,display:'inline-flex',alignItems:'center' }}>Se connecter</Link>
-              <Link to="/signup" style={{ padding:'7px 18px',borderRadius:7,textDecoration:'none',background:'var(--y)',color:'#06070D',fontSize:12,fontWeight:800,display:'inline-flex',alignItems:'center' }}>Commencer</Link>
+              <Link to="/login" className="btn btn-ghost nav-link">Se connecter</Link>
+              <Link to="/signup" className="btn btn-primary nav-link">Commencer</Link>
             </div>
           )}
 
           {/* ── HAMBURGER (mobile only <768px) ── */}
-          <button
-            className="nav-hamburger"
-            onClick={() => setMenuOpen(p => !p)}
-            aria-label="Menu"
-            style={{
-              width:34, height:34, borderRadius:9, cursor:'pointer',
-              background:'var(--glass)', border:'1px solid var(--glass-b)',
-              display:'none', alignItems:'center', justifyContent:'center',
-              color:'var(--text2)', flexShrink:0,
-            }}
-          >
-            {menuOpen ? <X size={16}/> : <Menu size={16}/>}
-          </button>
+          <Button className="nav-hamburger" onClick={() => setMenuOpen(p => !p)} aria-label="Menu" variant="ghost" icon={menuOpen ? <X size={16} /> : <Menu size={16} />} iconOnly />
         </div>
       </nav>
 
@@ -164,9 +137,9 @@ export default function Navbar() {
                     <div style={{ fontSize:11, color:'var(--text3)' }}>{user.email}</div>
                   </div>
                 </div>
-                <button onClick={handleLogout} style={{ display:'flex',alignItems:'center',gap:10,padding:'14px 16px',borderRadius:12,background:'rgba(248,113,113,0.08)',border:'1px solid rgba(248,113,113,0.2)',color:'#F87171',fontSize:14,fontWeight:600,cursor:'pointer',width:'100%' }}>
-                  <LogOut size={16}/> Se déconnecter
-                </button>
+                <Button variant="destructive" onClick={handleLogout} icon={<LogOut size={16} />} style={{ width: '100%', justifyContent: 'center', padding: '14px 16px', fontSize: 14 }}>
+                  Se déconnecter
+                </Button>
               </>
             ) : (
               <>

@@ -20,12 +20,22 @@ const userSchema = new mongoose.Schema({
   preferences: {
     type: [String],
     default: []
-  }
+  },
 
-  ,savedTrends: {
+  savedTrends: {
     type: [require('mongoose').Schema.Types.ObjectId],
     ref: 'Trend',
     default: []
+  },
+
+  aiRemaining: {
+    type: Number,
+    default: 5
+  },
+
+  aiLastReset: {
+    type: Date,
+    default: Date.now
   }
 
 }, {

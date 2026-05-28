@@ -32,6 +32,10 @@ const trendSchema = new mongoose.Schema({
     type: String,
     default: ""
   },
+  excerpt: {
+    type: String,
+    default: ""
+  },
   ml_prediction: {
     type: String,
     default: "UNKNOWN"
