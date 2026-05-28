@@ -7,7 +7,7 @@ const { registerUser, loginUser, updatePreferences, getSavedTrends } = require("
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 8,
+  max: Number(process.env.AUTH_RATE_LIMIT_MAX || 30),
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many authentication attempts. Please wait 15 minutes." }

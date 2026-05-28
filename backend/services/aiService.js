@@ -25,6 +25,7 @@ const generateTrendAnalysis = async (trend) => {
       "https://openrouter.ai/api/v1/chat/completions",
       {
         model: "openai/gpt-3.5-turbo",
+        max_tokens: 900,
         messages: [
           {
             role: "user",
@@ -92,6 +93,7 @@ const generateBatchAnalysis = async (trends) => {
       "https://openrouter.ai/api/v1/chat/completions",
       {
         model: "openai/gpt-3.5-turbo",
+        max_tokens: 1200,
         messages: [
           {
             role: "user",
