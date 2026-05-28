@@ -25,7 +25,7 @@ function SavedDrawer({ trends, onClose, onRemove }) {
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', justifyContent: 'flex-end' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)' }} />
-      <div style={{ position: 'relative', zIndex: 1, width: 'min(360px,100%)', maxWidth: 360, height: '100%', background: 'var(--bg2)', borderLeft: '1px solid var(--divider)', display: 'flex', flexDirection: 'column' }}>
+      <div className="saved-drawer-panel" style={{ position: 'relative', zIndex: 1, width: 'min(360px,100%)', maxWidth: 360, height: '100%', background: 'var(--bg2)', borderLeft: '1px solid var(--divider)', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '20px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>Sauvegardés</h2>
@@ -46,7 +46,7 @@ function SavedDrawer({ trends, onClose, onRemove }) {
           ) : list.map((t) => {
             const id = t.id || t._id;
             return (
-              <div key={id} style={{ padding: '14px', background: 'var(--glass)', border: '1px solid var(--glass-b)', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
+              <div className="saved-drawer-item" key={id} style={{ padding: '14px', background: 'var(--glass)', border: '1px solid var(--glass-b)', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
                 <div style={{ width: 54, height: 54, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: 'var(--glass)' }}>
                   <MediaBox src={t.thumbnail || t.image} alt={t.title} aspect="square" />
                 </div>
@@ -322,7 +322,7 @@ export default function Feed() {
   return (
     <div className="page-layout">
       <Navbar />
-      <main style={{ paddingTop: 58, background: 'var(--bg)', overflowX: 'hidden', width: '100%' }}>
+      <main className="feed-main" style={{ paddingTop: 58, background: 'var(--bg)', overflowX: 'hidden', width: '100%' }}>
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 20px 40px', width: '100%' }}>
           <section className="feed-page-header">
             <div>

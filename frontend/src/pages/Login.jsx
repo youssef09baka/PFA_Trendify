@@ -60,7 +60,7 @@ export default function Login() {
   };
 
   return (
-    <div style={{
+    <div className="auth-shell auth-shell-login" style={{
       minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
       background:'var(--bg)', padding:'24px', position:'relative', overflow:'hidden',
     }}>
@@ -78,7 +78,7 @@ export default function Login() {
         pointerEvents:'none',
       }}/>
 
-      <div className="glass-card fade-up" style={{
+      <div className="glass-card auth-card fade-up" style={{
         width:'100%', maxWidth:400, padding:36,
         position:'relative', zIndex:1,
         border:'1px solid var(--y-border)',

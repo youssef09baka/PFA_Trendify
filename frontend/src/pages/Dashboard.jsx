@@ -162,7 +162,7 @@ export default function Dashboard() {
   return (
     <div className="page-layout">
       <Navbar />
-      <main style={{ paddingTop: 58, minHeight: '100vh', background: 'var(--bg)' }}>
+      <main className="dashboard-main" style={{ paddingTop: 58, minHeight: '100vh', background: 'var(--bg)' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 24px' }}>
 
           <section className="dashboard-hero">

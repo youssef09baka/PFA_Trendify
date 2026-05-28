@@ -84,7 +84,7 @@ export default function AIWorkspace() {
   return (
     <div className="page-layout" style={{ background: 'var(--bg)' }}>
       <Navbar />
-      <main className="detail-page-main">
+      <main className="detail-page-main ai-workspace-main">
         <div className="detail-page-shell">
           <div className="detail-header">
             <div className="detail-title-group">

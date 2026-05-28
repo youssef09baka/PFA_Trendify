@@ -50,7 +50,7 @@ export default function Signup() {
   const set = (k) => (e) => setForm(p => ({ ...p, [k]: e.target.value }));
 
   return (
-    <div style={{
+    <div className="auth-shell auth-shell-signup" style={{
       minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center',
       background:'var(--bg)', padding:'24px', position:'relative', overflow:'hidden',
     }}>
@@ -68,7 +68,7 @@ export default function Signup() {
         pointerEvents:'none',
       }}/>
 
-      <div className="glass-card fade-up" style={{
+      <div className="glass-card auth-card fade-up" style={{
         width:'100%', maxWidth:400, padding:36,
         position:'relative', zIndex:1,
         border:'1px solid var(--y-border)',

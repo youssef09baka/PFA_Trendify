@@ -36,7 +36,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav style={{
+      <nav className="app-navbar" style={{
         position:'fixed', top:0, left:0, right:0, zIndex:100,
         height:58,
         display:'flex', alignItems:'center', justifyContent:'space-between',
@@ -48,12 +48,12 @@ export default function Navbar() {
       }}>
 
         {/* LOGO */}
-        <Link to="/" onClick={() => setMenuOpen(false)} style={{
+        <Link className="brand-mark" to="/" onClick={() => setMenuOpen(false)} style={{
           display:'flex', alignItems:'center', gap:9,
           fontWeight:800, fontSize:15, letterSpacing:'-.3px',
           color:'var(--text)', textDecoration:'none', flexShrink:0,
         }}>
-          <div style={{ width:26,height:26,borderRadius:7,background:'var(--y)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
+          <div className="brand-glyph" style={{ width:26,height:26,borderRadius:7,background:'var(--y)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0 }}>
             <Zap size={13} color="#06070D" fill="#06070D"/>
           </div>
           TrendAI
@@ -62,7 +62,7 @@ export default function Navbar() {
         {/* ── DESKTOP CENTER LINKS (≥768px) ── */}
         <div className="nav-desktop-links" style={{ display:'flex', gap:10 }}>
           {links.map(l => (
-            <Link key={l.to} to={l.to} style={{
+            <Link key={l.to} to={l.to} className={is(l.to) ? 'nav-item active' : 'nav-item'} style={{
               display:'flex', alignItems:'center', gap:8,
               padding:'8px 14px', borderRadius:10,
               fontSize:13, fontWeight:600, textDecoration:'none',
@@ -84,7 +84,7 @@ export default function Navbar() {
           {/* Desktop: avatar + logout */}
           {user ? (
             <div className="nav-desktop-links" style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <div style={{ width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,var(--y),#FFB800)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,color:'#06070D',flexShrink:0 }}>
+              <div className="user-orb" style={{ width:30,height:30,borderRadius:'50%',background:'linear-gradient(135deg,var(--y),#FFB800)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:12,fontWeight:800,color:'#06070D',flexShrink:0 }}>
                 {(user.name || user.email || 'U')[0].toUpperCase()}
               </div>
               <Button onClick={handleLogout} variant="ghost" icon={<LogOut size={13} />}>Déconnexion</Button>
@@ -103,7 +103,7 @@ export default function Navbar() {
 
       {/* ── MOBILE MENU OVERLAY ── */}
       {menuOpen && (
-        <div style={{
+        <div className="mobile-menu-panel" style={{
           position:'fixed', inset:0, zIndex:99,
           background:'var(--bg)',
           display:'flex', flexDirection:'column',
@@ -129,7 +129,7 @@ export default function Navbar() {
             {user ? (
               <>
                 <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 16px', fontSize:13, color:'var(--text2)' }}>
-                  <div style={{ width:36,height:36,borderRadius:'50%',background:'linear-gradient(135deg,var(--y),#FFB800)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:800,color:'#06070D' }}>
+                  <div className="user-orb" style={{ width:36,height:36,borderRadius:'50%',background:'linear-gradient(135deg,var(--y),#FFB800)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:800,color:'#06070D' }}>
                     {(user.name || user.email || 'U')[0].toUpperCase()}
                   </div>
                   <div>
