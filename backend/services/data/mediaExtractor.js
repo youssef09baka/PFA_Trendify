@@ -3,17 +3,42 @@ const { URL } = require('url');
 
 const IMAGE_SEARCH_CACHE = new Map();
 const FALLBACK_IMAGE_CACHE = new Map();
-const CACHE_TTL_MS = 60 * 60 * 1000;
-const SERPAPI_KEY = process.env.SERPAPI_KEY;
-const DDG_REQUEST_TIMEOUT_MS = 30000;
-const DDG_RETRY_ATTEMPTS = 2;
-const DDG_REQUEST_DELAY_MS = 450;
+const SUCCESS_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const FAILURE_CACHE_TTL_MS = 5 * 60 * 1000;
+const FALLBACK_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+const REQUEST_THROTTLE_MS = 400;
+const RETRY_DELAY_MS = 1200;
+let LAST_EXTERNAL_REQUEST_AT = 0;
 
 const logMediaDebug = (stage, details) => {
   console.info(`[MEDIA-DEBUG] ${stage}`, details);
 };
 
-const isUsableImageCandidate = (value) => typeof value === 'string' && /^https?:\/\//.test(value) && !/\.svg$/i.test(value);
+const QUALITY_RULES = {
+  minWidth: 320,
+  minHeight: 180,
+  maxPathLength: 220,
+};
+
+const REJECT_IMAGE_HINTS = /logo|icon|avatar|badge|placeholder|stock|diagram|poster|thumbnail/i;
+
+const isUsableImageCandidate = (value, meta = {}) => {
+  if (typeof value !== 'string') return false;
+
+  const candidate = safeUrl(value);
+  if (!candidate || !/^https?:\/\//.test(candidate)) return false;
+  if (/\.svg($|\?)/i.test(candidate) || /^data:image\/svg\+xml/i.test(candidate)) return false;
+  if (!/\.(jpeg|jpg|png|webp|gif|bmp|avif|heic|heif)(\?.*)?$/i.test(candidate)) return false;
+  if (/\/thumb\//i.test(candidate) || /\/thumbnail\//i.test(candidate)) return false;
+  if (candidate.length > QUALITY_RULES.maxPathLength) return false;
+
+  const width = Number(meta.width || meta.thumbnailWidth || 0);
+  const height = Number(meta.height || meta.thumbnailHeight || 0);
+  if ((width && width < QUALITY_RULES.minWidth) || (height && height < QUALITY_RULES.minHeight)) return false;
+  if (REJECT_IMAGE_HINTS.test(candidate)) return false;
+
+  return true;
+};
 
 const FALLBACK_THEME_IMAGES = {
   food: ['data:image/svg+xml;charset=UTF-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><defs><linearGradient id="g" x1="0" x2="1"><stop stop-color="#fff4e6"/><stop offset="1" stop-color="#ffe2b8"/></linearGradient></defs><rect width="1200" height="800" fill="url(#g)"/><circle cx="300" cy="260" r="120" fill="#ffcc80" opacity="0.55"/><circle cx="900" cy="240" r="140" fill="#ffd54f" opacity="0.35"/><rect x="180" y="420" width="840" height="180" rx="90" fill="#fff" opacity="0.72"/><text x="600" y="520" text-anchor="middle" font-size="68" font-family="Arial, Helvetica, sans-serif" fill="#8d5a2b">Food / Restaurant</text></svg>')],
@@ -84,17 +109,19 @@ const normalizeQuery = (value) => String(value || '')
   .trim();
 
 const ENTITY_ENRICHMENTS = {
-  ferrari: ['Ferrari luxury sports car', 'Ferrari automotive editorial', 'Ferrari car front view'],
-  tesla: ['Tesla electric vehicle', 'Tesla EV car', 'Tesla automotive editorial'],
-  chipotle: ['Chipotle restaurant food', 'Chipotle burrito bowl', 'Chipotle food photography'],
-  usps: ['USPS postal delivery mail truck', 'USPS mail carrier vehicle', 'USPS delivery logistics'],
-  nba: ['NBA basketball finals', 'NBA basketball game', 'NBA basketball arena'],
-  amazon: ['Amazon delivery logistics', 'Amazon warehouse fulfillment'],
-  apple: ['Apple product launch', 'Apple technology device'],
-  microsoft: ['Microsoft cloud technology', 'Microsoft software product'],
-  google: ['Google technology product', 'Google AI platform'],
-  openai: ['OpenAI AI model', 'OpenAI technology'],
-  meta: ['Meta social platform', 'Meta AI technology']
+  ferrari: ['Ferrari sports car', 'Ferrari F40 racing car', 'Ferrari automotive photography'],
+  tesla: ['Tesla electric vehicle company', 'Tesla Model Y EV', 'Tesla automotive image'],
+  chipotle: ['Chipotle Mexican Grill restaurant', 'Chipotle burrito bowl', 'Chipotle restaurant food'],
+  usps: ['USPS postal service delivery', 'USPS mail truck', 'USPS delivery logistics'],
+  nba: ['NBA basketball finals', 'NBA basketball game', 'NBA arena basketball'],
+  amazon: ['Amazon delivery logistics', 'Amazon warehouse fulfillment', 'Amazon parcel service'],
+  apple: ['Apple technology company', 'Apple product launch', 'Apple iPhone device'],
+  microsoft: ['Microsoft software company', 'Microsoft cloud platform', 'Microsoft product launch'],
+  google: ['Google technology company', 'Google product launch', 'Google AI platform'],
+  openai: ['OpenAI AI model', 'OpenAI technology company', 'OpenAI product'],
+  meta: ['Meta social platform', 'Meta AI company', 'Meta technology'],
+  gta: ['Grand Theft Auto VI video game', 'GTA 6 game cover', 'Grand Theft Auto game'],
+  mrbeast: ['MrBeast YouTube creator', 'MrBeast challenge video', 'MrBeast entertainment'],
 };
 
 const extractSemanticKeywords = (value) => {
@@ -110,6 +137,29 @@ const inferEntityContext = (trend) => {
   const text = `${trend?.title || ''} ${trend?.category || ''}`.toLowerCase();
   const matches = Object.keys(ENTITY_ENRICHMENTS).filter((key) => text.includes(key));
   return matches.length ? matches[0] : null;
+};
+
+const normalizeSemanticEntityQuery = (trend) => {
+  const title = normalizeQuery(trend?.title || '');
+  const category = normalizeQuery(trend?.category || '');
+  const entityKey = inferEntityContext(trend);
+
+  if (!title) return '';
+
+  const canonical = {
+    'gta 6': 'Grand Theft Auto VI video game',
+    'nba finals': 'NBA basketball finals',
+    'apple': 'Apple technology company',
+    'chipotle': 'Chipotle Mexican Grill restaurant',
+    'tesla': 'Tesla electric vehicle company',
+    'mrbeast': 'MrBeast YouTube creator',
+    'usps': 'USPS postal service',
+  };
+
+  const direct = canonical[title.toLowerCase()] || canonical[entityKey || ''] || '';
+  const semantic = direct ? `${direct} ${category || inferFallbackCategory(trend)}`.trim() : '';
+
+  return semantic;
 };
 
 const inferFallbackCategory = (trend) => {
@@ -135,15 +185,18 @@ const buildSearchQueries = (trend) => {
   const entityBoost = entityKey ? ENTITY_ENRICHMENTS[entityKey] : [];
   const semanticCategory = category || inferFallbackCategory(trend) || 'news';
 
+  const semanticEntityQuery = normalizeSemanticEntityQuery(trend);
+
   const queries = [
+    semanticEntityQuery || title,
     title,
     title && category && title !== category ? `${title} ${category}` : '',
     keywordPhrase ? `${keywordPhrase} ${semanticCategory}` : '',
-    keywordPhrase ? `${keywordPhrase} editorial photo` : '',
-    keywordPhrase ? `${keywordPhrase} real visual` : '',
     entityBoost[0] || '',
     entityBoost[1] || '',
     entityBoost[2] || '',
+    semanticEntityQuery ? `${semanticEntityQuery} photo` : '',
+    semanticEntityQuery ? `${semanticEntityQuery} real image` : '',
     title && source && !isGenericSource(source) ? `${title} ${source}` : '',
     title && source && !isGenericSource(source) ? `${title} ${semanticCategory} ${source}` : ''
   ].filter(Boolean);
@@ -160,6 +213,42 @@ const simpleHash = (value) => {
   return Math.abs(hash);
 };
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const getCacheEntry = (cache, key, ttlMs) => {
+  const entry = cache.get(key);
+  return entry && Date.now() - entry.timestamp < ttlMs ? entry : null;
+};
+
+const waitForThrottle = async (label) => {
+  const waitMs = Math.max(0, REQUEST_THROTTLE_MS - (Date.now() - LAST_EXTERNAL_REQUEST_AT));
+  if (waitMs > 0) {
+    logMediaDebug('THROTTLE_WAIT', { label, waitMs });
+    await sleep(waitMs);
+  }
+  LAST_EXTERNAL_REQUEST_AT = Date.now();
+};
+
+const isRetryableError = (error) => {
+  const status = error?.response?.status;
+  const message = String(error?.message || '');
+  return status === 429 || status === 403 || status === 408 || /timeout|timed out|429|403/i.test(message);
+};
+
+const fetchWithRetry = async (label, runner) => {
+  try {
+    await waitForThrottle(label);
+    return await runner();
+  } catch (error) {
+    if (!isRetryableError(error)) throw error;
+
+    logMediaDebug('RETRY_ATTEMPT', { label, reason: 'rate-limit-or-timeout', attempt: 1, status: error?.response?.status || null });
+    await sleep(RETRY_DELAY_MS);
+    await waitForThrottle(`${label}:retry`);
+    return runner();
+  }
+};
+
 const getFallbackThemeImage = (trend) => {
   const categoryKey = inferFallbackCategory(trend);
   const palette = FALLBACK_THEME_IMAGES[categoryKey] || FALLBACK_THEME_IMAGES.default;
@@ -167,7 +256,7 @@ const getFallbackThemeImage = (trend) => {
   const query = normalizeQuery([trend?.title, trend?.category, trend?.source_detail || trend?.source].filter(Boolean).join(' '));
   const cacheKey = `${query}|${trend?._id || trend?.slug || trend?.title || 'trend'}`;
   const cached = FALLBACK_IMAGE_CACHE.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+  if (cached && Date.now() - cached.timestamp < FALLBACK_CACHE_TTL_MS) {
     return cached.value;
   }
 
@@ -176,167 +265,106 @@ const getFallbackThemeImage = (trend) => {
   return choice;
 };
 
-const getBrowserLikeHeaders = () => ({
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
-  'Accept': 'application/json, text/plain, */*',
-  'Accept-Language': 'en-US,en;q=0.9',
-  'Referer': 'https://duckduckgo.com/',
-  'X-Requested-With': 'XMLHttpRequest',
-  'sec-ch-ua': '"Google Chrome";v="125", "Chromium";v="125", "Not.A.Brand";v="24"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"Windows"'
-});
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const fetchDuckDuckGoImage = async (query) => {
-  const normalized = normalizeQuery(query);
-  logMediaDebug('DDG_START', { query: normalized });
-
-  if (!normalized) {
-    logMediaDebug('DDG_SKIPPED', { reason: 'empty-query', query: normalized });
-    return null;
-  }
-
-  const cached = IMAGE_SEARCH_CACHE.get(`ddg:${normalized}`);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return cached.value;
-  }
-
-  const headers = getBrowserLikeHeaders();
-  const url = `https://duckduckgo.com/i.js?o=json&l=en&q=${encodeURIComponent(normalized)}&p=1&vqd=1`;
-
-  await sleep(DDG_REQUEST_DELAY_MS);
-
-  for (let attempt = 1; attempt <= DDG_RETRY_ATTEMPTS; attempt += 1) {
-    try {
-      logMediaDebug('DDG_REQUEST_EXECUTED', { query: normalized, attempt, url, headers });
-      const res = await axios.get(url, {
-        timeout: DDG_REQUEST_TIMEOUT_MS,
-        headers,
-        maxRedirects: 3,
-        validateStatus: (status) => status >= 200 && status < 500,
-      });
-
-      const results = Array.isArray(res.data?.results) ? res.data.results : [];
-      logMediaDebug('DDG_RESPONSE', {
-        query: normalized,
-        attempt,
-        status: res.status,
-        resultsCount: results.length,
-        timeoutMs: DDG_REQUEST_TIMEOUT_MS,
-        headersUsed: headers,
-      });
-
-      const firstImage = results.find((entry) => isUsableImageCandidate(entry?.image))?.image
-        || results.find((entry) => isUsableImageCandidate(entry?.thumbnail))?.thumbnail
-        || results.find((entry) => isUsableImageCandidate(entry?.url))?.url;
-
-      if (!results.length) {
-        logMediaDebug('DDG_EMPTY_RESULTS', { query: normalized, attempt, reason: 'no-results' });
-        if (attempt < DDG_RETRY_ATTEMPTS) {
-          await sleep(DDG_REQUEST_DELAY_MS * attempt);
-          continue;
-        }
-        IMAGE_SEARCH_CACHE.set(`ddg:${normalized}`, { value: null, timestamp: Date.now() });
-        return null;
-      }
-
-      if (!isUsableImageCandidate(firstImage)) {
-        logMediaDebug('DDG_REJECTED', { query: normalized, attempt, candidate: firstImage, reason: 'invalid-candidate' });
-        if (attempt < DDG_RETRY_ATTEMPTS) {
-          await sleep(DDG_REQUEST_DELAY_MS * attempt);
-          continue;
-        }
-        IMAGE_SEARCH_CACHE.set(`ddg:${normalized}`, { value: null, timestamp: Date.now() });
-        return null;
-      }
-
-      logMediaDebug('DDG_ACCEPTED', { query: normalized, attempt, image: firstImage });
-      IMAGE_SEARCH_CACHE.set(`ddg:${normalized}`, { value: firstImage, timestamp: Date.now() });
-      return firstImage;
-    } catch (e) {
-      const status = e?.response?.status || null;
-      const timeout = e?.code === 'ECONNABORTED' || e?.message?.includes('timeout');
-      logMediaDebug('DDG_ERROR', {
-        query: normalized,
-        attempt,
-        status,
-        timeout,
-        message: e?.message || 'unknown-error',
-        reason: timeout ? 'timeout' : 'request-failed',
-      });
-
-      if (attempt < DDG_RETRY_ATTEMPTS) {
-        await sleep(DDG_REQUEST_DELAY_MS * attempt);
-        continue;
-      }
-    }
-  }
-
-  IMAGE_SEARCH_CACHE.set(`ddg:${normalized}`, { value: null, timestamp: Date.now() });
-  return null;
-};
-
-const fetchSerpApiImage = async (query) => {
-  const normalized = normalizeQuery(query);
-  if (!normalized || !SERPAPI_KEY) return null;
-
-  const cached = IMAGE_SEARCH_CACHE.get(`serp:${normalized}`);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return cached.value;
-  }
-
-  try {
-    const res = await axios.get('https://serpapi.com/search.json', {
-      params: { engine: 'google_images', q: normalized, api_key: SERPAPI_KEY, tbm: 'isch' },
-      timeout: 8000,
-      headers: { 'User-Agent': 'PFA-Feed/1.0' }
-    });
-
-    const firstImage = res.data?.images_results?.find((entry) => typeof entry?.original === 'string' && /^https?:\/\//.test(entry.original))?.original
-      || res.data?.images_results?.find((entry) => typeof entry?.thumbnail === 'string' && /^https?:\/\//.test(entry.thumbnail))?.thumbnail;
-
-    if (firstImage) {
-      IMAGE_SEARCH_CACHE.set(`serp:${normalized}`, { value: firstImage, timestamp: Date.now() });
-      return firstImage;
-    }
-  } catch (e) {
-    // ignore and continue to Wikimedia
-  }
-
-  IMAGE_SEARCH_CACHE.set(`serp:${normalized}`, { value: null, timestamp: Date.now() });
-  return null;
-};
-
-const fetchWikimediaImage = async (query) => {
+const fetchWikimediaImage = async (query, options = {}) => {
   const normalized = normalizeQuery(query);
   if (!normalized) return null;
 
-  const cached = IMAGE_SEARCH_CACHE.get(normalized);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+  const excludeUrls = new Set((options.excludeUrls || []).map((entry) => safeUrl(entry)).filter(Boolean));
+  const cacheKey = `wikimedia:${normalized}:${Array.from(excludeUrls).join('|')}`;
+  const cached = getCacheEntry(IMAGE_SEARCH_CACHE, cacheKey, SUCCESS_CACHE_TTL_MS);
+  if (cached) {
+    logMediaDebug('CACHE_HIT', { label: 'wikimedia', key: cacheKey, source: 'success' });
     return cached.value;
+  }
+  const failed = getCacheEntry(IMAGE_SEARCH_CACHE, `${cacheKey}:failed`, FAILURE_CACHE_TTL_MS);
+  if (failed) {
+    logMediaDebug('CACHE_SKIP', { label: 'wikimedia', key: cacheKey, reason: 'recent-failure' });
+    return null;
   }
 
   try {
-    const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(normalized)}&gsrlimit=5&prop=imageinfo&iiprop=url&iiurlwidth=1200&format=json&origin=*`;
-    const res = await axios.get(url, { timeout: 6000, headers: { 'User-Agent': 'PFA-Feed/1.0' } });
-    const pages = res.data?.query?.pages || {};
-    const firstImage = Object.values(pages)
-      .map((entry) => entry?.imageinfo?.[0]?.url || entry?.thumbnail?.source)
-      .find((value) => typeof value === 'string' && /^https?:\/\//.test(value));
+    const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(normalized)}&gsrnamespace=6&gsrlimit=6&prop=imageinfo&iiprop=url&iiurlwidth=1200&format=json&origin=*`;
+    logMediaDebug('WIKIMEDIA_REQUEST', { query: normalized, url });
 
+    const res = await fetchWithRetry('wikimedia', () => axios.get(url, { timeout: 8000, headers: { 'User-Agent': 'PFA-Feed/1.0' } }));
+    const pages = res.data?.query?.pages || {};
+    const results = Object.values(pages)
+      .map((entry) => {
+        const imageInfo = entry?.imageinfo?.[0] || {};
+        const candidate = safeUrl(imageInfo.url || entry?.thumbnail?.source || '');
+        return {
+          url: candidate,
+          width: Number(imageInfo.width || entry?.thumbnail?.width || 0),
+          height: Number(imageInfo.height || entry?.thumbnail?.height || 0),
+        };
+      })
+      .filter((entry) => isUsableImageCandidate(entry.url, entry))
+      .filter((entry) => !excludeUrls.has(entry.url));
+
+    logMediaDebug('WIKIMEDIA_RESPONSE', { query: normalized, resultsCount: results.length, rejected: excludeUrls.size });
+
+    const firstImage = results[0]?.url || null;
     if (firstImage) {
-      IMAGE_SEARCH_CACHE.set(normalized, { value: firstImage, timestamp: Date.now() });
+      IMAGE_SEARCH_CACHE.set(cacheKey, { value: firstImage, timestamp: Date.now() });
+      logMediaDebug('CACHE_STORE', { label: 'wikimedia', key: cacheKey, ttlMs: SUCCESS_CACHE_TTL_MS });
       return firstImage;
     }
   } catch (e) {
-    // ignore search failures and rely on fallback image
+    logMediaDebug('WIKIMEDIA_ERROR', { query: normalized, message: e?.message || 'request-failed', status: e?.response?.status || null });
   }
 
-  IMAGE_SEARCH_CACHE.set(normalized, { value: null, timestamp: Date.now() });
+  IMAGE_SEARCH_CACHE.set(`${cacheKey}:failed`, { value: null, timestamp: Date.now() });
   return null;
 };
+
+const fetchOpenverseImage = async (query, options = {}) => {
+  const normalized = normalizeQuery(query);
+  if (!normalized) return null;
+
+  const excludeUrls = new Set((options.excludeUrls || []).map((entry) => safeUrl(entry)).filter(Boolean));
+  const cacheKey = `openverse:${normalized}:${Array.from(excludeUrls).join('|')}`;
+  const cached = getCacheEntry(IMAGE_SEARCH_CACHE, cacheKey, SUCCESS_CACHE_TTL_MS);
+  if (cached) {
+    logMediaDebug('CACHE_HIT', { label: 'openverse', key: cacheKey, source: 'success' });
+    return cached.value;
+  }
+  const failed = getCacheEntry(IMAGE_SEARCH_CACHE, `${cacheKey}:failed`, FAILURE_CACHE_TTL_MS);
+  if (failed) {
+    logMediaDebug('CACHE_SKIP', { label: 'openverse', key: cacheKey, reason: 'recent-failure' });
+    return null;
+  }
+
+  try {
+    const url = `https://openverse.org/api/v1/images/?q=${encodeURIComponent(normalized)}&page_size=6&format=json`;
+    logMediaDebug('OPENVERSE_REQUEST', { query: normalized, url });
+
+    const res = await fetchWithRetry('openverse', () => axios.get(url, { timeout: 8000, headers: { 'User-Agent': 'PFA-Feed/1.0' } }));
+    const results = Array.isArray(res.data?.results) ? res.data.results : [];
+    logMediaDebug('OPENVERSE_RESPONSE', { query: normalized, resultsCount: results.length, rejected: excludeUrls.size });
+
+    const firstImage = results
+      .map((entry) => ({
+        url: safeUrl(entry?.url || entry?.thumbnail || entry?.preview || entry?.src || ''),
+        width: Number(entry?.width || 0),
+        height: Number(entry?.height || 0),
+      }))
+      .filter((entry) => isUsableImageCandidate(entry.url, entry))
+      .filter((entry) => !excludeUrls.has(entry.url))
+      .map((entry) => entry.url)[0] || null;
+
+    if (firstImage) {
+      IMAGE_SEARCH_CACHE.set(cacheKey, { value: firstImage, timestamp: Date.now() });
+      logMediaDebug('CACHE_STORE', { label: 'openverse', key: cacheKey, ttlMs: SUCCESS_CACHE_TTL_MS });
+      return firstImage;
+    }
+  } catch (e) {
+    logMediaDebug('OPENVERSE_ERROR', { query: normalized, message: e?.message || 'request-failed', status: e?.response?.status || null });
+  }
+
+  IMAGE_SEARCH_CACHE.set(`${cacheKey}:failed`, { value: null, timestamp: Date.now() });
+  return null;
+};
+
 
 const fetchOpenGraphImage = async (url) => {
   if (!url) return null;
@@ -358,10 +386,12 @@ const fetchOpenGraphImage = async (url) => {
 
 const isPlaceholderMediaUrl = (value) => {
   const candidate = safeUrl(String(value || ''));
-  return !candidate || /via\.placeholder\.com|text=No\+Image|placeholder\.com/i.test(candidate);
+  return !candidate
+    || /^data:image\/svg\+xml/i.test(candidate)
+    || /via\.placeholder\.com|text=No\+Image|placeholder\.com|images\.unsplash\.com/i.test(candidate);
 };
 
-const extractMediaForTrend = async (trend, rawPostData) => {
+const extractMediaForTrend = async (trend, rawPostData, options = {}) => {
   if (trend && String(trend.source).toLowerCase() === 'reddit' && rawPostData) {
     const r = extractFromReddit(rawPostData);
     if (r.mediaType && r.mediaType !== 'none') return r;
@@ -381,14 +411,18 @@ const extractMediaForTrend = async (trend, rawPostData) => {
 
   const queries = buildSearchQueries(trend);
   logMediaDebug('MEDIA_SEARCH_START', { title: trend?.title || '', queries });
+
   for (const query of queries) {
-    const searched = await fetchDuckDuckGoImage(query).catch(() => null)
-      || await fetchSerpApiImage(query).catch(() => null)
-      || await fetchWikimediaImage(query).catch(() => null);
+    const searched = await fetchWikimediaImage(query, options).catch(() => null)
+      || await fetchOpenverseImage(query, options).catch(() => null);
+
     if (searched) {
-      logMediaDebug('MEDIA_SEARCH_SUCCESS', { title: trend?.title || '', query, image: searched });
+      const sourceLabel = /wikimedia\.org/i.test(searched) ? 'wikimedia' : 'openverse';
+      logMediaDebug('MEDIA_SEARCH_SUCCESS', { title: trend?.title || '', query, image: searched, source: sourceLabel });
       return { image: searched, video: '', thumbnail: searched, mediaType: 'image' };
     }
+
+    logMediaDebug('MEDIA_SEARCH_SKIPPED', { title: trend?.title || '', query, reason: 'no-usable-source-result' });
   }
 
   logMediaDebug('MEDIA_FALLBACK_SVG', { title: trend?.title || '', reason: 'no-real-image-found' });
@@ -396,4 +430,4 @@ const extractMediaForTrend = async (trend, rawPostData) => {
   return { image: fallback, video: '', thumbnail: fallback, mediaType: 'image' };
 };
 
-module.exports = { extractMediaForTrend, extractFromReddit, getFallbackThemeImage, isPlaceholderMediaUrl, buildSearchQueries };
+module.exports = { extractMediaForTrend, extractFromReddit, getFallbackThemeImage, isPlaceholderMediaUrl, isUsableImageCandidate, buildSearchQueries };

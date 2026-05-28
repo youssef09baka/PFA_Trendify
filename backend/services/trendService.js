@@ -203,6 +203,11 @@ const shouldRefreshMedia = (trend) => {
   return hasPlaceholder || trend.mediaType === 'none' || (!trend.image && !trend.thumbnail && !trend.video);
 };
 
+const shouldReenrichMedia = (trend) => {
+  if (!trend) return false;
+  return shouldRefreshMedia(trend) || (!trend.image && !trend.thumbnail && !trend.video);
+};
+
 const refreshTrendMedia = async (trend) => {
   if (!shouldRefreshMedia(trend)) return trend;
 
@@ -256,11 +261,24 @@ const repairDuplicateMedia = async (trends = []) => {
     if (!shouldRepairDuplicateMedia(trend)) continue;
 
     try {
-      const fresh = await extractMediaForTrend(trend, trend._raw || null).catch(() => null);
+      const duplicateSet = duplicates.filter((entry) => {
+        const leftKey = String(entry.left?._id || entry.left?.slug || '');
+        const rightKey = String(entry.right?._id || entry.right?.slug || '');
+        return leftKey === candidateKey || rightKey === candidateKey;
+      });
+      const excludeUrls = [...new Set(duplicateSet.flatMap((entry) => [entry.left?.image || entry.left?.thumbnail || '', entry.right?.image || entry.right?.thumbnail || '']).filter(Boolean))];
+
+      console.info('[MEDIA] duplicate-image retry', {
+        title: trend.title || trend.slug,
+        duplicateCount: duplicateSet.length,
+        excluded: excludeUrls.length,
+      });
+
+      const fresh = await extractMediaForTrend(trend, trend._raw || null, { excludeUrls }).catch(() => null);
       if (!fresh || (!fresh.image && !fresh.thumbnail)) continue;
       const nextImage = fresh.image || fresh.thumbnail || trend.image || '';
       const nextThumbnail = fresh.thumbnail || nextImage || trend.thumbnail || '';
-      if (!nextImage || nextImage === trend.image) continue;
+      if (!nextImage || nextImage === trend.image || excludeUrls.includes(nextImage)) continue;
 
       repairs.push(
         Trend.findOneAndUpdate(
@@ -309,8 +327,7 @@ const saveTrends = async (trends) => {
       const slug = trend.slug || buildSlug({ ...trend, source: normalizedSource, category: normalizedCategory });
 
       try {
-        const mediaFingerprint = computeMediaFingerprint(trend).fingerprint;
-        if (shouldRefreshMedia(trend) || (mediaFingerprint && mediaFingerprint !== 'none' && (!trend.mediaVerifiedAt || Date.now() - new Date(trend.mediaVerifiedAt).getTime() > 6 * 60 * 60 * 1000))) {
+        if (shouldReenrichMedia(trend)) {
           const m = await extractMediaForTrend(trend, trend._raw || null).catch(() => null);
           if (m) {
             trend.image = m.image || trend.image || '';

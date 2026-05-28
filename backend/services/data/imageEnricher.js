@@ -1,12 +1,13 @@
 const Trend = require('../../models/Trend');
-const { extractMediaForTrend, isPlaceholderMediaUrl } = require('./mediaExtractor');
+const { extractMediaForTrend, isPlaceholderMediaUrl, isUsableImageCandidate } = require('./mediaExtractor');
 const { computeMediaFingerprint } = require('./mediaUniqueness');
 
 const BATCH_SIZE = 50;
 
 const isFallbackVisual = (trend) => {
   const candidate = String(trend?.image || trend?.thumbnail || '');
-  return /images\.unsplash\.com|via\.placeholder\.com|placeholder\.com/i.test(candidate) || isPlaceholderMediaUrl(candidate);
+  return /data:image\/svg\+xml|images\.unsplash\.com|via\.placeholder\.com|placeholder\.com/i.test(candidate)
+    || isPlaceholderMediaUrl(candidate);
 };
 
 const shouldRepairPersistedMedia = (trend, { force = false } = {}) => {
@@ -18,16 +19,16 @@ const shouldRepairPersistedMedia = (trend, { force = false } = {}) => {
   return !trend.mediaVerifiedAt || Date.now() - new Date(trend.mediaVerifiedAt).getTime() > 6 * 60 * 60 * 1000;
 };
 
-const collectRepeatedFallbackUrls = (trends = []) => {
-  const counts = new Map();
+const collectFallbackVisuals = (trends = []) => {
+  const unique = new Set();
 
   for (const trend of trends) {
     const candidate = String(trend?.image || trend?.thumbnail || '');
     if (!candidate || !isFallbackVisual(trend)) continue;
-    counts.set(candidate, (counts.get(candidate) || 0) + 1);
+    unique.add(candidate);
   }
 
-  return new Set([...counts.entries()].filter(([, count]) => count > 1).map(([url]) => url));
+  return unique;
 };
 
 const chunkArray = (items, size) => {
@@ -42,24 +43,22 @@ const repairPersistedDuplicateMedia = async ({ force = true } = {}) => {
   try {
     const allTrends = await Trend.find({}).sort({ fetchedAt: -1 }).lean();
     if (!Array.isArray(allTrends) || allTrends.length === 0) {
-      console.info('[MEDIA] no persisted trends found for duplicate repair');
+      console.info('[MEDIA] no persisted trends found for fallback repair');
       return { scanned: 0, repaired: 0, invalidated: 0, repeatedFallbackImages: 0 };
     }
 
-    const repeatedFallbackUrls = collectRepeatedFallbackUrls(allTrends);
-    if (repeatedFallbackUrls.size === 0) {
-      console.info('[MEDIA] duplicate media repair skipped — no repeated fallback visuals found');
-      return { scanned: allTrends.length, repaired: 0, invalidated: 0, repeatedFallbackImages: 0 };
-    }
+    const fallbackVisuals = collectFallbackVisuals(allTrends);
+    const repairBatch = allTrends.filter((trend) => shouldRepairPersistedMedia(trend, { force }));
 
-    const repairBatch = allTrends.filter((trend) => {
-      const candidate = String(trend?.image || trend?.thumbnail || '');
-      return repeatedFallbackUrls.has(candidate) && shouldRepairPersistedMedia(trend, { force });
+    console.info('[MEDIA] fallback repair scan', {
+      scanned: allTrends.length,
+      fallbackVisuals: fallbackVisuals.size,
+      eligibleForRepair: repairBatch.length,
     });
 
     if (repairBatch.length === 0) {
-      console.info('[MEDIA] duplicate media repair skipped — no repeated fallback visuals eligible for repair');
-      return { scanned: allTrends.length, repaired: 0, invalidated: 0, repeatedFallbackImages: repeatedFallbackUrls.size };
+      console.info('[MEDIA] fallback repair skipped — no persisted fallback visuals eligible for repair');
+      return { scanned: allTrends.length, repaired: 0, invalidated: 0, repeatedFallbackImages: fallbackVisuals.size };
     }
 
     let repaired = 0;
@@ -70,17 +69,28 @@ const repairPersistedDuplicateMedia = async ({ force = true } = {}) => {
         const oldImage = String(trend.image || trend.thumbnail || '');
         const media = await extractMediaForTrend(trend, trend._raw || null).catch(() => null);
 
-        if (!media || (!media.image && !media.thumbnail)) return null;
+        if (!media || (!media.image && !media.thumbnail)) {
+          console.info('[MEDIA] fallback repair skipped', { title: trend.title || trend.slug, reason: 'no-retrieved-url' });
+          return null;
+        }
+
         const newImage = media.image || media.thumbnail || '';
         const newThumbnail = media.thumbnail || newImage || '';
 
-        if (!newImage || newImage === oldImage) return null;
-
-        if (oldImage) {
-          console.info(`[MEDIA] invalidating repeated fallback image for ${trend.title || trend.slug}: ${oldImage}`);
-          invalidated += 1;
+        const isRealCandidate = isUsableImageCandidate(newImage) && !isFallbackVisual({ image: newImage, thumbnail: newThumbnail });
+        if (!newImage || newImage === oldImage || !isRealCandidate) {
+          console.info('[MEDIA] fallback repair skipped', {
+            title: trend.title || trend.slug,
+            oldImage,
+            newImage,
+            reason: !isRealCandidate ? 'fallback-or-invalid-url' : 'unchanged-url',
+          });
+          return null;
         }
+
+        invalidated += 1;
         repaired += 1;
+        console.info('[MEDIA] invalidating fallback media', { title: trend.title || trend.slug, oldImage, newImage });
 
         return Trend.findByIdAndUpdate(
           trend._id,
@@ -91,7 +101,7 @@ const repairPersistedDuplicateMedia = async ({ force = true } = {}) => {
               mediaType: media.mediaType || 'image',
               mediaFingerprint: computeMediaFingerprint({ ...trend, image: newImage, thumbnail: newThumbnail }).fingerprint,
               mediaVerifiedAt: new Date(),
-              mediaSource: force ? 'forced-migration-repair' : 'migration-repair'
+              mediaSource: 'forced-fallback-repair'
             }
           },
           { new: true }
@@ -101,10 +111,15 @@ const repairPersistedDuplicateMedia = async ({ force = true } = {}) => {
       await Promise.all(operations);
     }
 
-    console.info(`[MEDIA] forced duplicate media repair completed — scanned: ${allTrends.length}, repaired: ${repaired}, invalidated: ${invalidated}, repeatedFallbackImages: ${repeatedFallbackUrls.size}`);
-    return { scanned: allTrends.length, repaired, invalidated, repeatedFallbackImages: repeatedFallbackUrls.size };
+    console.info('[MEDIA] fallback repair completed', {
+      scanned: allTrends.length,
+      repaired,
+      invalidated,
+      fallbackVisuals: fallbackVisuals.size,
+    });
+    return { scanned: allTrends.length, repaired, invalidated, repeatedFallbackImages: fallbackVisuals.size };
   } catch (error) {
-    console.error('[MEDIA] duplicate media repair failed:', error.message || error);
+    console.error('[MEDIA] fallback repair failed:', error.message || error);
     return { scanned: 0, repaired: 0, invalidated: 0, repeatedFallbackImages: 0 };
   }
 };
