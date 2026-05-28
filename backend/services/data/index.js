@@ -1,13 +1,14 @@
 const { getRedditTrends } = require("./redditService");
 const { getGoogleTrends } = require("./googleTrendsService");
+const { TREND_INGEST_LIMIT, TREND_CACHE_DURATION_MS } = require("../../config/config");
 
 let cache = {
   data: null,
   timestamp: 0
 };
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache to reduce repeated external calls
-const MAX_TRENDS = 1000; // keep a larger pool of real trend signals
+const CACHE_DURATION = TREND_CACHE_DURATION_MS;
+const MAX_TRENDS = Math.max(1000, Number(TREND_INGEST_LIMIT || 5000));
 
 const normalizeTitleKey = (title) =>
   String(title || '')

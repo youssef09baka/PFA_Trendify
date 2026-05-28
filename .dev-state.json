@@ -1,0 +1,23 @@
+﻿{
+    "createdAt":  "2026-05-28T19:33:06.0709030Z",
+    "processes":  [
+                      {
+                          "Name":  "backend",
+                          "Id":  4668,
+                          "WorkingDir":  "D:\\PFA_V1\\backend",
+                          "Command":  "npm run dev"
+                      },
+                      {
+                          "Name":  "frontend",
+                          "Id":  40928,
+                          "WorkingDir":  "D:\\PFA_V1\\frontend",
+                          "Command":  "npm run dev"
+                      },
+                      {
+                          "Name":  "ml-model",
+                          "Id":  5136,
+                          "WorkingDir":  "D:\\PFA_V1\\ml-model",
+                          "Command":  "py app.py"
+                      }
+                  ]
+}

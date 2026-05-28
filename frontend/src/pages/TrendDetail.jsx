@@ -8,6 +8,7 @@ import Button from '../components/Button';
 import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import { formatScore } from '../utils/ui';
+import { getCardMediaUrl } from '../utils/media';
 
 
 export default function TrendDetail() {
@@ -142,7 +143,7 @@ export default function TrendDetail() {
               <div className="detail-layout">
                 <section className="detail-main">
                   <div className="panel-card panel-media">
-                    <MediaBox video={trend.video} src={trend.image || trend.thumbnail} poster={trend.thumbnail} alt={trend.title} aspect="16:9" controls={!!trend.video} />
+                    <MediaBox video={trend.video} src={getCardMediaUrl(trend)} poster={getCardMediaUrl(trend)} alt={trend.title} aspect="16:9" controls={!!trend.video} />
                   </div>
 
                   <div className="signal-pill-row">
@@ -261,8 +262,8 @@ export default function TrendDetail() {
                         {trend.related.map((item) => (
                           <Link key={item.id} to={`/feed/${item.id}`} className="related-card">
                             <div className="related-thumb">
-                              {item.thumbnail ? (
-                                <MediaBox src={item.thumbnail} alt={item.title} aspect="square" />
+                              {getCardMediaUrl(item) ? (
+                                <MediaBox src={getCardMediaUrl(item)} alt={item.title} aspect="square" />
                               ) : (
                                 <span className="related-thumb-label">Signal</span>
                               )}

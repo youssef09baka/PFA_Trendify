@@ -65,6 +65,18 @@ const trendSchema = new mongoose.Schema({
     enum: ["image", "video", "none"],
     default: "none"
   },
+  mediaFingerprint: {
+    type: String,
+    default: ""
+  },
+  mediaVerifiedAt: {
+    type: Date,
+    default: null
+  },
+  mediaSource: {
+    type: String,
+    default: ""
+  },
   link: {
     type: String,
     default: ""

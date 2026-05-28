@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { GOOGLE_TRENDS_LIMIT } = require("../../config/config");
 
 const {
   cleanTitle,
@@ -68,7 +69,7 @@ const getGoogleTrends = async () => {
         return validateTrend(data) ? data : null;
       })
       .filter(Boolean)
-      .slice(0, 50);
+      .slice(0, Math.max(50, Number(GOOGLE_TRENDS_LIMIT || 120)));
 
   } catch (error) {
     const serviceError = new Error(`Google Trends service failed: ${error.message}`);

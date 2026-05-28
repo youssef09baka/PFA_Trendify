@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const { JWT_SECRET } = require("../config/config");
+const { JWT_SECRET, AI_ANALYSIS_QUOTA } = require("../config/config");
 
 const protect = async (req, res, next) => {
   const authHeader = req.headers.authorization || "";
@@ -32,7 +32,7 @@ const protect = async (req, res, next) => {
     const now = new Date();
     const lastReset = req.user.aiLastReset ? new Date(req.user.aiLastReset) : null;
     if (!lastReset || now - lastReset > 24 * 60 * 60 * 1000) {
-      req.user.aiRemaining = 5;
+      req.user.aiRemaining = AI_ANALYSIS_QUOTA;
       req.user.aiLastReset = now;
       await req.user.save();
     }

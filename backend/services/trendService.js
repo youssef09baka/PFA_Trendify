@@ -1,5 +1,6 @@
 const Trend = require("../models/Trend");
-const { extractMediaForTrend } = require('./data/mediaExtractor');
+const { extractMediaForTrend, isPlaceholderMediaUrl } = require('./data/mediaExtractor');
+const { computeMediaFingerprint, findDuplicateMediaCandidates } = require('./data/mediaUniqueness');
 
 const slugifyTitle = (title) =>
   title
@@ -196,61 +197,176 @@ const scoreTrends = (trends = []) => {
   });
 };
 
-const saveTrends = async (trends) => {
-  const ops = trends.map(async (trend) => {
-    const normalizedSource = normalizeSource(trend.source);
-    const normalizedCategory = normalizeCategory({ ...trend, source: normalizedSource });
-    const slug = trend.slug || buildSlug({ ...trend, source: normalizedSource, category: normalizedCategory });
+const shouldRefreshMedia = (trend) => {
+  if (!trend) return false;
+  const hasPlaceholder = isPlaceholderMediaUrl(trend.image) || isPlaceholderMediaUrl(trend.thumbnail);
+  return hasPlaceholder || trend.mediaType === 'none' || (!trend.image && !trend.thumbnail && !trend.video);
+};
+
+const refreshTrendMedia = async (trend) => {
+  if (!shouldRefreshMedia(trend)) return trend;
+
+  try {
+    const media = await extractMediaForTrend(trend, trend._raw || null).catch(() => null);
+    if (!media || (!media.image && !media.thumbnail)) return trend;
+
+    const image = media.image || media.thumbnail || trend.image || '';
+    const thumbnail = media.thumbnail || image || trend.thumbnail || '';
+    const updated = await Trend.findByIdAndUpdate(
+      trend._id,
+      {
+        $set: {
+          image,
+          thumbnail,
+          mediaType: media.mediaType || 'image',
+          mediaFingerprint: computeMediaFingerprint({ ...trend, image, thumbnail }).fingerprint,
+          mediaVerifiedAt: new Date(),
+          mediaSource: 'runtime-refresh'
+        }
+      },
+      { new: true }
+    ).lean();
+
+    return updated || { ...trend, image, thumbnail, mediaType: media.mediaType || 'image' };
+  } catch {
+    return trend;
+  }
+};
+
+const shouldRepairDuplicateMedia = (trend) => {
+  if (!trend) return false;
+  const fingerprint = computeMediaFingerprint(trend).fingerprint;
+  return Boolean(fingerprint && fingerprint !== 'none' && (!trend.mediaVerifiedAt || Date.now() - new Date(trend.mediaVerifiedAt).getTime() > 6 * 60 * 60 * 1000));
+};
+
+const repairDuplicateMedia = async (trends = []) => {
+  const duplicates = findDuplicateMediaCandidates(trends);
+  if (duplicates.length === 0) return trends;
+
+  const candidates = new Set();
+  for (const entry of duplicates) {
+    candidates.add(String(entry.left?._id || entry.left?.slug || ''));
+    candidates.add(String(entry.right?._id || entry.right?.slug || ''));
+  }
+
+  const repairs = [];
+  for (const trend of trends) {
+    const candidateKey = String(trend?._id || trend?.slug || '');
+    if (!candidates.has(candidateKey)) continue;
+    if (!shouldRepairDuplicateMedia(trend)) continue;
 
     try {
-      const needsMedia = !trend.image && !trend.thumbnail && !trend.video;
-      if (needsMedia) {
-        const m = await extractMediaForTrend(trend, trend._raw).catch(() => null);
-        if (m) {
-          trend.image = trend.image || m.image || '';
-          trend.video = trend.video || m.video || '';
-          trend.thumbnail = trend.thumbnail || m.thumbnail || '';
-          trend.mediaType = trend.mediaType || (m.mediaType || 'none');
-        }
-      }
-    } catch (e) {
-      // ignore media extraction failures
-    }
+      const fresh = await extractMediaForTrend(trend, trend._raw || null).catch(() => null);
+      if (!fresh || (!fresh.image && !fresh.thumbnail)) continue;
+      const nextImage = fresh.image || fresh.thumbnail || trend.image || '';
+      const nextThumbnail = fresh.thumbnail || nextImage || trend.thumbnail || '';
+      if (!nextImage || nextImage === trend.image) continue;
 
-    const update = {
-      title: trend.title,
-      source: normalizedSource,
-      category: normalizedCategory,
-      score: typeof trend.score === 'number' ? trend.score : 0,
-      scoreDetails: trend.scoreDetails || {
+      repairs.push(
+        Trend.findOneAndUpdate(
+          { _id: trend._id || trend.slug },
+          {
+            $set: {
+              image: nextImage,
+              thumbnail: nextThumbnail,
+              mediaType: fresh.mediaType || trend.mediaType || 'image',
+              mediaFingerprint: computeMediaFingerprint({ ...trend, image: nextImage, thumbnail: nextThumbnail }).fingerprint,
+              mediaVerifiedAt: new Date(),
+              mediaSource: 'verified-duplicate-repair'
+            }
+          },
+          { new: true }
+        ).lean()
+      );
+    } catch (error) {
+      console.warn('[MEDIA] duplicate repair failed', error.message);
+    }
+  }
+
+  await Promise.all(repairs);
+  return trends;
+};
+
+const chunkArray = (items, size) => {
+  const chunks = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+  return chunks;
+};
+
+const saveTrends = async (trends) => {
+  const normalizedInput = Array.isArray(trends) ? trends : [];
+  await repairDuplicateMedia(normalizedInput);
+
+  const chunks = chunkArray(normalizedInput, 100);
+  const persisted = [];
+
+  for (const batch of chunks) {
+    const ops = batch.map(async (trend) => {
+      const normalizedSource = normalizeSource(trend.source);
+      const normalizedCategory = normalizeCategory({ ...trend, source: normalizedSource });
+      const slug = trend.slug || buildSlug({ ...trend, source: normalizedSource, category: normalizedCategory });
+
+      try {
+        const mediaFingerprint = computeMediaFingerprint(trend).fingerprint;
+        if (shouldRefreshMedia(trend) || (mediaFingerprint && mediaFingerprint !== 'none' && (!trend.mediaVerifiedAt || Date.now() - new Date(trend.mediaVerifiedAt).getTime() > 6 * 60 * 60 * 1000))) {
+          const m = await extractMediaForTrend(trend, trend._raw || null).catch(() => null);
+          if (m) {
+            trend.image = m.image || trend.image || '';
+            trend.video = m.video || trend.video || '';
+            trend.thumbnail = m.thumbnail || trend.thumbnail || trend.image || '';
+            trend.mediaType = m.mediaType || trend.mediaType || 'image';
+            trend.mediaFingerprint = computeMediaFingerprint({ ...trend, image: trend.image, thumbnail: trend.thumbnail }).fingerprint;
+            trend.mediaVerifiedAt = new Date();
+            trend.mediaSource = 'verification';
+          }
+        }
+      } catch (e) {
+        // ignore media extraction failures
+      }
+
+      const update = {
+        title: trend.title,
+        source: normalizedSource,
+        category: normalizedCategory,
+        score: typeof trend.score === 'number' ? trend.score : 0,
+        scoreDetails: trend.scoreDetails || {
+          popularity: trend.popularity || 0,
+          growth: trend.growth || 0,
+          formula: '0.7 * popularity + 0.3 * growth'
+        },
+        analysis: trend.analysis || '',
+        idea: trend.idea || '',
+        ml_prediction: trend.ml_prediction || 'UNKNOWN',
         popularity: trend.popularity || 0,
         growth: trend.growth || 0,
-        formula: '0.7 * popularity + 0.3 * growth'
-      },
-      analysis: trend.analysis || '',
-      idea: trend.idea || '',
-      ml_prediction: trend.ml_prediction || 'UNKNOWN',
-      popularity: trend.popularity || 0,
-      growth: trend.growth || 0,
-      image: trend.image || '',
-      video: trend.video || '',
-      thumbnail: trend.thumbnail || '',
-      mediaType: trend.mediaType || 'none',
-      link: trend.link || '',
-      excerpt: trend.excerpt || trend.title || '',
-      fetchedAt: trend.fetchedAt || new Date(),
-      tags: Array.isArray(trend.tags) ? trend.tags : [],
-      slug
-    };
+        image: trend.image || '',
+        video: trend.video || '',
+        thumbnail: trend.thumbnail || '',
+        mediaType: trend.mediaType || 'none',
+        mediaFingerprint: trend.mediaFingerprint || computeMediaFingerprint(trend).fingerprint,
+        mediaVerifiedAt: trend.mediaVerifiedAt || new Date(),
+        mediaSource: trend.mediaSource || 'verification',
+        link: trend.link || '',
+        excerpt: trend.excerpt || trend.title || '',
+        fetchedAt: trend.fetchedAt || new Date(),
+        tags: Array.isArray(trend.tags) ? trend.tags : [],
+        slug
+      };
 
-    return Trend.findOneAndUpdate(
-      { slug },
-      { $set: update, $setOnInsert: { savedCount: 0 } },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    ).lean();
-  });
+      return Trend.findOneAndUpdate(
+        { slug },
+        { $set: update, $setOnInsert: { savedCount: 0 } },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      ).lean();
+    });
 
-  return Promise.all(ops);
+    const batchResults = await Promise.all(ops);
+    persisted.push(...batchResults);
+  }
+
+  return persisted;
 };
 
 const normalizeStoredTrends = (trends = []) => scoreTrends(Array.isArray(trends) ? trends : []);
@@ -273,16 +389,28 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 's
   if (sort === 'newest') sortOption = { createdAt: -1 };
   else if (sort === 'trending') sortOption = { score: -1, fetchedAt: -1 };
 
-  const [total, items] = await Promise.all([
+  const [total, items, sourceCountsResult, categoryCountsResult] = await Promise.all([
     Trend.countDocuments(query),
     Trend.find(query)
       .sort(sortOption)
       .skip(skip)
       .limit(Number(limit))
-      .lean()
+      .lean(),
+    Trend.aggregate([
+      { $match: query },
+      { $group: { _id: '$source', count: { $sum: 1 } } }
+    ]),
+    Trend.aggregate([
+      { $match: query },
+      { $group: { _id: '$category', count: { $sum: 1 } } }
+    ])
   ]);
 
-  const scoredItems = normalizeStoredTrends(items);
+  const refreshedItems = await Promise.all((items || []).map((item) => refreshTrendMedia(item)));
+  await repairDuplicateMedia(refreshedItems);
+  const scoredItems = normalizeStoredTrends(refreshedItems);
+  const sourceCounts = Object.fromEntries((sourceCountsResult || []).map((entry) => [entry._id || 'Autre', Number(entry.count) || 0]));
+  const categoryCounts = Object.fromEntries((categoryCountsResult || []).map((entry) => [entry._id || 'Non catégorisé', Number(entry.count) || 0]));
   const totalPages = Math.max(1, Math.ceil(total / Number(limit)));
 
   return {
@@ -292,7 +420,9 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 's
       page: Number(page),
       limit: Number(limit),
       totalPages,
-      hasMore: Number(page) < totalPages
+      hasMore: Number(page) < totalPages,
+      sourceCounts,
+      categoryCounts
     }
   };
 };
@@ -305,7 +435,8 @@ module.exports = {
     if (!id) return null;
     const trend = await Trend.findById(id).lean();
     if (!trend) return null;
-    return normalizeStoredTrends([trend])[0] || trend;
+    const refreshed = await refreshTrendMedia(trend);
+    return normalizeStoredTrends([refreshed])[0] || refreshed;
   },
   getRelatedTrends: async (id, { category, tags, source, limit = 5 } = {}) => {
     const query = { _id: { $ne: id } };

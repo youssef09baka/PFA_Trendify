@@ -29,7 +29,9 @@ export default function Dashboard() {
   const [filterSource, setFilterSource] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [recentSearches, setRecentSearches] = useState([]);
-  const [aiLeft, setAiLeft] = useState(user?.aiRemaining ?? 5);
+  const [aiLeft, setAiLeft] = useState(Number(user?.aiRemaining) || 0);
+  const [sourceCounts, setSourceCounts] = useState({});
+  const [categoryCounts, setCategoryCounts] = useState({});
   const [analysisMessage, setAnalysisMessage] = useState('');
 
   async function fetchTrends() {
@@ -39,8 +41,10 @@ export default function Dashboard() {
       if (data && Array.isArray(data.items)) {
         setTrends(data.items);
       }
+      if (data?.meta?.sourceCounts) setSourceCounts(data.meta.sourceCounts);
+      if (data?.meta?.categoryCounts) setCategoryCounts(data.meta.categoryCounts);
       if (data?.user?.aiRemaining !== undefined) {
-        setAiLeft(data.user.aiRemaining);
+        setAiLeft(Number(data.user.aiRemaining) || 0);
       }
     } catch {
       setAnalysisMessage('Impossible de charger les tendances pour le moment.');
@@ -69,7 +73,7 @@ export default function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (user?.aiRemaining !== undefined) {
+    if (typeof user?.aiRemaining === 'number') {
       setAiLeft(user.aiRemaining);
     }
   }, [user?.aiRemaining]);
@@ -77,13 +81,7 @@ export default function Dashboard() {
   const preferencesCount = user?.preferences?.length || 0;
   const savedCount = savedTrends.length;
 
-  const categories = trends.reduce((acc, trend) => {
-    const key = trend.category || 'Non catégorisé';
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-
-  const topCategories = Object.entries(categories)
+  const topCategories = Object.entries(categoryCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4)
     .map(([category, count]) => ({ category, count }));
@@ -187,7 +185,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <span>Analyses IA restantes</span>
-                  <strong>{aiLeft}/5</strong>
+                  <strong>{aiLeft}</strong>
                 </div>
                 <div>
                   <span>Dernière synchronisation</span>
@@ -348,7 +346,7 @@ export default function Dashboard() {
               <div className="workspace-panel-header">
                 <div>
                   <h2>Analyse IA</h2>
-                  <p>Analyse IA limitée à 5 usages par jour.</p>
+                  <p>Quota temporaire de développement — la valeur réelle vient du backend.</p>
                 </div>
               </div>
 
@@ -356,7 +354,7 @@ export default function Dashboard() {
                 <div className="ai-status">
                   <div>
                     <span>Analyses restantes</span>
-                    <strong>{aiLeft}/5</strong>
+                    <strong>{aiLeft} restant{aiLeft > 1 ? 's' : ''}</strong>
                   </div>
                   <div>
                     <span>Utilisation responsable</span>

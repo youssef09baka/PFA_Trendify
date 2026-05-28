@@ -1,0 +1,8 @@
+{
+  "name": "pfa-v1-dev",
+  "private": true,
+  "scripts": {
+    "dev:all": "powershell -ExecutionPolicy Bypass -File ./start-dev.ps1",
+    "dev:stop": "powershell -ExecutionPolicy Bypass -File ./stop-dev.ps1"
+  }
+}

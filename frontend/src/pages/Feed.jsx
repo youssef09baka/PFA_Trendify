@@ -19,6 +19,7 @@ import LoadingSkeleton from '../components/LoadingSkeleton';
 import MediaBox from '../components/MediaBox';
 import Input from '../components/Input';
 import { formatScore } from '../utils/ui';
+import { getCardMediaUrl } from '../utils/media';
 function SavedDrawer({ trends, onClose, onRemove }) {
   const list = Array.isArray(trends) ? trends : [];
 
@@ -48,7 +49,7 @@ function SavedDrawer({ trends, onClose, onRemove }) {
             return (
               <div className="saved-drawer-item" key={id} style={{ padding: '14px', background: 'var(--glass)', border: '1px solid var(--glass-b)', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
                 <div style={{ width: 54, height: 54, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: 'var(--glass)' }}>
-                  <MediaBox src={t.thumbnail || t.image} alt={t.title} aspect="square" />
+                  <MediaBox src={getCardMediaUrl(t)} alt={t.title} aspect="square" />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', lineHeight: 1.4, marginBottom: 6 }}>{t.title}</p>
@@ -129,7 +130,7 @@ function MediaPreview({ thumb, url, alt }) {
 function FeedCard({ trend, isSaved, onSave, onHide, onView }) {
   const id = trend._id || trend.id || trend.title;
   const summary = formatSummary(trend);
-  const thumb = trend.thumbnail || trend.image || trend.poster;
+  const thumb = getCardMediaUrl(trend);
   const detailUrl = trend.link || trend.image || trend.video || '#';
 
   return (
@@ -298,13 +299,8 @@ export default function Feed() {
   };
 
   const visibleTrends = baseData.filter((t) => !hidden.includes(t._id || t.id));
-  const sourceCounts = visibleTrends.reduce((acc, t) => {
-    const s = displaySourceLabel(t.source);
-    if (!s) return acc;
-    acc[s] = (acc[s] || 0) + 1;
-    return acc;
-  }, {});
-  const sources = ['All', ...Object.keys(sourceCounts).sort((a, b) => sourceCounts[b] - sourceCounts[a])];
+  const sourceCounts = meta.sourceCounts || {};
+  const sources = ['All', ...Object.keys(sourceCounts).sort((a, b) => (sourceCounts[b] || 0) - (sourceCounts[a] || 0))];
   const filteredTrends = visibleTrends.filter((trend) => {
     const sourceMatch = filter === 'All' || displaySourceLabel(trend.source).toLowerCase().includes(filter.toLowerCase());
     const query = search.trim().toLowerCase();

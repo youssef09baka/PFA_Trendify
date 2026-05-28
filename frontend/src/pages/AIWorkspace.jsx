@@ -15,7 +15,7 @@ export default function AIWorkspace() {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [aiRemaining, setAiRemaining] = useState(5);
+  const [aiRemaining, setAiRemaining] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
 
   const loadWorkspace = async () => {
@@ -30,7 +30,7 @@ export default function AIWorkspace() {
       const { data } = await api.post(`/feed/${id}/analyze`);
       setTrend((prev) => ({ ...(prev || {}), ...(data.trend || {}) }));
       setAnalysis(data.analysis || null);
-      setAiRemaining(typeof data.aiRemaining === 'number' ? data.aiRemaining : 5);
+      setAiRemaining(typeof data.aiRemaining === 'number' ? data.aiRemaining : 0);
     } catch (err) {
       const status = err?.response?.status;
       if (status === 429) {

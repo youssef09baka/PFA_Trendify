@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { AI_ANALYSIS_QUOTA } = require("../config/config");
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -30,7 +31,7 @@ const userSchema = new mongoose.Schema({
 
   aiRemaining: {
     type: Number,
-    default: 5
+    default: AI_ANALYSIS_QUOTA
   },
 
   aiLastReset: {

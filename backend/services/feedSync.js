@@ -2,6 +2,7 @@ const { getRealTrends } = require("./data");
 const { generateBatchAnalysis } = require("./aiService");
 const { predictTrend } = require("./mlService");
 const { saveTrends, scoreTrends } = require("./trendService");
+const { TREND_PERSIST_LIMIT, TREND_ANALYSIS_LIMIT } = require("../config/config");
 const mongoose = require('mongoose');
 
 const DEFAULT_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
@@ -26,8 +27,8 @@ const runSync = async () => {
     }
 
     const scored = scoreTrends(raw);
-    const toPersist = scored.slice(0, 300);
-    const analysisBatch = toPersist.slice(0, 100);
+    const toPersist = scored.slice(0, Math.max(300, Number(TREND_PERSIST_LIMIT || 1000)));
+    const analysisBatch = toPersist.slice(0, Math.min(toPersist.length, Number(TREND_ANALYSIS_LIMIT || 250)));
 
     const analyzed = await generateBatchAnalysis(analysisBatch);
     const analysisByTitle = new Map(analyzed.map((trend) => [trend.title, trend]));

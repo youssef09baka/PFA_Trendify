@@ -24,9 +24,14 @@ export const AuthProvider = ({ children }) => {
     checkAuth();
   }, []);
 
-  const login = (userData, token) => {
+  const login = async (userData, token) => {
     localStorage.setItem('token', token);
-    setUser(userData);
+    try {
+      const { data } = await api.get('/users/profile');
+      setUser(data || userData);
+    } catch {
+      setUser(userData);
+    }
   };
 
   const logout = () => {

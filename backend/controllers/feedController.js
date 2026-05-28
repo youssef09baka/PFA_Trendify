@@ -1,5 +1,6 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const { getRealTrends } = require("../services/data");
+const { TREND_PERSIST_LIMIT, TREND_ANALYSIS_LIMIT } = require("../config/config");
 const { generateBatchAnalysis, generateTrendAnalysis } = require("../services/aiService");
 const { predictTrend } = require("../services/mlService");
 const { saveTrends, scoreTrends, getFeedTrends, getTrendById, getRelatedTrends } = require("../services/trendService");
@@ -57,7 +58,7 @@ const getFeed = asyncHandler(async (req, res, next) => {
         savedCount: trend.savedCount || 0,
         isSaved: savedSet.has(String(trend._id))
       })),
-      meta: stored.meta || { total: finalStored.length, page, limit, totalPages: 1, hasMore: false },
+      meta: stored.meta || { total: finalStored.length, page, limit, totalPages: 1, hasMore: false, sourceCounts: {}, categoryCounts: {} },
       user: {
         aiRemaining: user?.aiRemaining ?? 0
       }
@@ -71,14 +72,15 @@ const getFeed = asyncHandler(async (req, res, next) => {
     return next(error);
   }
 
-  const scoredTrends = scoreTrends(rawTrends).slice(0, 24);
+  const scoredTrends = scoreTrends(rawTrends).slice(0, Math.max(24, Number(TREND_PERSIST_LIMIT || 1000)));
+  const analysisBatch = scoredTrends.slice(0, Math.min(scoredTrends.length, Number(TREND_ANALYSIS_LIMIT || 250)));
 
   if (forceRefresh && user) {
     user.aiRemaining = Math.max(0, (user.aiRemaining || 0) - 1);
     await user.save();
   }
 
-  const trends = await generateBatchAnalysis(scoredTrends);
+  const trends = await generateBatchAnalysis(analysisBatch);
 
   const predictions = await Promise.all(
     trends.map((trend) => predictTrend(trend))

@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { REDDIT_FETCH_LIMIT } = require("../../config/config");
 const {
   cleanTitle,
   isGoodContent,
@@ -10,28 +11,43 @@ const { extractFromReddit } = require('./mediaExtractor');
 
 const SUBREDDITS = [
   'technology',
+  'tech',
+  'AI',
+  'MachineLearning',
+  'OpenAI',
+  'programming',
+  'webdev',
   'Entrepreneur',
   'startups',
   'business',
+  'marketing',
+  'investing',
+  'finance',
+  'economics',
+  'CryptoCurrency',
+  'datascience',
+  'Futurology',
   'science',
   'gaming',
   'worldnews',
-  'Futurology',
-  'FinancialIndependence',
-  'datascience',
-  'marketing',
-  'entertainment',
-  'CryptoCurrency',
-  'MachineLearning',
-  'investing',
-  'economics',
-  'finance',
   'news',
-  'programming',
-  'dataisbeautiful',
-  'Showerthoughts',
+  'gadgets',
   'nottheonion',
-  'gadgets'
+  'Showerthoughts',
+  'dataisbeautiful',
+  'entertainment',
+  'FinancialIndependence',
+  'philosophy',
+  'cybersecurity',
+  'robotics',
+  'artificial',
+  'softwareengineering',
+  'productivity',
+  'innovation',
+  'biotech',
+  'space',
+  'climate',
+  'politics'
 ];
 
 const normalizeTitleKey = (title) =>
@@ -42,7 +58,7 @@ const normalizeTitleKey = (title) =>
     .trim();
 
 const getRedditTrends = async () => {
-  const urls = SUBREDDITS.map((subreddit) => `https://www.reddit.com/r/${subreddit}.json?limit=40`);
+  const urls = SUBREDDITS.map((subreddit) => `https://www.reddit.com/r/${subreddit}.json?limit=${Math.max(40, Number(REDDIT_FETCH_LIMIT || 75))}`);
   let allPosts = [];
 
   for (const url of urls) {
@@ -108,7 +124,7 @@ const getRedditTrends = async () => {
     })
     .filter(Boolean)
     .sort((a, b) => getScore(b) - getScore(a))
-    .slice(0, 80);
+    .slice(0, Math.max(150, Number(REDDIT_FETCH_LIMIT || 75) * 2));
 
   return trends;
 };
