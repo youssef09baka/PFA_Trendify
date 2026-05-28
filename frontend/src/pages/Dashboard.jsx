@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
-import { Link } from 'react-router-dom';
 import Button from '../components/Button';
 import Input from '../components/Input';
 import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import { Search, Zap, RefreshCw, ArrowRight } from 'lucide-react';
+import { formatScore } from '../utils/ui';
 
 function displaySourceLabel(source) {
   const key = (source || '').toLowerCase();
@@ -18,6 +19,7 @@ function displaySourceLabel(source) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [trends, setTrends] = useState([]);
   const [savedTrends, setSavedTrends] = useState([]);
@@ -111,7 +113,7 @@ export default function Dashboard() {
     return sourceMatch && categoryMatchFilter && (titleMatch || categoryMatch || sourceMatchText);
   });
 
-  const recentDiscoveries = trends.slice(0, 4);
+  const recentDiscoveries = filteredTrends.slice(0, 4);
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
@@ -238,8 +240,12 @@ export default function Dashboard() {
                 ) : savedTrends.length === 0 ? (
                   <EmptyState
                     title="Aucune tendance sauvegardée"
-                    subtitle="Découvrez des signaux et enregistrez ceux qui vous intéressent pour les retrouver ici."
-                    action={<Button type="button" variant="ghost" onClick={fetchSaved}>Rafraîchir</Button>}
+                    subtitle="Sauvegardez un signal depuis le flux pour le retrouver ici et suivre son évolution."
+                    action={
+                      <Button type="button" variant="primary" onClick={() => navigate('/feed')}>
+                        Explorer le flux
+                      </Button>
+                    }
                   />
                 ) : (
                   savedTrends.slice(0, 3).map((trend) => (
@@ -264,7 +270,7 @@ export default function Dashboard() {
               <div className="workspace-panel-header">
                 <div>
                   <h2>Explorer</h2>
-                  <p>Dernières découvertes et catégories en hausse.</p>
+                  <p>Les signaux les plus visibles par catégorie.</p>
                 </div>
               </div>
 
@@ -281,18 +287,24 @@ export default function Dashboard() {
                 </div>
 
                 <div className="recent-trends-grid">
-                  {recentDiscoveries.slice(0, 4).map((trend) => (
-                    <div key={trend._id || trend.id || trend.title} className="recent-trend-card">
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-                        <strong style={{ fontSize: 13, color: 'var(--text)' }}>{trend.title}</strong>
-                        <span style={{ fontSize: 11, color: 'var(--text3)' }}>{displaySourceLabel(trend.source)}</span>
-                      </div>
-                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', color: 'var(--text3)', fontSize: 12 }}>
-                        <span>{trend.category || 'Sans catégorie'}</span>
-                        <span>Score {trend.score ?? '–'}</span>
-                      </div>
+                  {recentDiscoveries.length === 0 ? (
+                    <div style={{ padding: 24, borderRadius: 18, background: 'var(--glass)', border: '1px solid var(--glass-b)', color: 'var(--text3)' }}>
+                      Aucun signal n’apparaît avec les filtres actuels. Ajustez un filtre ou actualisez le flux pour retrouver des tendances visibles.
                     </div>
-                  ))}
+                  ) : (
+                    recentDiscoveries.slice(0, 4).map((trend) => (
+                      <div key={trend._id || trend.id || trend.title} className="recent-trend-card">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
+                          <strong style={{ fontSize: 13, color: 'var(--text)' }}>{trend.title}</strong>
+                          <span style={{ fontSize: 11, color: 'var(--text3)' }}>{displaySourceLabel(trend.source)}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', color: 'var(--text3)', fontSize: 12 }}>
+                          <span>{trend.category || 'Sans catégorie'}</span>
+                          <span>Score {formatScore(trend.score)}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -301,7 +313,7 @@ export default function Dashboard() {
               <div className="workspace-panel-header">
                 <div>
                   <h2>Espace recherche</h2>
-                  <p>Affinez votre recherche par mot-clé, source ou catégorie.</p>
+                  <p>Affinez rapidement vos signaux par source ou catégorie.</p>
                 </div>
               </div>
 
@@ -336,7 +348,7 @@ export default function Dashboard() {
               <div className="workspace-panel-header">
                 <div>
                   <h2>Analyse IA</h2>
-                  <p>Analyse manuelle, limitée à 5 usages par jour.</p>
+                  <p>Analyse IA limitée à 5 usages par jour.</p>
                 </div>
               </div>
 

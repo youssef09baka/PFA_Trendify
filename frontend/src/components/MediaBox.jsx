@@ -33,8 +33,10 @@ export default function MediaBox({ src, video, poster, alt = '', aspect = '16:9'
   const showImage = hasImage && !error;
   const showVideo = hasVideo && !videoError;
 
+  if (!showImage && !showVideo) return null;
+
   return (
-    <div className={`media-box ${className}`} style={{ paddingTop }}>
+    <div className={`media-box ${className}`} style={{ paddingTop, width: '100%', position: 'relative', overflow: 'hidden', background: 'var(--glass)' }}>
       {showVideo ? (
         <video
           src={video}
@@ -48,21 +50,12 @@ export default function MediaBox({ src, video, poster, alt = '', aspect = '16:9'
       ) : showImage ? (
         <img
           src={src || poster}
-          alt={alt}
+          alt={alt || 'Visuel de tendance'}
           loading={lazy ? 'lazy' : 'eager'}
           onError={() => setError(true)}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
-      ) : (
-        <div className="media-placeholder">
-          <div style={{ textAlign: 'center' }}>
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ opacity: 0.9 }}>
-              <rect x="3" y="3" width="18" height="18" rx="3" fill="rgba(255,255,255,0.02)" stroke="rgba(255,255,255,0.06)" />
-              <path d="M7 9l3 3 4-4 5 5" stroke="rgba(255,255,255,0.6)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <div style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 8 }}>Aucun média</div>
-          </div>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }

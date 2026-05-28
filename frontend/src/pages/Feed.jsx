@@ -18,6 +18,7 @@ import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import MediaBox from '../components/MediaBox';
 import Input from '../components/Input';
+import { formatScore } from '../utils/ui';
 function SavedDrawer({ trends, onClose, onRemove }) {
   const list = Array.isArray(trends) ? trends : [];
 
@@ -53,7 +54,7 @@ function SavedDrawer({ trends, onClose, onRemove }) {
                   <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', lineHeight: 1.4, marginBottom: 6 }}>{t.title}</p>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                     <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: 'rgba(255,220,80,0.14)', color: 'var(--y)', textTransform: 'uppercase' }}>{t.source || 'Source'}</span>
-                    <span style={{ fontSize: 10, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>Score: {t.score}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text3)', fontFamily: 'var(--mono)' }}>Score: {formatScore(t.score)}</span>
                   </div>
                 </div>
                 <Button variant="ghost" onClick={() => onRemove(id)} icon={<X size={12} />} iconOnly />
@@ -72,6 +73,39 @@ function formatNum(n) {
   return String(n);
 }
 
+function displaySourceLabel(source) {
+  const value = String(source || '').trim();
+  const key = value.toLowerCase();
+  if (!value) return 'Source inconnue';
+  if (key.includes('reddit')) return 'Reddit';
+  if (key.includes('google')) return 'Google';
+  if (key.includes('youtube')) return 'YouTube';
+  return value;
+}
+
+function displayCategoryLabel(category) {
+  if (!category) return null;
+  const normalized = String(category).trim();
+  if (!normalized) return null;
+  return normalized
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map((part) => part[0].toUpperCase() + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function formatSummary(trend) {
+  const raw = trend.analysis || trend.summary || trend.description;
+  if (!raw) {
+    return 'Analyse rapide non disponible. Consultez la page détail pour approfondir.';
+  }
+  const cleaned = String(raw).trim();
+  if (/ai unavailable/i.test(cleaned)) {
+    return 'Analyse IA indisponible pour ce signal. Consultez la page détail pour le contexte.';
+  }
+  return cleaned;
+}
+
 function Toast({ msg, onClose }) {
   return (
     <div style={{ position: 'fixed', right: 20, bottom: 20, zIndex: 300 }}>
@@ -86,23 +120,25 @@ function Toast({ msg, onClose }) {
 function MediaPreview({ thumb, url, alt }) {
   if (!thumb) return null;
   return (
-    <a href={url} target="_blank" rel="noreferrer" style={{ display: 'block', position: 'relative', overflow: 'hidden' }}>
-      <MediaBox src={thumb} alt={alt || ''} aspect="16:9" />
+    <a href={url || '#'} target="_blank" rel="noreferrer" style={{ display: 'block', position: 'relative', overflow: 'hidden' }}>
+      <MediaBox src={thumb} alt={alt || 'Visuel de tendance'} aspect="16:9" />
     </a>
   );
 }
 
-function FeedCard({ trend, isSaved, onSave, onHide, onView, onAnalyze }) {
+function FeedCard({ trend, isSaved, onSave, onHide, onView }) {
   const id = trend._id || trend.id || trend.title;
-  const summary = trend.summary || trend.description || trend.analysis || 'Signal important détecté par le feed.';
+  const summary = formatSummary(trend);
+  const thumb = trend.thumbnail || trend.image || trend.poster;
+  const detailUrl = trend.link || trend.image || trend.video || '#';
 
   return (
     <article className="feed-card">
-      {trend.thumbnail && <MediaPreview thumb={trend.thumbnail} url={trend.link || trend.image} />}
+      {thumb ? <MediaPreview thumb={thumb} url={detailUrl} alt={trend.title} /> : null}
       <div className="feed-card-body">
         <div className="feed-pill-row">
-          <span className="pill pill-source">{trend.source || 'Source inconnue'}</span>
-          {trend.category && <span className="pill pill-category">{trend.category}</span>}
+          <span className="pill pill-source">{displaySourceLabel(trend.source)}</span>
+          {displayCategoryLabel(trend.category) && <span className="pill pill-category">{displayCategoryLabel(trend.category)}</span>}
         </div>
 
         <h2>{trend.title}</h2>
@@ -110,8 +146,12 @@ function FeedCard({ trend, isSaved, onSave, onHide, onView, onAnalyze }) {
         <p className="feed-summary">{summary}</p>
 
         <div className="feed-card-meta">
-          <span>{trend.score ?? '—'} points</span>
+          <span>{formatScore(trend.score)}</span>
           <span>{trend.popularity ? `${formatNum(trend.popularity)} mentions` : 'Sans données'}</span>
+        </div>
+
+        <div style={{ color: 'var(--text3)', fontSize: 12, lineHeight: 1.5 }}>
+          Consultez la page détail pour l’analyse IA et le contexte complet.
         </div>
 
         <div className="feed-card-actions">
@@ -120,7 +160,6 @@ function FeedCard({ trend, isSaved, onSave, onHide, onView, onAnalyze }) {
         </div>
 
         <div className="feed-card-foot">
-          <Button variant="ghost" onClick={() => onAnalyze(trend)} className="feed-action-text">✨ Analyser avec IA</Button>
           <Button variant="ghost" onClick={() => onHide(id)} className="feed-action-text">Masquer</Button>
         </div>
       </div>
@@ -128,7 +167,7 @@ function FeedCard({ trend, isSaved, onSave, onHide, onView, onAnalyze }) {
   );
 }
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 24;
 
 export default function Feed() {
   const navigate = useNavigate();
@@ -259,31 +298,32 @@ export default function Feed() {
   };
 
   const visibleTrends = baseData.filter((t) => !hidden.includes(t._id || t.id));
-  const sources = ['All', ...new Set(baseData.map((t) => t.source).filter(Boolean))];
+  const sourceCounts = visibleTrends.reduce((acc, t) => {
+    const s = displaySourceLabel(t.source);
+    if (!s) return acc;
+    acc[s] = (acc[s] || 0) + 1;
+    return acc;
+  }, {});
+  const sources = ['All', ...Object.keys(sourceCounts).sort((a, b) => sourceCounts[b] - sourceCounts[a])];
   const filteredTrends = visibleTrends.filter((trend) => {
-    const sourceMatch = filter === 'All' || (trend.source || '').toLowerCase().includes(filter.toLowerCase());
+    const sourceMatch = filter === 'All' || displaySourceLabel(trend.source).toLowerCase().includes(filter.toLowerCase());
     const query = search.trim().toLowerCase();
     if (!query) return sourceMatch;
     return (
       sourceMatch &&
       ((trend.title || '').toLowerCase().includes(query) ||
         (trend.category || '').toLowerCase().includes(query) ||
-        (trend.source || '').toLowerCase().includes(query))
+        displaySourceLabel(trend.source).toLowerCase().includes(query))
     );
   });
-
-  const handleAnalyze = (trend) => {
-    showToast('Analyse IA disponible sur la page de détail.');
-    navigate(`/feed/${trend._id || trend.id}`);
-  };
 
   const handleViewDetail = (id) => navigate(`/feed/${id}`);
 
   return (
     <div className="page-layout">
       <Navbar />
-      <main style={{ paddingTop: 58, background: 'var(--bg)' }}>
-        <div style={{ maxWidth: 720, margin: '0 auto', padding: '24px 20px 40px' }}>
+      <main style={{ paddingTop: 58, background: 'var(--bg)', overflowX: 'hidden', width: '100%' }}>
+        <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 20px 40px', width: '100%' }}>
           <section className="feed-page-header">
             <div>
               <span className="eyebrow">Flux de découverte</span>
@@ -315,7 +355,9 @@ export default function Feed() {
             </div>
             <div className="feed-chip-row">
               {sources.map((source) => (
-                <Button key={source} type="button" variant={filter === source ? 'primary' : 'ghost'} className={filter === source ? 'feed-chip active' : 'feed-chip'} onClick={() => setFilter(source)} style={{ padding: '6px 12px' }}>{source}</Button>
+                <Button key={source} type="button" variant={filter === source ? 'primary' : 'ghost'} className={filter === source ? 'feed-chip active' : 'feed-chip'} onClick={() => setFilter(source)} style={{ padding: '6px 12px' }}>
+                  {source}{source !== 'All' ? ` (${sourceCounts[source] || 0})` : ''}
+                </Button>
               ))}
             </div>
           </section>
@@ -327,7 +369,7 @@ export default function Feed() {
             {search && <div style={{ color: 'var(--text3)', fontSize: 13 }}>Filtrée par «{search}»</div>}
           </div>
 
-          <div style={{ display: 'grid', gap: 18, marginTop: 14 }}>
+          <div className="feed-grid" style={{ marginTop: 14 }}>
             {loading ? (
                 [1, 2, 3].map((i) => (
                   <LoadingSkeleton key={i} height="260px" radius={20} />
@@ -347,7 +389,6 @@ export default function Feed() {
                 onSave={handleSave}
                 onHide={handleHide}
                 onView={() => handleViewDetail(trend._id || trend.id)}
-                onAnalyze={handleAnalyze}
               />
             ))}
           </div>

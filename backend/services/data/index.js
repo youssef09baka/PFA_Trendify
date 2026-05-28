@@ -6,8 +6,8 @@ let cache = {
   timestamp: 0
 };
 
-const CACHE_DURATION = 60 * 1000;
-const MAX_TRENDS = 40;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache to reduce repeated external calls
+const MAX_TRENDS = 1000; // keep a larger pool of real trend signals
 
 const normalizeTitleKey = (title) =>
   String(title || '')
@@ -31,6 +31,21 @@ const interleaveSourceBuckets = (buckets, limit) => {
       if (!key || seen.has(key)) continue;
       seen.add(key);
       output.push(item);
+    }
+  }
+
+  // if we still don't have enough, append remaining unique items from the source pools
+  if (output.length < limit) {
+    for (const queue of queues) {
+      for (const item of queue) {
+        if (output.length >= limit) break;
+        if (!item || !item.title) continue;
+        const key = normalizeTitleKey(item.title);
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
+        output.push(item);
+      }
+      if (output.length >= limit) break;
     }
   }
 

@@ -43,15 +43,12 @@ const getGoogleTrends = async () => {
         const searchVolume = parseNumber(trend.value || trend.formatted_value || trend.traffic || trend.search_volume);
         const deltaValue = trend.delta ? parseNumber(trend.delta.value || trend.delta || trend.delta_percentage || trend.delta_percentage_str) : 0;
 
-        const searchVolume = parseNumber(trend.value || trend.formatted_value || trend.traffic || trend.search_volume);
-        const deltaValue = trend.delta ? parseNumber(trend.delta.value || trend.delta || trend.delta_percentage || trend.delta_percentage_str) : 0;
-
         const data = {
           title,
           popularity: searchVolume,
           growth: deltaValue,
-          source: "google",
-          link: "",
+          source: "Google Trends",
+          link: `https://trends.google.com/trends/explore?q=${encodeURIComponent(trend.query)}`,
           fetchedAt: new Date(),
           num_comments: 0,
           post_length: title.length,
@@ -64,13 +61,14 @@ const getGoogleTrends = async () => {
             .toLowerCase()
             .split(/\s+/)
             .filter((word) => word.length > 3)
-            .slice(0, 4)
+            .slice(0, 4),
+          excerpt: `Search interest is rising for "${title}" across the US.`
         };
 
         return validateTrend(data) ? data : null;
       })
       .filter(Boolean)
-      .slice(0, 20);
+      .slice(0, 50);
 
   } catch (error) {
     const serviceError = new Error(`Google Trends service failed: ${error.message}`);

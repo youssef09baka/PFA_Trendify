@@ -9,7 +9,6 @@ const {
 const { extractFromReddit } = require('./mediaExtractor');
 
 const SUBREDDITS = [
-  'artificial',
   'technology',
   'Entrepreneur',
   'startups',
@@ -22,7 +21,17 @@ const SUBREDDITS = [
   'datascience',
   'marketing',
   'entertainment',
-  'CryptoCurrency'
+  'CryptoCurrency',
+  'MachineLearning',
+  'investing',
+  'economics',
+  'finance',
+  'news',
+  'programming',
+  'dataisbeautiful',
+  'Showerthoughts',
+  'nottheonion',
+  'gadgets'
 ];
 
 const normalizeTitleKey = (title) =>
@@ -33,7 +42,7 @@ const normalizeTitleKey = (title) =>
     .trim();
 
 const getRedditTrends = async () => {
-  const urls = SUBREDDITS.map((subreddit) => `https://www.reddit.com/r/${subreddit}.json?limit=20`);
+  const urls = SUBREDDITS.map((subreddit) => `https://www.reddit.com/r/${subreddit}.json?limit=40`);
   let allPosts = [];
 
   for (const url of urls) {
@@ -72,11 +81,12 @@ const getRedditTrends = async () => {
       const sentiment = estimateSentimentScore(post.data.title);
       const mediaInfo = extractFromReddit(post.data);
 
+      const excerpt = rawText ? rawText.slice(0, 220).trim() : title;
       const trend = {
         title,
         popularity: post.data.score || 0,
         growth: post.data.num_comments || 0,
-        source: "reddit",
+        source: "Reddit",
         link: `https://reddit.com${post.data.permalink}`,
         image: mediaInfo.image || '',
         video: mediaInfo.video || '',
@@ -89,14 +99,16 @@ const getRedditTrends = async () => {
         hour: createdUtc ? new Date(createdUtc * 1000).getUTCHours() : new Date().getUTCHours(),
         title_length: title.length,
         sentiment,
-        tags: [post.data.subreddit, post.data.link_flair_text].filter(Boolean)
+        tags: [post.data.subreddit, post.data.link_flair_text].filter(Boolean),
+        excerpt,
+        source_detail: post.data.subreddit
       };
 
       return validateTrend(trend) ? trend : null;
     })
     .filter(Boolean)
     .sort((a, b) => getScore(b) - getScore(a))
-    .slice(0, 20);
+    .slice(0, 80);
 
   return trends;
 };

@@ -10,6 +10,7 @@ import Preferences  from './pages/Preferences';
 import Dashboard    from './pages/Dashboard';
 import Feed         from './pages/Feed';
 import TrendDetail  from './pages/TrendDetail';
+import AIWorkspace  from './pages/AIWorkspace';
 
 export default function App() {
   return (
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/dashboard"   element={<PrivateRoute><Dashboard /></PrivateRoute>} />
             <Route path="/feed"        element={<PrivateRoute><Feed /></PrivateRoute>} />
             <Route path="/feed/:id"    element={<PrivateRoute><TrendDetail /></PrivateRoute>} />
+            <Route path="/ai/:id"      element={<PrivateRoute><AIWorkspace /></PrivateRoute>} />
             <Route path="*"            element={<Navigate to="/" replace />} />
           </Routes>
         </Router>

@@ -7,6 +7,7 @@ import MediaBox from '../components/MediaBox';
 import Button from '../components/Button';
 import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
+import { formatScore } from '../utils/ui';
 
 
 export default function TrendDetail() {
@@ -16,7 +17,6 @@ export default function TrendDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
-  const [aiOpen, setAiOpen] = useState(false);
 
   const summary = useMemo(() => {
     if (!trend) return '';
@@ -78,7 +78,7 @@ export default function TrendDetail() {
     return [
       { label: 'Source', value: trend.source || '–' },
       { label: 'Catégorie', value: trend.category || '–' },
-      { label: 'Score', value: trend.score !== undefined ? trend.score : '–' },
+      { label: 'Score', value: trend.score !== undefined ? formatScore(trend.score) : '–' },
       { label: 'Tags', value: trend.tags?.length ? trend.tags.join(', ') : 'Aucun' },
       { label: 'Média', value: trend.mediaType || 'Aucun' },
     ];
@@ -110,7 +110,10 @@ export default function TrendDetail() {
                   Voir la source
                 </Button>
               )}
-              <Button type="button" variant="primary" onClick={handleToggleSave} disabled={saving} style={{ opacity: saving ? 0.8 : 1 }}>
+              <Button type="button" variant="primary" onClick={() => navigate(`/ai/${trend?._id || trend?.id}`)} disabled={!trend}>
+                Faire analyser avec l’IA
+              </Button>
+              <Button type="button" variant="ghost" onClick={handleToggleSave} disabled={saving} style={{ opacity: saving ? 0.8 : 1 }}>
                 {trend?.isSaved ? 'Retirer' : 'Sauvegarder'}
               </Button>
             </div>
@@ -153,7 +156,7 @@ export default function TrendDetail() {
                   <div className="signal-highlights">
                     <div className="mini-card">
                       <small>Impact</small>
-                      <strong>{trend.score ?? '–'}</strong>
+                      <strong>{formatScore(trend.score)}</strong>
                       <p>{trend.scoreDetails?.summary || 'Score de tendance calculé à partir des signaux disponibles.'}</p>
                     </div>
                     <div className="mini-card">
@@ -219,29 +222,14 @@ export default function TrendDetail() {
                   <div className="panel-card card-content ai-panel">
                     <div className="section-heading">
                       <div>
-                        <small>Analyse à la demande</small>
-                        <h3>IA pour le signal</h3>
+                        <small>Analyse IA</small>
+                        <h3>Workspace dédié</h3>
                       </div>
                     </div>
-                    <p>Déployez l’analyse uniquement lorsque vous créez un dossier ou rédigez un briefing stratégique.</p>
-                    <div className="ai-summary">
-                      <div>
-                        <strong>{trend.analysis ? 'Analyse disponible' : 'Pas d’analyse structurée'}</strong>
-                        <small>{trend.analysis ? 'Cliquez pour afficher le résumé IA.' : 'Aucune analyse de contexte prête pour ce signal.'}</small>
-                      </div>
-                      <div>
-                        <strong>{trend.tags?.length ? `${trend.tags.length} tags` : 'Aucun tag'}</strong>
-                        <small>Points de repère pour une veille plus rapide.</small>
-                      </div>
-                    </div>
-                    <Button type="button" variant="ghost" onClick={() => setAiOpen((value) => !value)}>
-                      {aiOpen ? 'Masquer l’analyse IA' : 'Afficher l’analyse IA'}
+                    <p>Le widget statique est remplacé par un espace de recherche IA dédié au signal sélectionné.</p>
+                    <Button type="button" variant="primary" onClick={() => navigate(`/ai/${trend?._id || trend?.id}`)}>
+                      Ouvrir l’espace d’analyse
                     </Button>
-                    {aiOpen && (
-                      <div className="ai-result">
-                        <p>{trend.analysis || 'Aucune analyse fournie par le flux actuel. Réessayez plus tard après la génération de l’IA.'}</p>
-                      </div>
-                    )}
                   </div>
 
                   <div className="panel-card card-content detail-summary-card">
@@ -276,14 +264,14 @@ export default function TrendDetail() {
                               {item.thumbnail ? (
                                 <MediaBox src={item.thumbnail} alt={item.title} aspect="square" />
                               ) : (
-                                <span>Aucun visuel</span>
+                                <span className="related-thumb-label">Signal</span>
                               )}
                             </div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{item.title}</div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text3)' }}>
                                 <span>{item.source}</span>
-                                <span style={{ fontFamily: 'var(--mono)' }}>{item.score}</span>
+                                <span style={{ fontFamily: 'var(--mono)' }}>{formatScore(item.score)}</span>
                               </div>
                             </div>
                             <ArrowRight size={14} style={{ color: 'var(--text3)' }} />

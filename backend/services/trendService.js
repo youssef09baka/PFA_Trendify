@@ -89,7 +89,9 @@ const getRecencyFactor = (trend) => {
 
 const normalizeScore = (value, max) => {
   if (max <= 0) return 0;
-  return clamp(value / max, 0, 1);
+  const raw = Math.max(0, Number(value) || 0);
+  const safeMax = Math.max(1, Number(max) || 1);
+  return clamp(Math.log1p(raw) / Math.log1p(safeMax), 0, 1);
 };
 
 const computeMaxValues = (trends) => {
@@ -117,17 +119,22 @@ const buildScoreDetails = (trend, maxValues, categoryShare, sourceShare) => {
   const sentimentFactor = clamp((sentiment + 1) / 2, 0, 1);
   const categoryBalance = clamp(1 - categoryShare, 0, 1);
   const sourceBalance = clamp(1 - sourceShare, 0, 1);
+  const momentumFactor = clamp(0.45 * growthFactor + 0.35 * engagementFactor + 0.20 * sentimentFactor, 0, 1);
+  const uniquenessFactor = clamp(1 - (categoryShare * 0.45 + sourceShare * 0.25), 0, 1);
 
-  const baseScore =
-    22 +
-    popularityFactor * 32 +
-    growthFactor * 20 +
-    engagementFactor * 10 +
-    recency * 8 +
-    sourceConfidence * 5;
-
-  const diversityBonus = clamp((categoryBalance * 0.6 + sourceBalance * 0.4) * 10, 0, 10);
-  const score = Math.round(clamp(baseScore + diversityBonus, 0, 100));
+  const score = Math.round(
+    clamp(
+      18 +
+      popularityFactor * 22 +
+      momentumFactor * 28 +
+      recency * 10 +
+      sourceConfidence * 10 +
+      sentimentFactor * 8 +
+      uniquenessFactor * 7,
+      35,
+      95
+    )
+  );
 
   return {
     score,
@@ -141,10 +148,12 @@ const buildScoreDetails = (trend, maxValues, categoryShare, sourceShare) => {
       popularityFactor: Number(popularityFactor.toFixed(3)),
       growthFactor: Number(growthFactor.toFixed(3)),
       engagementFactor: Number(engagementFactor.toFixed(3)),
+      momentumFactor: Number(momentumFactor.toFixed(3)),
+      uniquenessFactor: Number(uniquenessFactor.toFixed(3)),
       categoryBalance: Number(categoryBalance.toFixed(3)),
       sourceBalance: Number(sourceBalance.toFixed(3)),
-      formula: '22 + 32*popularity + 20*growth + 10*engagement + 8*recency + 5*confidence + diversity bonus',
-      summary: 'Score de 0-100 basé sur la traction, la fraîcheur, la confiance de source et l’équilibre de découverte.'
+      formula: '18 + 22*log(popularity) + 28*momentum + 10*recency + 10*sourceConfidence + 8*sentiment + 7*uniqueness',
+      summary: 'Score d’opportunité de 35 à 95 basé sur la traction réelle, la fraîcheur, la confiance de source et la qualité du signal.'
     }
   };
 };
@@ -228,6 +237,7 @@ const saveTrends = async (trends) => {
       thumbnail: trend.thumbnail || '',
       mediaType: trend.mediaType || 'none',
       link: trend.link || '',
+      excerpt: trend.excerpt || trend.title || '',
       fetchedAt: trend.fetchedAt || new Date(),
       tags: Array.isArray(trend.tags) ? trend.tags : [],
       slug
@@ -242,6 +252,8 @@ const saveTrends = async (trends) => {
 
   return Promise.all(ops);
 };
+
+const normalizeStoredTrends = (trends = []) => scoreTrends(Array.isArray(trends) ? trends : []);
 
 const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 'score', viral } = {}) => {
   const query = {};
@@ -270,10 +282,11 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 's
       .lean()
   ]);
 
+  const scoredItems = normalizeStoredTrends(items);
   const totalPages = Math.max(1, Math.ceil(total / Number(limit)));
 
   return {
-    data: items,
+    data: scoredItems,
     meta: {
       total,
       page: Number(page),
@@ -290,7 +303,9 @@ module.exports = {
   getFeedTrends,
   getTrendById: async (id) => {
     if (!id) return null;
-    return Trend.findById(id).lean();
+    const trend = await Trend.findById(id).lean();
+    if (!trend) return null;
+    return normalizeStoredTrends([trend])[0] || trend;
   },
   getRelatedTrends: async (id, { category, tags, source, limit = 5 } = {}) => {
     const query = { _id: { $ne: id } };
@@ -298,7 +313,8 @@ module.exports = {
     if (source) query.source = source;
     if (Array.isArray(tags) && tags.length > 0) query.tags = { $in: tags };
 
-    return Trend.find(query).sort({ score: -1 }).limit(Number(limit)).lean();
+    const related = await Trend.find(query).sort({ score: -1 }).limit(Number(limit)).lean();
+    return normalizeStoredTrends(related);
   },
   buildSlug
 };

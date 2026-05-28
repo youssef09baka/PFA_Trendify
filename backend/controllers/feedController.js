@@ -1,6 +1,6 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const { getRealTrends } = require("../services/data");
-const { generateBatchAnalysis } = require("../services/aiService");
+const { generateBatchAnalysis, generateTrendAnalysis } = require("../services/aiService");
 const { predictTrend } = require("../services/mlService");
 const { saveTrends, scoreTrends, getFeedTrends, getTrendById, getRelatedTrends } = require("../services/trendService");
 
@@ -166,6 +166,7 @@ const getTrendDetail = asyncHandler(async (req, res, next) => {
   res.status(200).json({
     id: trend._id,
     title: trend.title,
+    excerpt: trend.excerpt || '',
     analysis: trend.analysis || '',
     idea: trend.idea || '',
     ml_prediction: trend.ml_prediction,
@@ -188,4 +189,48 @@ const getTrendDetail = asyncHandler(async (req, res, next) => {
   });
 });
 
-module.exports = { getFeed, getTrendDetail };
+const analyzeTrend = asyncHandler(async (req, res, next) => {
+  const trend = await getTrendById(req.params.id);
+  if (!trend) {
+    const err = new Error('Trend not found');
+    err.statusCode = 404;
+    return next(err);
+  }
+
+  if (req.user && typeof req.user.aiRemaining === 'number' && req.user.aiRemaining <= 0) {
+    const err = new Error("Votre quota d'analyses IA est épuisé. Revenez demain.");
+    err.statusCode = 429;
+    return next(err);
+  }
+
+  const analysis = await generateTrendAnalysis(trend);
+
+  if (req.user && analysis?.status === 'openrouter') {
+    req.user.aiRemaining = Math.max(0, (req.user.aiRemaining || 0) - 1);
+    await req.user.save();
+  }
+
+  res.status(200).json({
+    trend: {
+      id: trend._id,
+      title: trend.title,
+      source: trend.source,
+      category: trend.category,
+      score: trend.score || 0,
+      scoreDetails: trend.scoreDetails || {},
+      analysis: trend.analysis || '',
+      idea: trend.idea || '',
+      link: trend.link || '',
+      image: trend.image || '',
+      thumbnail: trend.thumbnail || '',
+      mediaType: trend.mediaType || 'none'
+    },
+    analysis: {
+      ...analysis,
+      status: analysis?.status || 'fallback'
+    },
+    aiRemaining: req.user?.aiRemaining ?? 0
+  });
+});
+
+module.exports = { getFeed, getTrendDetail, analyzeTrend };
