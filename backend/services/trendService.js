@@ -1,4 +1,5 @@
 const Trend = require("../models/Trend");
+const { Types } = require('mongoose');
 const { extractMediaForTrend, isPlaceholderMediaUrl } = require('./data/mediaExtractor');
 const { computeMediaFingerprint, findDuplicateMediaCandidates } = require('./data/mediaUniqueness');
 
@@ -551,7 +552,7 @@ module.exports = {
   scoreTrends,
   getFeedTrends,
   getTrendById: async (id) => {
-    if (!id) return null;
+    if (!id || !Types.ObjectId.isValid(String(id))) return null;
     const trend = await Trend.findById(id).lean();
     if (!trend) return null;
     const refreshed = await refreshTrendMedia(trend);

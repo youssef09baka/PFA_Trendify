@@ -262,6 +262,7 @@ export default function Feed() {
           page: nextPageNumber,
           hasMore: nextHasMore,
           loading: loadingRef.current,
+          observerActive: observerActiveRef.current,
           lastReturnedCount: normalized.length,
           lastDuplicateFiltered: duplicateRemoved,
           lastAppendedCount: appended,
@@ -289,6 +290,7 @@ export default function Feed() {
         page: nextPageNumber,
         hasMore: nextHasMore,
         loading: false,
+        observerActive: observerActiveRef.current,
         lastReturnedCount: normalized.length,
         lastDuplicateFiltered: duplicateRemoved,
         observerTriggerCount: observerTriggerCountRef.current,
@@ -340,12 +342,13 @@ export default function Feed() {
     return () => window.clearTimeout(timer);
   }, [filter, fetchFeed]);
 
-  useEffect(() => {
+  const createObserver = useCallback(() => {
     if (!loaderRef.current) return;
 
     if (observerRef.current) {
       observerRef.current.disconnect();
       observerRef.current = null;
+      observerActiveRef.current = false;
     }
 
     const observer = new IntersectionObserver(
@@ -366,13 +369,24 @@ export default function Feed() {
     observer.observe(loaderRef.current);
     observerRef.current = observer;
     observerActiveRef.current = true;
+  }, [loadNextPage]);
 
+  useEffect(() => {
+    createObserver();
     return () => {
-      observer.disconnect();
-      observerRef.current = null;
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        observerRef.current = null;
+      }
       observerActiveRef.current = false;
     };
-  }, [loadNextPage, meta.hasMore, loadingMore]);
+  }, [createObserver]);
+
+  useEffect(() => {
+    if (!loaderRef.current || !hasMoreRef.current || loadingRef.current) return;
+    if (observerRef.current && observerActiveRef.current) return;
+    createObserver();
+  }, [meta.hasMore, loading, loadNextPage, filter, createObserver]);
 
   useEffect(() => {
     if (!hasMoreRef.current || loadingRef.current) {
@@ -391,7 +405,9 @@ export default function Feed() {
     fallbackTimerRef.current = window.setTimeout(() => {
       if (!hasMoreRef.current || loadingRef.current) return;
       if (pageRef.current !== scheduledPage) return;
-      observerActiveRef.current = false;
+      if (!observerRef.current || !observerActiveRef.current) {
+        createObserver();
+      }
       void loadNextPage();
     }, 3500);
 

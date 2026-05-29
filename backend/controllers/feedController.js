@@ -1,5 +1,7 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const Trend = require("../models/Trend");
+const User = require("../models/User");
+const { Types } = require("mongoose");
 const { getRealTrends } = require("../services/data");
 const { TREND_PERSIST_LIMIT, TREND_ANALYSIS_LIMIT } = require("../config/config");
 const { generateBatchAnalysis, generateTrendAnalysis } = require("../services/aiService");
@@ -168,7 +170,13 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
 const getTrendDetail = asyncHandler(async (req, res, next) => {
   const user = req.user;
-  const id = req.params.id;
+  const id = String(req.params.id || '').trim();
+
+  if (!Types.ObjectId.isValid(id)) {
+    const err = new Error('Invalid trend ID format');
+    err.statusCode = 400;
+    return next(err);
+  }
 
   const trend = await getTrendById(id);
   if (!trend) {
@@ -217,7 +225,14 @@ const getTrendDetail = asyncHandler(async (req, res, next) => {
 });
 
 const analyzeTrend = asyncHandler(async (req, res, next) => {
-  const trend = await getTrendById(req.params.id);
+  const id = String(req.params.id || '').trim();
+  if (!Types.ObjectId.isValid(id)) {
+    const err = new Error('Invalid trend ID format');
+    err.statusCode = 400;
+    return next(err);
+  }
+
+  const trend = await getTrendById(id);
   if (!trend) {
     const err = new Error('Trend not found');
     err.statusCode = 404;
@@ -265,7 +280,34 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
     return next(err);
   }
 
-  const analysis = await generateTrendAnalysis(trend);
+  let reservedQuota = false;
+  if (req.user && typeof req.user.aiRemaining === 'number') {
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: req.user._id, aiRemaining: { $gt: 0 } },
+      { $inc: { aiRemaining: -1 } },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      const err = new Error("Votre quota d'analyses IA est épuisé. Revenez demain.");
+      err.statusCode = 429;
+      return next(err);
+    }
+
+    req.user.aiRemaining = updatedUser.aiRemaining;
+    reservedQuota = true;
+  }
+
+  let analysis;
+  try {
+    analysis = await generateTrendAnalysis(trend);
+  } catch (error) {
+    if (reservedQuota) {
+      await User.findByIdAndUpdate(req.user._id, { $inc: { aiRemaining: 1 } }).catch(() => null);
+      req.user.aiRemaining = Math.max(0, (req.user.aiRemaining || 0) + 1);
+    }
+    throw error;
+  }
 
   const persistedAnalysis = analysis?.summary || trend.analysis || '';
   const persistedIdea = analysis?.opportunity || trend.idea || '';
@@ -282,9 +324,9 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
     { new: true }
   ).lean().catch(() => null);
 
-  if (req.user && analysis?.status === 'openrouter') {
-    req.user.aiRemaining = Math.max(0, (req.user.aiRemaining || 0) - 1);
-    await req.user.save();
+  if (reservedQuota && analysis?.status !== 'openrouter') {
+    const restoredUser = await User.findByIdAndUpdate(req.user._id, { $inc: { aiRemaining: 1 } }, { new: true }).catch(() => null);
+    req.user.aiRemaining = restoredUser ? restoredUser.aiRemaining : Math.max(0, (req.user.aiRemaining || 0) + 1);
   }
 
   res.status(200).json({
