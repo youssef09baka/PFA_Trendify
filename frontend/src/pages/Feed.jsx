@@ -20,6 +20,7 @@ import MediaBox from '../components/MediaBox';
 import Input from '../components/Input';
 import { formatScore } from '../utils/ui';
 import { getCardMediaUrl } from '../utils/media';
+import { applyFeedMix, getSeenTrendIds, rememberTrendView } from '../utils/feedMix';
 function SavedDrawer({ trends, onClose, onRemove }) {
   const list = Array.isArray(trends) ? trends : [];
 
@@ -121,17 +122,17 @@ function Toast({ msg, onClose }) {
 function MediaPreview({ thumb, url, alt }) {
   if (!thumb) return null;
   return (
-    <a href={url || '#'} target="_blank" rel="noreferrer" style={{ display: 'block', position: 'relative', overflow: 'hidden' }}>
+    <a href={url || '#'} className="feed-card-media-link" onClick={(event) => { if (!url) event.preventDefault(); }}>
       <MediaBox src={thumb} alt={alt || 'Visuel de tendance'} aspect="16:9" />
     </a>
   );
 }
 
-function FeedCard({ trend, isSaved, onSave, onHide, onView }) {
+function FeedCard({ trend, isSaved, onSave, onView }) {
   const id = trend._id || trend.id || trend.title;
   const summary = formatSummary(trend);
   const thumb = getCardMediaUrl(trend);
-  const detailUrl = trend.link || trend.image || trend.video || '#';
+  const detailUrl = `/feed/${id}`;
 
   return (
     <article className="feed-card">
@@ -142,7 +143,7 @@ function FeedCard({ trend, isSaved, onSave, onHide, onView }) {
           {displayCategoryLabel(trend.category) && <span className="pill pill-category">{displayCategoryLabel(trend.category)}</span>}
         </div>
 
-        <h2>{trend.title}</h2>
+        <h2 className="feed-card-title">{trend.title}</h2>
 
         <p className="feed-summary">{summary}</p>
 
@@ -156,12 +157,12 @@ function FeedCard({ trend, isSaved, onSave, onHide, onView }) {
         </div>
 
         <div className="feed-card-actions">
-          <Button variant="primary" onClick={onView}>Voir le signal</Button>
+          <Button variant="primary" onClick={() => onView(id)}>Read more</Button>
           <Button variant="ghost" onClick={() => onSave(id)}>{isSaved ? 'Retiré' : 'Sauvegarder'}</Button>
         </div>
 
         <div className="feed-card-foot">
-          <Button variant="ghost" onClick={() => onHide(id)} className="feed-action-text">Masquer</Button>
+          <span style={{ color: 'var(--text3)', fontSize: 12 }}>Analyse détaillée disponible</span>
         </div>
       </div>
     </article>
@@ -169,6 +170,16 @@ function FeedCard({ trend, isSaved, onSave, onHide, onView }) {
 }
 
 const PAGE_SIZE = 24;
+
+const dedupeTrends = (items = []) => {
+  const seen = new Map();
+  return (items || []).filter((item) => {
+    const id = String(item?._id || item?.id || item?.slug || item?.title || '');
+    if (!id || seen.has(id)) return false;
+    seen.set(id, true);
+    return true;
+  });
+};
 
 export default function Feed() {
   const navigate = useNavigate();
@@ -182,9 +193,13 @@ export default function Feed() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ page: 1, limit: PAGE_SIZE, hasMore: false });
+  const observerTriggerCountRef = useRef(0);
   const [toast, setToast] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const loaderRef = useRef(null);
+  const pageRef = useRef(1);
+  const hasMoreRef = useRef(true);
+  const loadingRef = useRef(false);
 
   const showToast = (msg) => setToast(msg);
 
@@ -208,28 +223,153 @@ export default function Feed() {
   }, []);
 
   const fetchFeed = useCallback(async (requestedPage = 1, reset = false) => {
+    const nextPage = Number.isFinite(requestedPage) ? requestedPage : pageRef.current + 1;
+    const previousLoading = loadingRef.current;
+    const previousHasMore = hasMoreRef.current;
+
+    console.info('[FEED-PAGINATION] fetch start', {
+      requestedPage: requestedPage,
+      nextPage,
+      reset,
+      previousLoading,
+      previousHasMore,
+      currentPage: pageRef.current,
+      filter,
+      seenCount: getSeenTrendIds().length,
+      timestamp: Date.now(),
+    });
+
+    if (loadingRef.current || (!reset && !hasMoreRef.current)) {
+      console.info('[FEED-PAGINATION] fetch skipped', {
+        reason: loadingRef.current ? 'loading-in-progress' : 'no-more-pages',
+        nextPage,
+        reset,
+        currentPage: pageRef.current,
+        hasMore: hasMoreRef.current,
+        timestamp: Date.now(),
+      });
+      return;
+    }
+
+    loadingRef.current = true;
     if (reset) setLoading(true);
     else setLoadingMore(true);
+    console.info('[FEED-PAGINATION] loading state changed', {
+      nextPage,
+      reset,
+      loading: true,
+      loadingMore: !reset,
+      hasMoreBefore: previousHasMore,
+      timestamp: Date.now(),
+    });
+
+    let params = { page: nextPage, limit: PAGE_SIZE, seen: getSeenTrendIds().join(',') };
 
     try {
-      const params = { page: requestedPage, limit: PAGE_SIZE };
       if (filter && filter !== 'All') params.source = filter;
-      const { data } = await api.get('/feed', { params });
-      if (!data || !Array.isArray(data.items)) {
-        setMeta({ page: requestedPage, limit: PAGE_SIZE, hasMore: false });
-        return;
-      }
-      const normalized = data.items.map((t) => ({ ...t, _enriching: false }));
-      setBaseData((prev) => (reset ? normalized : [...prev, ...normalized]));
-      setMeta({
-        page: data.meta?.page || requestedPage,
-        limit: data.meta?.limit || PAGE_SIZE,
-        hasMore: Boolean(data.meta?.hasMore),
+
+      console.info('[FEED-PAGINATION] request', { page: nextPage, reset, filter, hasMore: hasMoreRef.current });
+
+      const response = await api.get('/feed', { params });
+      console.info('[FEED-PAGINATION] response received', {
+        page: nextPage,
+        status: response?.status,
+        statusText: response?.statusText,
+        hasMoreBefore: previousHasMore,
+        hasMoreAfter: Boolean(response?.data?.meta?.hasMore),
+        returnedCount: Array.isArray(response?.data?.items) ? response.data.items.length : 0,
+        timestamp: Date.now(),
       });
-      setPage(requestedPage);
-    } catch {
+
+      const { data } = response;
+      const rawItems = Array.isArray(data?.items) ? data.items : [];
+      const normalized = dedupeTrends(rawItems.map((t) => ({ ...t, _enriching: false })));
+      const nextHasMore = Boolean(data?.meta?.hasMore);
+      const nextPageNumber = Number(data?.meta?.page || nextPage);
+      const duplicateRemoved = rawItems.length - normalized.length;
+      console.info('[FEED-PAGINATION] response parsed', {
+        page: nextPage,
+        responsePage: nextPageNumber,
+        status: response?.status,
+        rawCount: rawItems.length,
+        normalizedCount: normalized.length,
+        duplicateRemoved,
+        hasMore: nextHasMore,
+        timestamp: Date.now(),
+      });
+
+      setBaseData((prev) => {
+        const merged = reset ? normalized : dedupeTrends([...prev, ...normalized]);
+        const appended = merged.length - prev.length;
+        console.info('[FEED-PAGINATION] merged', { page: nextPageNumber, returnedCount: normalized.length, duplicateFiltered: duplicateRemoved, appended, totalVisible: merged.length, hasMore: nextHasMore });
+        window.__FEED_DEBUG__ = {
+          ...window.__FEED_DEBUG__,
+          page: nextPageNumber,
+          hasMore: nextHasMore,
+          loading: loadingRef.current,
+          lastReturnedCount: normalized.length,
+          lastDuplicateFiltered: duplicateRemoved,
+          lastAppendedCount: appended,
+          lastRequestPage: nextPage,
+          lastReset: reset,
+          totalVisible: merged.length,
+          observerTriggerCount: observerTriggerCountRef.current,
+          timestamp: Date.now(),
+        };
+        return merged;
+      });
+
+      console.info('[FEED-PAGINATION] hasMore transition', {
+        from: previousHasMore,
+        to: nextHasMore,
+        page: nextPage,
+        responsePage: nextPageNumber,
+        timestamp: Date.now(),
+      });
+      pageRef.current = nextPageNumber;
+      hasMoreRef.current = nextHasMore;
+      setMeta({
+        page: nextPageNumber,
+        limit: Number(data?.meta?.limit || PAGE_SIZE),
+        hasMore: nextHasMore,
+        sourceCounts: data?.meta?.sourceCounts || {},
+        categoryCounts: data?.meta?.categoryCounts || {}
+      });
+      window.__FEED_DEBUG__ = {
+        ...window.__FEED_DEBUG__,
+        page: nextPageNumber,
+        hasMore: nextHasMore,
+        loading: false,
+        lastReturnedCount: normalized.length,
+        lastDuplicateFiltered: duplicateRemoved,
+        observerTriggerCount: observerTriggerCountRef.current,
+        timestamp: Date.now(),
+      };
+    } catch (error) {
+      console.warn('[FEED-PAGINATION] request failed', {
+        page: nextPage,
+        reset,
+        filter,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        message: error?.message,
+        code: error?.code,
+        url: error?.config?.url,
+        params,
+        timestamp: Date.now(),
+      });
       showToast('Impossible de charger le flux pour le moment.');
     } finally {
+      console.info('[FEED-PAGINATION] loading state changed', {
+        page: nextPage,
+        reset,
+        loading: false,
+        loadingMore: false,
+        hasMoreBefore: previousHasMore,
+        hasMoreAfter: hasMoreRef.current,
+        timestamp: Date.now(),
+      });
+      loadingRef.current = false;
       if (reset) setLoading(false);
       else setLoadingMore(false);
     }
@@ -242,29 +382,59 @@ export default function Feed() {
   }, [fetchFeed, fetchSavedTrends]);
 
   useEffect(() => {
+    pageRef.current = 1;
+    hasMoreRef.current = true;
     setBaseData([]);
-    setPage(1);
     fetchFeed(1, true);
   }, [filter, fetchFeed]);
 
   useEffect(() => {
     if (!loaderRef.current) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && meta.hasMore && !loadingMore && !loading) {
-          fetchFeed(page + 1, false);
+        const entry = entries[0];
+        if (!entry?.isIntersecting) return;
+
+        observerTriggerCountRef.current += 1;
+        console.info('[FEED-PAGINATION] observer', {
+          trigger: observerTriggerCountRef.current,
+          isIntersecting: entry?.isIntersecting,
+          page: pageRef.current,
+          hasMore: hasMoreRef.current,
+          loading: loadingRef.current,
+          timestamp: Date.now(),
+        });
+        console.info('[FEED-PAGINATION] observer decision', {
+          trigger: observerTriggerCountRef.current,
+          isIntersecting: entry?.isIntersecting,
+          page: pageRef.current,
+          hasMore: hasMoreRef.current,
+          loading: loadingRef.current,
+          willFetch: Boolean(entry?.isIntersecting && hasMoreRef.current && !loadingRef.current),
+          timestamp: Date.now(),
+        });
+
+        window.__FEED_DEBUG__ = {
+          ...window.__FEED_DEBUG__,
+          observerTriggerCount: observerTriggerCountRef.current,
+          page: pageRef.current,
+          hasMore: hasMoreRef.current,
+          loading: loadingRef.current,
+          lastObserverEvent: { trigger: observerTriggerCountRef.current, isIntersecting: entry?.isIntersecting },
+          timestamp: Date.now(),
+        };
+
+        if (hasMoreRef.current && !loadingRef.current) {
+          fetchFeed(pageRef.current + 1, false);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0, rootMargin: '320px 0px' }
     );
+
     observer.observe(loaderRef.current);
     return () => observer.disconnect();
-  }, [meta.hasMore, loadingMore, loading, page, fetchFeed]);
-
-  const handleHide = (id) => {
-    setHidden((prev) => [...prev, id]);
-    showToast('Trend masqué');
-  };
+  }, [fetchFeed, loadingMore, meta.hasMore]);
 
   const handleSave = async (id) => {
     const isSaved = saved.includes(id);
@@ -313,7 +483,12 @@ export default function Feed() {
     );
   });
 
-  const handleViewDetail = (id) => navigate(`/feed/${id}`);
+  const personalizedTrends = applyFeedMix(filteredTrends, getSeenTrendIds());
+
+  const handleViewDetail = (id) => {
+    rememberTrendView(id);
+    navigate(`/feed/${id}`);
+  };
 
   return (
     <div className="page-layout">
@@ -360,7 +535,7 @@ export default function Feed() {
 
           <div className="feed-summary-row">
             <div>
-              <span style={{ fontWeight: 700, color: 'var(--text)' }}>{filteredTrends.length}</span> tendance{filteredTrends.length > 1 ? 's' : ''} affichée{filteredTrends.length > 1 ? 's' : ''}
+              <span style={{ fontWeight: 700, color: 'var(--text)' }}>{personalizedTrends.length}</span> tendance{personalizedTrends.length > 1 ? 's' : ''} affichée{personalizedTrends.length > 1 ? 's' : ''}
             </div>
             {search && <div style={{ color: 'var(--text3)', fontSize: 13 }}>Filtrée par «{search}»</div>}
           </div>
@@ -370,27 +545,26 @@ export default function Feed() {
                 [1, 2, 3].map((i) => (
                   <LoadingSkeleton key={i} height="260px" radius={20} />
                 ))
-              ) : !filteredTrends.length ? (
+              ) : !personalizedTrends.length ? (
               <EmptyState
                 icon={<Filter size={28} />}
                 title="Aucune tendance trouvée"
                 subtitle="Essayez un autre mot-clé ou changez la source pour explorer plus de signaux."
                 action={hidden.length > 0 ? <Button variant="ghost" onClick={() => setHidden([])}>Réafficher les tendances masquées</Button> : null}
               />
-            ) : filteredTrends.map((trend) => (
+            ) : personalizedTrends.map((trend) => (
               <FeedCard
                 key={trend._id || trend.title}
                 trend={trend}
                 isSaved={saved.includes(trend._id || trend.title)}
                 onSave={handleSave}
-                onHide={handleHide}
                 onView={() => handleViewDetail(trend._id || trend.id)}
               />
             ))}
           </div>
 
           <div ref={loaderRef} style={{ padding: '20px 0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            {loadingMore ? <Loader2 size={22} color="var(--y)" style={{ animation: 'spin 1s linear infinite' }} /> : !meta.hasMore && filteredTrends.length > 0 ? <p style={{ fontSize: 12, color: 'var(--text3)' }}>✦ Tu as tout vu · Reviens plus tard</p> : null}
+            {loadingMore ? <Loader2 size={22} color="var(--y)" style={{ animation: 'spin 1s linear infinite' }} /> : !meta.hasMore && personalizedTrends.length > 0 ? <p style={{ fontSize: 12, color: 'var(--text3)' }}>✦ Tu as tout vu · Reviens plus tard</p> : null}
           </div>
         </div>
       </main>

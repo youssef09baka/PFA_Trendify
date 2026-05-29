@@ -15,8 +15,13 @@ const getFeed = asyncHandler(async (req, res, next) => {
   const category = req.query.category || undefined;
   const source = req.query.source || undefined;
   const viral = req.query.viral === 'true' || req.query.viral === '1';
+  const seenIds = String(req.query.seen || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const runtimeSeed = Math.random();
 
-  const stored = await getFeedTrends({ page, limit, category, source, sort, viral });
+  const stored = await getFeedTrends({ page, limit, category, source, sort, viral, seenIds, runtimeSeed });
   const storedTrends = stored.data || [];
   const savedSet = new Set((user?.savedTrends || []).map(String));
 

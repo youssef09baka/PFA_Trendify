@@ -95,6 +95,69 @@ const normalizeScore = (value, max) => {
   return clamp(Math.log1p(raw) / Math.log1p(safeMax), 0, 1);
 };
 
+const getTrendAgeHours = (trend) => {
+  const sourceTime = trend.fetchedAt || trend.createdAt || trend.updatedAt || trend.savedAt;
+  if (!sourceTime) return 0;
+  return Math.max(0, (Date.now() - new Date(sourceTime).getTime()) / (1000 * 60 * 60));
+};
+
+const computeFreshnessBoost = (trend) => {
+  const ageHours = getTrendAgeHours(trend);
+  return clamp(6 - ageHours * 0.18, 0, 5.5);
+};
+
+const computeSeenBoost = (trend, seenIds = []) => {
+  const key = String(trend._id || trend.id || trend.slug || trend.title || '');
+  return seenIds.includes(key) ? 0 : 1.8;
+};
+
+const computeRandomFactor = (trend, seed = 0) => {
+  const text = String(trend.title || trend.slug || '').toLowerCase();
+  const hash = [...text].reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const wave = Math.sin((hash + seed * 17.19) * 0.61803398875) * 0.28;
+  return Number((wave + (seed % 0.2) * 0.1).toFixed(3));
+};
+
+const computeCategoryDiversityBoost = (trend, previousTrend) => {
+  const sameCategory = String(trend.category || '').toLowerCase() === String(previousTrend?.category || '').toLowerCase();
+  return sameCategory ? -0.06 : 0.02;
+};
+
+const mixFeedItems = (items = [], options = {}) => {
+  const seenIds = Array.isArray(options.seenIds) ? options.seenIds.map(String) : [];
+  const seed = Number(options.seed ?? Math.random()) || Math.random();
+  const ranked = (items || [])
+    .map((trend, index) => {
+      const freshnessBoost = computeFreshnessBoost(trend);
+      const unseenBoost = computeSeenBoost(trend, seenIds);
+      const randomFactor = computeRandomFactor(trend, seed + index * 0.013);
+      const categoryBoost = index > 0 ? computeCategoryDiversityBoost(trend, items[index - 1]) : 0;
+      const finalScore = Number(trend.score || 0) + freshnessBoost + unseenBoost + randomFactor + categoryBoost;
+
+      return {
+        ...trend,
+        freshnessBoost,
+        unseenBoost,
+        randomFactor,
+        categoryBoost,
+        finalScore,
+        mixedScore: Number(finalScore.toFixed(3))
+      };
+    });
+
+  const before = ranked.map((entry) => ({ id: entry._id || entry.id || entry.slug, score: entry.score, mixedScore: entry.mixedScore }));
+  const mixed = ranked
+    .sort((a, b) => b.mixedScore - a.mixedScore || Number(b.score || 0) - Number(a.score || 0));
+
+  console.info('[FEED-MIX] ranking', {
+    runtimeSeed: Number(seed.toFixed(4)),
+    before,
+    after: mixed.slice(0, 8).map((entry) => ({ id: entry._id || entry.id || entry.slug, score: entry.score, mixedScore: entry.mixedScore, randomFactor: entry.randomFactor, freshnessBoost: entry.freshnessBoost, unseenBoost: entry.unseenBoost }))
+  });
+
+  return mixed;
+};
+
 const computeMaxValues = (trends) => {
   const maxValues = { popularity: 1, growth: 1, engagement: 1 };
   trends.forEach((trend) => {
@@ -388,7 +451,7 @@ const saveTrends = async (trends) => {
 
 const normalizeStoredTrends = (trends = []) => scoreTrends(Array.isArray(trends) ? trends : []);
 
-const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 'score', viral } = {}) => {
+const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 'score', viral, seenIds = [], runtimeSeed } = {}) => {
   const query = {};
   if (category) query.category = category;
   if (source) query.source = source;
@@ -426,12 +489,14 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 's
   const refreshedItems = await Promise.all((items || []).map((item) => refreshTrendMedia(item)));
   await repairDuplicateMedia(refreshedItems);
   const scoredItems = normalizeStoredTrends(refreshedItems);
+  const seed = Number(runtimeSeed ?? Math.random());
+  const mixedItems = mixFeedItems(scoredItems, { seenIds, seed });
   const sourceCounts = Object.fromEntries((sourceCountsResult || []).map((entry) => [entry._id || 'Autre', Number(entry.count) || 0]));
   const categoryCounts = Object.fromEntries((categoryCountsResult || []).map((entry) => [entry._id || 'Non catégorisé', Number(entry.count) || 0]));
   const totalPages = Math.max(1, Math.ceil(total / Number(limit)));
 
   return {
-    data: scoredItems,
+    data: mixedItems,
     meta: {
       total,
       page: Number(page),

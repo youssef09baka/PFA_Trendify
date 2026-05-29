@@ -1,5 +1,5 @@
-const axios = require("axios");
 const { REDDIT_FETCH_LIMIT } = require("../../config/config");
+const { fetchRedditPosts } = require("./redditOAuth");
 const {
   cleanTitle,
   isGoodContent,
@@ -58,15 +58,16 @@ const normalizeTitleKey = (title) =>
     .trim();
 
 const getRedditTrends = async () => {
-  const urls = SUBREDDITS.map((subreddit) => `https://www.reddit.com/r/${subreddit}.json?limit=${Math.max(40, Number(REDDIT_FETCH_LIMIT || 75))}`);
+  const limit = Math.max(40, Number(REDDIT_FETCH_LIMIT || 75));
   let allPosts = [];
 
-  for (const url of urls) {
+  for (const subreddit of SUBREDDITS) {
     try {
-      const res = await axios.get(url, { timeout: 5000 });
-      allPosts = allPosts.concat(res.data.data.children || []);
+      const posts = await fetchRedditPosts(subreddit, limit);
+      allPosts = allPosts.concat(posts || []);
+      console.info(`[Reddit] collected ${posts?.length || 0} posts from r/${subreddit}`);
     } catch (err) {
-      console.warn(`[Reddit] source failed: ${url} - ${err.message}`);
+      console.warn(`[Reddit] source failed for r/${subreddit}: ${err.message}`);
     }
   }
 
