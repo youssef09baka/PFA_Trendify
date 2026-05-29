@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
@@ -18,16 +18,10 @@ const CATEGORIES = [
 
 export default function Preferences() {
   const { user } = useAuth();
-  const [selected, setSelected] = useState(user?.preferences || []);
+  const [selected, setSelected] = useState(() => Array.isArray(user?.preferences) ? user.preferences : []);
   const [loading,  setLoading]  = useState(false);
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user?.preferences && Array.isArray(user.preferences)) {
-      setSelected(user.preferences);
-    }
-  }, [user]);
 
   const toggle = id => setSelected(p => p.includes(id) ? p.filter(x=>x!==id) : [...p, id]);
 

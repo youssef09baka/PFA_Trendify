@@ -13,7 +13,6 @@ import {
   Zap
 } from 'lucide-react';
 import Button from '../components/Button';
-import Card from '../components/Card';
 import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import MediaBox from '../components/MediaBox';
@@ -50,7 +49,7 @@ function SavedDrawer({ trends, onClose, onRemove }) {
             return (
               <div className="saved-drawer-item" key={id} style={{ padding: '14px', background: 'var(--glass)', border: '1px solid var(--glass-b)', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
                 <div style={{ width: 54, height: 54, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: 'var(--glass)' }}>
-                  <MediaBox src={getCardMediaUrl(t)} alt={t.title} aspect="square" />
+                  <MediaBox key={`${t.id || t._id || 'saved'}:${getCardMediaUrl(t) || 'none'}`} src={getCardMediaUrl(t)} alt={t.title} aspect="square" />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', lineHeight: 1.4, marginBottom: 6 }}>{t.title}</p>
@@ -123,7 +122,7 @@ function MediaPreview({ thumb, url, alt }) {
   if (!thumb) return null;
   return (
     <a href={url || '#'} className="feed-card-media-link" onClick={(event) => { if (!url) event.preventDefault(); }}>
-      <MediaBox src={thumb} alt={alt || 'Visuel de tendance'} aspect="16:9" />
+      <MediaBox key={`${thumb || 'thumb'}:${url || 'detail'}`} src={thumb} alt={alt || 'Visuel de tendance'} aspect="16:9" />
     </a>
   );
 }
@@ -138,31 +137,33 @@ function FeedCard({ trend, isSaved, onSave, onView }) {
     <article className="feed-card">
       {thumb ? <MediaPreview thumb={thumb} url={detailUrl} alt={trend.title} /> : null}
       <div className="feed-card-body">
-        <div className="feed-pill-row">
-          <span className="pill pill-source">{displaySourceLabel(trend.source)}</span>
-          {displayCategoryLabel(trend.category) && <span className="pill pill-category">{displayCategoryLabel(trend.category)}</span>}
+        <div className="feed-card-copy">
+          <div className="feed-pill-row">
+            <span className="pill pill-source">{displaySourceLabel(trend.source)}</span>
+            {displayCategoryLabel(trend.category) && <span className="pill pill-category">{displayCategoryLabel(trend.category)}</span>}
+          </div>
+
+          <h2 className="feed-card-title">{trend.title}</h2>
+
+          <p className="feed-summary">{summary}</p>
+
+          <div className="feed-card-meta">
+            <span>{formatScore(trend.score)}</span>
+            <span>{trend.popularity ? `${formatNum(trend.popularity)} mentions` : 'Sans données'}</span>
+          </div>
         </div>
 
-        <h2 className="feed-card-title">{trend.title}</h2>
+        <div className="feed-card-footer">
+          <div className="feed-card-note">Consultez la page détail pour l’analyse IA et le contexte complet.</div>
 
-        <p className="feed-summary">{summary}</p>
+          <div className="feed-card-actions">
+            <Button variant="primary" onClick={() => onView(id)}>Lire la suite</Button>
+            <Button variant="ghost" onClick={() => onSave(id)}>{isSaved ? 'Retiré' : 'Sauvegarder'}</Button>
+          </div>
 
-        <div className="feed-card-meta">
-          <span>{formatScore(trend.score)}</span>
-          <span>{trend.popularity ? `${formatNum(trend.popularity)} mentions` : 'Sans données'}</span>
-        </div>
-
-        <div style={{ color: 'var(--text3)', fontSize: 12, lineHeight: 1.5 }}>
-          Consultez la page détail pour l’analyse IA et le contexte complet.
-        </div>
-
-        <div className="feed-card-actions">
-          <Button variant="primary" onClick={() => onView(id)}>Read more</Button>
-          <Button variant="ghost" onClick={() => onSave(id)}>{isSaved ? 'Retiré' : 'Sauvegarder'}</Button>
-        </div>
-
-        <div className="feed-card-foot">
-          <span style={{ color: 'var(--text3)', fontSize: 12 }}>Analyse détaillée disponible</span>
+          <div className="feed-card-foot">
+            <span>Analyse détaillée disponible</span>
+          </div>
         </div>
       </div>
     </article>
@@ -191,7 +192,6 @@ export default function Feed() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({ page: 1, limit: PAGE_SIZE, hasMore: false });
   const observerTriggerCountRef = useRef(0);
   const [toast, setToast] = useState(null);
@@ -200,6 +200,9 @@ export default function Feed() {
   const pageRef = useRef(1);
   const hasMoreRef = useRef(true);
   const loadingRef = useRef(false);
+  const observerRef = useRef(null);
+  const fallbackTimerRef = useRef(null);
+  const observerActiveRef = useRef(false);
 
   const showToast = (msg) => setToast(msg);
 
@@ -223,63 +226,26 @@ export default function Feed() {
   }, []);
 
   const fetchFeed = useCallback(async (requestedPage = 1, reset = false) => {
-    const nextPage = Number.isFinite(requestedPage) ? requestedPage : pageRef.current + 1;
-    const previousLoading = loadingRef.current;
-    const previousHasMore = hasMoreRef.current;
-
-    console.info('[FEED-PAGINATION] fetch start', {
-      requestedPage: requestedPage,
-      nextPage,
-      reset,
-      previousLoading,
-      previousHasMore,
-      currentPage: pageRef.current,
-      filter,
-      seenCount: getSeenTrendIds().length,
-      timestamp: Date.now(),
-    });
+    const nextPage = Number.isFinite(requestedPage) ? Number(requestedPage) : pageRef.current + 1;
 
     if (loadingRef.current || (!reset && !hasMoreRef.current)) {
-      console.info('[FEED-PAGINATION] fetch skipped', {
-        reason: loadingRef.current ? 'loading-in-progress' : 'no-more-pages',
-        nextPage,
-        reset,
-        currentPage: pageRef.current,
-        hasMore: hasMoreRef.current,
-        timestamp: Date.now(),
-      });
+      return;
+    }
+
+    if (!reset && nextPage <= pageRef.current) {
       return;
     }
 
     loadingRef.current = true;
     if (reset) setLoading(true);
     else setLoadingMore(true);
-    console.info('[FEED-PAGINATION] loading state changed', {
-      nextPage,
-      reset,
-      loading: true,
-      loadingMore: !reset,
-      hasMoreBefore: previousHasMore,
-      timestamp: Date.now(),
-    });
 
     let params = { page: nextPage, limit: PAGE_SIZE, seen: getSeenTrendIds().join(',') };
 
     try {
       if (filter && filter !== 'All') params.source = filter;
 
-      console.info('[FEED-PAGINATION] request', { page: nextPage, reset, filter, hasMore: hasMoreRef.current });
-
       const response = await api.get('/feed', { params });
-      console.info('[FEED-PAGINATION] response received', {
-        page: nextPage,
-        status: response?.status,
-        statusText: response?.statusText,
-        hasMoreBefore: previousHasMore,
-        hasMoreAfter: Boolean(response?.data?.meta?.hasMore),
-        returnedCount: Array.isArray(response?.data?.items) ? response.data.items.length : 0,
-        timestamp: Date.now(),
-      });
 
       const { data } = response;
       const rawItems = Array.isArray(data?.items) ? data.items : [];
@@ -287,21 +253,10 @@ export default function Feed() {
       const nextHasMore = Boolean(data?.meta?.hasMore);
       const nextPageNumber = Number(data?.meta?.page || nextPage);
       const duplicateRemoved = rawItems.length - normalized.length;
-      console.info('[FEED-PAGINATION] response parsed', {
-        page: nextPage,
-        responsePage: nextPageNumber,
-        status: response?.status,
-        rawCount: rawItems.length,
-        normalizedCount: normalized.length,
-        duplicateRemoved,
-        hasMore: nextHasMore,
-        timestamp: Date.now(),
-      });
 
       setBaseData((prev) => {
         const merged = reset ? normalized : dedupeTrends([...prev, ...normalized]);
         const appended = merged.length - prev.length;
-        console.info('[FEED-PAGINATION] merged', { page: nextPageNumber, returnedCount: normalized.length, duplicateFiltered: duplicateRemoved, appended, totalVisible: merged.length, hasMore: nextHasMore });
         window.__FEED_DEBUG__ = {
           ...window.__FEED_DEBUG__,
           page: nextPageNumber,
@@ -319,22 +274,16 @@ export default function Feed() {
         return merged;
       });
 
-      console.info('[FEED-PAGINATION] hasMore transition', {
-        from: previousHasMore,
-        to: nextHasMore,
-        page: nextPage,
-        responsePage: nextPageNumber,
-        timestamp: Date.now(),
-      });
       pageRef.current = nextPageNumber;
       hasMoreRef.current = nextHasMore;
-      setMeta({
+      setMeta((prev) => ({
+        ...prev,
         page: nextPageNumber,
         limit: Number(data?.meta?.limit || PAGE_SIZE),
         hasMore: nextHasMore,
         sourceCounts: data?.meta?.sourceCounts || {},
         categoryCounts: data?.meta?.categoryCounts || {}
-      });
+      }));
       window.__FEED_DEBUG__ = {
         ...window.__FEED_DEBUG__,
         page: nextPageNumber,
@@ -360,20 +309,19 @@ export default function Feed() {
       });
       showToast('Impossible de charger le flux pour le moment.');
     } finally {
-      console.info('[FEED-PAGINATION] loading state changed', {
-        page: nextPage,
-        reset,
-        loading: false,
-        loadingMore: false,
-        hasMoreBefore: previousHasMore,
-        hasMoreAfter: hasMoreRef.current,
-        timestamp: Date.now(),
-      });
       loadingRef.current = false;
       if (reset) setLoading(false);
       else setLoadingMore(false);
     }
   }, [filter]);
+
+  const loadNextPage = useCallback(() => {
+    if (loadingRef.current || !hasMoreRef.current) return false;
+    const nextPage = pageRef.current + 1;
+    if (!Number.isFinite(nextPage) || nextPage < 2) return false;
+    void fetchFeed(nextPage, false);
+    return true;
+  }, [fetchFeed]);
 
   useEffect(() => {
     (async () => {
@@ -384,57 +332,90 @@ export default function Feed() {
   useEffect(() => {
     pageRef.current = 1;
     hasMoreRef.current = true;
-    setBaseData([]);
-    fetchFeed(1, true);
+
+    const timer = window.setTimeout(() => {
+      void fetchFeed(1, true);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [filter, fetchFeed]);
 
   useEffect(() => {
     if (!loaderRef.current) return;
 
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      observerRef.current = null;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
-        const entry = entries[0];
-        if (!entry?.isIntersecting) return;
+        const entry = entries.find((item) => item?.isIntersecting);
+        if (!entry) return;
 
         observerTriggerCountRef.current += 1;
-        console.info('[FEED-PAGINATION] observer', {
-          trigger: observerTriggerCountRef.current,
-          isIntersecting: entry?.isIntersecting,
-          page: pageRef.current,
-          hasMore: hasMoreRef.current,
-          loading: loadingRef.current,
-          timestamp: Date.now(),
-        });
-        console.info('[FEED-PAGINATION] observer decision', {
-          trigger: observerTriggerCountRef.current,
-          isIntersecting: entry?.isIntersecting,
-          page: pageRef.current,
-          hasMore: hasMoreRef.current,
-          loading: loadingRef.current,
-          willFetch: Boolean(entry?.isIntersecting && hasMoreRef.current && !loadingRef.current),
-          timestamp: Date.now(),
-        });
+        observerActiveRef.current = true;
 
-        window.__FEED_DEBUG__ = {
-          ...window.__FEED_DEBUG__,
-          observerTriggerCount: observerTriggerCountRef.current,
-          page: pageRef.current,
-          hasMore: hasMoreRef.current,
-          loading: loadingRef.current,
-          lastObserverEvent: { trigger: observerTriggerCountRef.current, isIntersecting: entry?.isIntersecting },
-          timestamp: Date.now(),
-        };
+        if (!hasMoreRef.current || loadingRef.current) return;
 
-        if (hasMoreRef.current && !loadingRef.current) {
-          fetchFeed(pageRef.current + 1, false);
-        }
+        void loadNextPage();
       },
-      { threshold: 0, rootMargin: '320px 0px' }
+      { threshold: 0.1, rootMargin: '240px 0px' }
     );
 
     observer.observe(loaderRef.current);
-    return () => observer.disconnect();
-  }, [fetchFeed, loadingMore, meta.hasMore]);
+    observerRef.current = observer;
+    observerActiveRef.current = true;
+
+    return () => {
+      observer.disconnect();
+      observerRef.current = null;
+      observerActiveRef.current = false;
+    };
+  }, [loadNextPage, meta.hasMore, loadingMore]);
+
+  useEffect(() => {
+    if (!hasMoreRef.current || loadingRef.current) {
+      if (fallbackTimerRef.current) {
+        window.clearTimeout(fallbackTimerRef.current);
+        fallbackTimerRef.current = null;
+      }
+      return;
+    }
+
+    const scheduledPage = pageRef.current;
+    if (fallbackTimerRef.current) {
+      window.clearTimeout(fallbackTimerRef.current);
+    }
+
+    fallbackTimerRef.current = window.setTimeout(() => {
+      if (!hasMoreRef.current || loadingRef.current) return;
+      if (pageRef.current !== scheduledPage) return;
+      observerActiveRef.current = false;
+      void loadNextPage();
+    }, 3500);
+
+    return () => {
+      if (fallbackTimerRef.current) {
+        window.clearTimeout(fallbackTimerRef.current);
+        fallbackTimerRef.current = null;
+      }
+    };
+  }, [baseData.length, meta.hasMore, loading, loadingMore, loadNextPage, filter]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+
+    console.debug('[FEED-INFSCROLL] diagnostics', {
+      page: pageRef.current,
+      visibleTrends: baseData.length,
+      hasMore: hasMoreRef.current,
+      loading: loadingRef.current,
+      observerActive: observerActiveRef.current,
+      observerTriggerCount: observerTriggerCountRef.current,
+      timestamp: Date.now(),
+    });
+  }, [baseData.length, meta.hasMore, loading, loadingMore]);
 
   const handleSave = async (id) => {
     const isSaved = saved.includes(id);
@@ -538,6 +519,11 @@ export default function Feed() {
               <span style={{ fontWeight: 700, color: 'var(--text)' }}>{personalizedTrends.length}</span> tendance{personalizedTrends.length > 1 ? 's' : ''} affichée{personalizedTrends.length > 1 ? 's' : ''}
             </div>
             {search && <div style={{ color: 'var(--text3)', fontSize: 13 }}>Filtrée par «{search}»</div>}
+            {meta.hasMore && !loading && !loadingMore ? (
+              <Button variant="ghost" onClick={() => void loadNextPage()} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                Charger plus
+              </Button>
+            ) : null}
           </div>
 
           <div className="feed-grid" style={{ marginTop: 14 }}>

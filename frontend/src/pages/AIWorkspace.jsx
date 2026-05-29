@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
@@ -18,7 +18,7 @@ export default function AIWorkspace() {
   const [aiRemaining, setAiRemaining] = useState(0);
   const [stageIndex, setStageIndex] = useState(0);
 
-  const loadWorkspace = async () => {
+  const loadWorkspace = useCallback(async () => {
     if (!id) return;
 
     setLoading(true);
@@ -41,11 +41,15 @@ export default function AIWorkspace() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   useEffect(() => {
-    loadWorkspace();
-  }, [id]);
+    const timer = window.setTimeout(() => {
+      void loadWorkspace();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, [loadWorkspace]);
 
   useEffect(() => {
     if (!analysis) return;
@@ -72,12 +76,12 @@ export default function AIWorkspace() {
       { title: 'Synthèse', text: analysis.summary || 'Synthèse en cours…' },
       { title: 'Pourquoi ça compte', text: analysis.whyItMatters || analysis.summary || 'Le contexte de ce signal est en cours d’analyse.' },
       { title: 'Opportunité', text: analysis.opportunity || 'Aucune opportunité détaillée.' },
-      { title: 'Business angles', text: (analysis.businessOpportunities || []).join(' • ') || 'Aucun angle business disponible.' },
+      { title: 'Pistes business', text: (analysis.businessOpportunities || []).join(' • ') || 'Aucune piste business disponible.' },
       { title: 'Idées de contenu', text: (analysis.contentIdeas || []).join(' • ') || 'Aucune idée de contenu disponible.' },
       { title: 'Potentiel de croissance', text: analysis.growthPotential || analysis.prediction || 'Potentiel de croissance en cours d’évaluation.' },
       { title: 'Interprétation marché', text: analysis.marketInterpretation || 'Aucune interprétation disponible.' },
       { title: 'Prédiction', text: analysis.prediction || 'Aucune prédiction disponible.' },
-      { title: 'Confiance', text: `Niveau de confiance : ${analysis.confidence || 'Medium'}` }
+      { title: 'Confiance', text: `Niveau de confiance : ${analysis.confidence || 'Moyenne'}` }
     ];
   }, [analysis]);
 
@@ -89,12 +93,12 @@ export default function AIWorkspace() {
           <div className="detail-header">
             <div className="detail-title-group">
               <Button type="button" variant="ghost" className="detail-back" onClick={() => navigate(`/feed/${id}`)} icon={<ArrowLeft size={16} />}>Retour au signal</Button>
-              <div className="eyebrow">Workspace d’analyse IA</div>
+              <div className="eyebrow">Espace d’analyse IA</div>
               <h1>{trend?.title || 'Analyse du signal'}</h1>
               <p className="detail-intro">Un espace de recherche IA orienté opportunité, potentiel de croissance et interprétation marché, directement connecté au signal sélectionné.</p>
             </div>
             <div className="detail-actions">
-              <Button type="button" variant="primary" onClick={loadWorkspace} disabled={loading}>Rerun analyse</Button>
+              <Button type="button" variant="primary" onClick={loadWorkspace} disabled={loading}>Relancer l’analyse</Button>
             </div>
           </div>
 
@@ -126,7 +130,7 @@ export default function AIWorkspace() {
                     <p style={{ color: 'var(--text2)', lineHeight: 1.7, marginBottom: 8 }}>
                       {stageCards[stageIndex]?.text || 'Analyse prête.'}
                     </p>
-                    <small style={{ color: 'var(--text3)' }}>Étape active : {stageCards[stageIndex]?.title || 'Synthèse'} · {analysis?.status === 'openrouter' ? 'Analyse OpenRouter' : 'Fallback de secours'}</small>
+                    <small style={{ color: 'var(--text3)' }}>Étape active : {stageCards[stageIndex]?.title || 'Synthèse'} · {analysis?.status === 'openrouter' ? 'Analyse IA OpenRouter' : 'Mode de secours'}</small>
                   </div>
 
                   <div className="ai-grid-cards">
@@ -164,7 +168,7 @@ export default function AIWorkspace() {
                   <strong style={{ fontSize: 13 }}>Environnement de recherche</strong>
                 </div>
                 <p style={{ color: 'var(--text3)', lineHeight: 1.6, margin: 0 }}>
-                  Ce workspace relie le signal au brief IA et au contexte métier, au lieu d’afficher une page vide ou un widget statique.
+                  Cet espace relie le signal au brief IA et au contexte métier, au lieu d’afficher une page vide ou un widget statique.
                 </p>
               </div>
             </aside>

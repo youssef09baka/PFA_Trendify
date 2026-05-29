@@ -15,8 +15,8 @@ export default function TrendDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [trend, setTrend] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(!id);
+  const [error, setError] = useState(() => id ? '' : 'Identifiant de tendance manquant.');
   const [saving, setSaving] = useState(false);
 
   const summary = useMemo(() => {
@@ -25,11 +25,7 @@ export default function TrendDetail() {
   }, [trend]);
 
   useEffect(() => {
-    if (!id) {
-      setError('Identifiant de tendance manquant.');
-      setLoading(false);
-      return;
-    }
+    if (!id) return;
 
     const fetchTrend = async () => {
       setLoading(true);
@@ -143,7 +139,7 @@ export default function TrendDetail() {
               <div className="detail-layout">
                 <section className="detail-main">
                   <div className="panel-card panel-media">
-                    <MediaBox video={trend.video} src={getCardMediaUrl(trend)} poster={getCardMediaUrl(trend)} alt={trend.title} aspect="16:9" controls={!!trend.video} />
+                    <MediaBox key={`${trend._id || trend.id || 'detail'}:${getCardMediaUrl(trend) || 'none'}`} video={trend.video} src={getCardMediaUrl(trend)} poster={getCardMediaUrl(trend)} alt={trend.title} aspect="16:9" controls={!!trend.video} />
                   </div>
 
                   <div className="signal-pill-row">
@@ -224,7 +220,7 @@ export default function TrendDetail() {
                     <div className="section-heading">
                       <div>
                         <small>Analyse IA</small>
-                        <h3>Workspace dédié</h3>
+                        <h3>Espace dédié</h3>
                       </div>
                     </div>
                     <p>Le widget statique est remplacé par un espace de recherche IA dédié au signal sélectionné.</p>
@@ -263,16 +259,16 @@ export default function TrendDetail() {
                           <Link key={item.id} to={`/feed/${item.id}`} className="related-card">
                             <div className="related-thumb">
                               {getCardMediaUrl(item) ? (
-                                <MediaBox src={getCardMediaUrl(item)} alt={item.title} aspect="square" />
+                                <MediaBox key={`${item.id || item._id || 'related'}:${getCardMediaUrl(item) || 'none'}`} src={getCardMediaUrl(item)} alt={item.title} aspect="square" />
                               ) : (
                                 <span className="related-thumb-label">Signal</span>
                               )}
                             </div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 6 }}>{item.title}</div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'var(--text3)' }}>
+                            <div className="related-card-copy">
+                              <div className="related-card-title">{item.title}</div>
+                              <div className="related-card-meta">
                                 <span>{item.source}</span>
-                                <span style={{ fontFamily: 'var(--mono)' }}>{formatScore(item.score)}</span>
+                                <span>{formatScore(item.score)}</span>
                               </div>
                             </div>
                             <ArrowRight size={14} style={{ color: 'var(--text3)' }} />

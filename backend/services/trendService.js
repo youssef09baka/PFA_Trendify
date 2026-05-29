@@ -260,10 +260,38 @@ const scoreTrends = (trends = []) => {
   });
 };
 
+const normalizeTrendMedia = (trend) => {
+  if (!trend) return trend;
+
+  const candidateImage = typeof trend.image === 'string' ? trend.image.trim() : '';
+  const candidateThumbnail = typeof trend.thumbnail === 'string' ? trend.thumbnail.trim() : '';
+  const hasUsableImage = (value) => Boolean(value) && !isPlaceholderMediaUrl(value);
+
+  const image = hasUsableImage(candidateImage)
+    ? candidateImage
+    : hasUsableImage(candidateThumbnail)
+      ? candidateThumbnail
+      : candidateImage || candidateThumbnail || '';
+
+  const thumbnail = hasUsableImage(candidateThumbnail)
+    ? candidateThumbnail
+    : hasUsableImage(candidateImage)
+      ? candidateImage
+      : candidateThumbnail || candidateImage || '';
+
+  return {
+    ...trend,
+    image,
+    thumbnail,
+    mediaType: image ? 'image' : trend.mediaType || 'none'
+  };
+};
+
 const shouldRefreshMedia = (trend) => {
   if (!trend) return false;
   const hasPlaceholder = isPlaceholderMediaUrl(trend.image) || isPlaceholderMediaUrl(trend.thumbnail);
-  return hasPlaceholder || trend.mediaType === 'none' || (!trend.image && !trend.thumbnail && !trend.video);
+  const hasBlankImageFallback = !trend.image && Boolean(trend.thumbnail);
+  return hasPlaceholder || hasBlankImageFallback || trend.mediaType === 'none' || (!trend.image && !trend.thumbnail && !trend.video);
 };
 
 const shouldReenrichMedia = (trend) => {
@@ -272,21 +300,24 @@ const shouldReenrichMedia = (trend) => {
 };
 
 const refreshTrendMedia = async (trend) => {
-  if (!shouldRefreshMedia(trend)) return trend;
+  const normalizedTrend = normalizeTrendMedia(trend);
+  if (!shouldRefreshMedia(normalizedTrend)) return trend;
 
   try {
-    const media = await extractMediaForTrend(trend, trend._raw || null).catch(() => null);
-    if (!media || (!media.image && !media.thumbnail)) return trend;
+    const media = await extractMediaForTrend(normalizedTrend, normalizedTrend._raw || null).catch(() => null);
+    const fallbackTrend = normalizeTrendMedia(normalizedTrend);
+    const image = media?.image || media?.thumbnail || fallbackTrend.image || trend.image || '';
+    const thumbnail = media?.thumbnail || media?.image || fallbackTrend.thumbnail || trend.thumbnail || '';
 
-    const image = media.image || media.thumbnail || trend.image || '';
-    const thumbnail = media.thumbnail || image || trend.thumbnail || '';
+    if (!media && !image) return trend;
+
     const updated = await Trend.findByIdAndUpdate(
       trend._id,
       {
         $set: {
           image,
           thumbnail,
-          mediaType: media.mediaType || 'image',
+          mediaType: media?.mediaType || fallbackTrend.mediaType || 'image',
           mediaFingerprint: computeMediaFingerprint({ ...trend, image, thumbnail }).fingerprint,
           mediaVerifiedAt: new Date(),
           mediaSource: 'runtime-refresh'
@@ -295,7 +326,7 @@ const refreshTrendMedia = async (trend) => {
       { new: true }
     ).lean();
 
-    return updated || { ...trend, image, thumbnail, mediaType: media.mediaType || 'image' };
+    return updated || { ...trend, image, thumbnail, mediaType: media?.mediaType || fallbackTrend.mediaType || 'image' };
   } catch {
     return trend;
   }
@@ -385,53 +416,59 @@ const saveTrends = async (trends) => {
 
   for (const batch of chunks) {
     const ops = batch.map(async (trend) => {
-      const normalizedSource = normalizeSource(trend.source);
-      const normalizedCategory = normalizeCategory({ ...trend, source: normalizedSource });
-      const slug = trend.slug || buildSlug({ ...trend, source: normalizedSource, category: normalizedCategory });
+      const normalizedTrend = normalizeTrendMedia(trend);
+      const normalizedSource = normalizeSource(normalizedTrend.source);
+      const normalizedCategory = normalizeCategory({ ...normalizedTrend, source: normalizedSource });
+      const slug = normalizedTrend.slug || buildSlug({ ...normalizedTrend, source: normalizedSource, category: normalizedCategory });
 
       try {
-        if (shouldReenrichMedia(trend)) {
-          const m = await extractMediaForTrend(trend, trend._raw || null).catch(() => null);
+        if (shouldReenrichMedia(normalizedTrend)) {
+          const m = await extractMediaForTrend(normalizedTrend, normalizedTrend._raw || null).catch(() => null);
           if (m) {
-            trend.image = m.image || trend.image || '';
-            trend.video = m.video || trend.video || '';
-            trend.thumbnail = m.thumbnail || trend.thumbnail || trend.image || '';
-            trend.mediaType = m.mediaType || trend.mediaType || 'image';
-            trend.mediaFingerprint = computeMediaFingerprint({ ...trend, image: trend.image, thumbnail: trend.thumbnail }).fingerprint;
-            trend.mediaVerifiedAt = new Date();
-            trend.mediaSource = 'verification';
+            normalizedTrend.image = m.image || normalizedTrend.image || '';
+            normalizedTrend.video = m.video || normalizedTrend.video || '';
+            normalizedTrend.thumbnail = m.thumbnail || normalizedTrend.thumbnail || normalizedTrend.image || '';
+            normalizedTrend.mediaType = m.mediaType || normalizedTrend.mediaType || 'image';
           }
+          normalizedTrend.image = normalizeTrendMedia(normalizedTrend).image;
+          normalizedTrend.thumbnail = normalizeTrendMedia(normalizedTrend).thumbnail;
+          normalizedTrend.mediaType = normalizeTrendMedia(normalizedTrend).mediaType;
+          normalizedTrend.mediaFingerprint = computeMediaFingerprint({ ...normalizedTrend, image: normalizedTrend.image, thumbnail: normalizedTrend.thumbnail }).fingerprint;
+          normalizedTrend.mediaVerifiedAt = new Date();
+          normalizedTrend.mediaSource = 'verification';
         }
       } catch (e) {
         // ignore media extraction failures
       }
 
+      const finalTrend = normalizeTrendMedia(normalizedTrend);
+
       const update = {
-        title: trend.title,
+        title: finalTrend.title,
         source: normalizedSource,
         category: normalizedCategory,
-        score: typeof trend.score === 'number' ? trend.score : 0,
-        scoreDetails: trend.scoreDetails || {
-          popularity: trend.popularity || 0,
-          growth: trend.growth || 0,
+        score: typeof finalTrend.score === 'number' ? finalTrend.score : 0,
+        scoreDetails: finalTrend.scoreDetails || {
+          popularity: finalTrend.popularity || 0,
+          growth: finalTrend.growth || 0,
           formula: '0.7 * popularity + 0.3 * growth'
         },
-        analysis: trend.analysis || '',
-        idea: trend.idea || '',
-        ml_prediction: trend.ml_prediction || 'UNKNOWN',
-        popularity: trend.popularity || 0,
-        growth: trend.growth || 0,
-        image: trend.image || '',
-        video: trend.video || '',
-        thumbnail: trend.thumbnail || '',
-        mediaType: trend.mediaType || 'none',
-        mediaFingerprint: trend.mediaFingerprint || computeMediaFingerprint(trend).fingerprint,
-        mediaVerifiedAt: trend.mediaVerifiedAt || new Date(),
-        mediaSource: trend.mediaSource || 'verification',
-        link: trend.link || '',
-        excerpt: trend.excerpt || trend.title || '',
-        fetchedAt: trend.fetchedAt || new Date(),
-        tags: Array.isArray(trend.tags) ? trend.tags : [],
+        analysis: finalTrend.analysis || '',
+        idea: finalTrend.idea || '',
+        ml_prediction: finalTrend.ml_prediction || 'UNKNOWN',
+        popularity: finalTrend.popularity || 0,
+        growth: finalTrend.growth || 0,
+        image: finalTrend.image || '',
+        video: finalTrend.video || '',
+        thumbnail: finalTrend.thumbnail || '',
+        mediaType: finalTrend.mediaType || 'none',
+        mediaFingerprint: finalTrend.mediaFingerprint || computeMediaFingerprint(finalTrend).fingerprint,
+        mediaVerifiedAt: finalTrend.mediaVerifiedAt || new Date(),
+        mediaSource: finalTrend.mediaSource || 'verification',
+        link: finalTrend.link || '',
+        excerpt: finalTrend.excerpt || finalTrend.title || '',
+        fetchedAt: finalTrend.fetchedAt || new Date(),
+        tags: Array.isArray(finalTrend.tags) ? finalTrend.tags : [],
         slug
       };
 

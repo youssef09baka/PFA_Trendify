@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { normalizeMediaUrl, isPlaceholderMedia } from '../utils/media';
+import React, { useMemo, useState } from 'react';
+import { isPlaceholderMedia, getCardMediaUrl } from '../utils/media';
 
 // MediaBox: unified media container for images & video with fixed aspect ratios
 // Props:
@@ -15,7 +15,6 @@ import { normalizeMediaUrl, isPlaceholderMedia } from '../utils/media';
 export default function MediaBox({ src, video, poster, alt = '', aspect = '16:9', lazy = true, muted = true, autoPlay = false, controls = false, className = '' }) {
   const [error, setError] = useState(false);
   const [videoError, setVideoError] = useState(false);
-  const [activeSrc, setActiveSrc] = useState('');
 
   const paddingTop = useMemo(() => {
     switch (aspect) {
@@ -29,22 +28,15 @@ export default function MediaBox({ src, video, poster, alt = '', aspect = '16:9'
     }
   }, [aspect]);
 
-  const primarySrc = useMemo(() => normalizeMediaUrl(src), [src]);
-  const fallbackSrc = useMemo(() => normalizeMediaUrl(poster), [poster]);
-
-  useEffect(() => {
-    setError(false);
-    setVideoError(false);
-    setActiveSrc(primarySrc || fallbackSrc || '');
-  }, [primarySrc, fallbackSrc]);
+  const primarySrc = useMemo(() => getCardMediaUrl({ image: src, thumbnail: poster, poster }), [src, poster]);
+  const fallbackSrc = useMemo(() => getCardMediaUrl({ image: poster, thumbnail: src, poster: src }), [src, poster]);
+  const [activeSrc, setActiveSrc] = useState(() => primarySrc || fallbackSrc || '');
 
   const hasImage = Boolean(activeSrc) && !isPlaceholderMedia(activeSrc);
   const hasVideo = Boolean(video);
 
   const showImage = hasImage && !error;
   const showVideo = hasVideo && !videoError;
-
-  if (!showImage && !showVideo) return null;
 
   const handleImageError = () => {
     if (fallbackSrc && activeSrc !== fallbackSrc) {
@@ -55,7 +47,7 @@ export default function MediaBox({ src, video, poster, alt = '', aspect = '16:9'
   };
 
   return (
-    <div className={`media-box ${className}`} style={{ paddingTop, width: '100%', position: 'relative', overflow: 'hidden', background: 'var(--glass)' }}>
+    <div className={`media-box ${className}`} style={{ paddingTop, width: '100%', position: 'relative', overflow: 'hidden', background: 'var(--glass)', minHeight: '120px' }}>
       {showVideo ? (
         <video
           src={video}
@@ -75,7 +67,9 @@ export default function MediaBox({ src, video, poster, alt = '', aspect = '16:9'
           onError={handleImageError}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
-      ) : null}
+      ) : (
+        <div className="media-placeholder" aria-hidden="true">Aucun visuel</div>
+      )}
     </div>
   );
 }

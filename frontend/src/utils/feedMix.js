@@ -52,10 +52,5 @@ export const applyFeedMix = (items = [], seenIds = []) => {
     })
     .sort((a, b) => b.mixedScore - a.mixedScore || Number(b.score || 0) - Number(a.score || 0));
 
-  console.info('[FEED-MIX-FRONT] runtime', {
-    runtimeNoise,
-    top: mixed.slice(0, 6).map((entry) => ({ id: entry._id || entry.id || entry.slug, score: entry.score, mixedScore: entry.mixedScore, randomFactor: entry.randomFactor }))
-  });
-
   return mixed;
 };

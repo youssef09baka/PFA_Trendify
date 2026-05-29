@@ -30,7 +30,6 @@ export default function Dashboard() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [recentSearches, setRecentSearches] = useState([]);
   const [aiLeft, setAiLeft] = useState(Number(user?.aiRemaining) || 0);
-  const [sourceCounts, setSourceCounts] = useState({});
   const [categoryCounts, setCategoryCounts] = useState({});
   const [analysisMessage, setAnalysisMessage] = useState('');
 
@@ -41,7 +40,6 @@ export default function Dashboard() {
       if (data && Array.isArray(data.items)) {
         setTrends(data.items);
       }
-      if (data?.meta?.sourceCounts) setSourceCounts(data.meta.sourceCounts);
       if (data?.meta?.categoryCounts) setCategoryCounts(data.meta.categoryCounts);
       if (data?.user?.aiRemaining !== undefined) {
         setAiLeft(Number(data.user.aiRemaining) || 0);
@@ -68,15 +66,13 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
-    fetchTrends();
-    fetchSaved();
-  }, []);
+    const timer = window.setTimeout(() => {
+      void fetchTrends();
+      void fetchSaved();
+    }, 0);
 
-  useEffect(() => {
-    if (typeof user?.aiRemaining === 'number') {
-      setAiLeft(user.aiRemaining);
-    }
-  }, [user?.aiRemaining]);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const preferencesCount = user?.preferences?.length || 0;
   const savedCount = savedTrends.length;
@@ -358,7 +354,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <span>Utilisation responsable</span>
-                    <strong>Premium</strong>
+                    <strong>Version premium</strong>
                   </div>
                 </div>
 
