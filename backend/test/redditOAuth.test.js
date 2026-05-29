@@ -66,10 +66,10 @@ test('fetchRedditPosts returns OAuth-fetched posts for a subreddit', async () =>
 });
 
 test('getRedditTrends preserves Reddit trend extraction with the OAuth transport', async () => {
-  const originalModule = require.cache[require.resolve('../services/data/redditOAuth')];
-  require.cache[require.resolve('../services/data/redditOAuth')] = {
-    id: require.resolve('../services/data/redditOAuth'),
-    filename: require.resolve('../services/data/redditOAuth'),
+  const originalModule = require.cache[require.resolve('../services/data/redditRss')];
+  require.cache[require.resolve('../services/data/redditRss')] = {
+    id: require.resolve('../services/data/redditRss'),
+    filename: require.resolve('../services/data/redditRss'),
     loaded: true,
     exports: {
       fetchRedditPosts: async () => [
@@ -105,9 +105,9 @@ test('getRedditTrends preserves Reddit trend extraction with the OAuth transport
   assert.equal(trends[0].source_detail, 'AI');
 
   if (originalModule) {
-    require.cache[require.resolve('../services/data/redditOAuth')] = originalModule;
+    require.cache[require.resolve('../services/data/redditRss')] = originalModule;
   } else {
-    delete require.cache[require.resolve('../services/data/redditOAuth')];
+    delete require.cache[require.resolve('../services/data/redditRss')];
   }
   delete require.cache[require.resolve('../services/data/redditService')];
 });

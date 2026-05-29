@@ -1,9 +1,29 @@
 const asyncHandler = require("../middleware/asyncHandler");
+const Trend = require("../models/Trend");
 const { getRealTrends } = require("../services/data");
 const { TREND_PERSIST_LIMIT, TREND_ANALYSIS_LIMIT } = require("../config/config");
 const { generateBatchAnalysis, generateTrendAnalysis } = require("../services/aiService");
 const { predictTrend } = require("../services/mlService");
 const { saveTrends, scoreTrends, getFeedTrends, getTrendById, getRelatedTrends } = require("../services/trendService");
+
+const FALLBACK_CACHE_PATTERNS = [
+  /ai unavailable/i,
+  /no idea available/i,
+  /ce signal gagne en visibilité/i,
+  /le sujet est visible dans les signaux actuels/i,
+  /construisez une mini-édition/i,
+  /créer un extrait de veille rapide/i,
+  /préparer un angle business ou newsletter autour de/i,
+  /transformer le sujet en mini-briefing/i
+];
+
+const hasRealStoredAnalysis = (analysis, idea) => {
+  if (typeof analysis !== 'string' || !analysis.trim()) return false;
+  if (typeof idea !== 'string' || !idea.trim()) return false;
+
+  const combined = `${analysis || ''}\n${idea || ''}`;
+  return !FALLBACK_CACHE_PATTERNS.some((pattern) => pattern.test(combined));
+};
 
 const getFeed = asyncHandler(async (req, res, next) => {
   const user = req.user;
@@ -204,6 +224,41 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
     return next(err);
   }
 
+  const hasStoredAnalysis = Boolean(
+    typeof trend.analysis === 'string' && trend.analysis.trim() &&
+    typeof trend.idea === 'string' && trend.idea.trim()
+  );
+  const canReuseStoredAnalysis = hasStoredAnalysis && hasRealStoredAnalysis(trend.analysis, trend.idea);
+
+  if (canReuseStoredAnalysis) {
+    return res.status(200).json({
+      trend: {
+        id: trend._id,
+        title: trend.title,
+        source: trend.source,
+        category: trend.category,
+        score: trend.score || 0,
+        scoreDetails: trend.scoreDetails || {},
+        analysis: trend.analysis || '',
+        idea: trend.idea || '',
+        link: trend.link || '',
+        image: trend.image || '',
+        thumbnail: trend.thumbnail || '',
+        mediaType: trend.mediaType || 'none'
+      },
+      analysis: {
+        status: 'stored',
+        summary: trend.analysis || '',
+        opportunity: trend.idea || '',
+        businessOpportunities: [trend.idea || ''],
+        contentIdeas: [trend.idea || ''],
+        prediction: trend.analysis || '',
+        confidence: 'Medium'
+      },
+      aiRemaining: req.user?.aiRemaining ?? 0
+    });
+  }
+
   if (req.user && typeof req.user.aiRemaining === 'number' && req.user.aiRemaining <= 0) {
     const err = new Error("Votre quota d'analyses IA est épuisé. Revenez demain.");
     err.statusCode = 429;
@@ -211,6 +266,21 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
   }
 
   const analysis = await generateTrendAnalysis(trend);
+
+  const persistedAnalysis = analysis?.summary || trend.analysis || '';
+  const persistedIdea = analysis?.opportunity || trend.idea || '';
+
+  await Trend.findByIdAndUpdate(
+    trend._id,
+    {
+      $set: {
+        analysis: persistedAnalysis,
+        idea: persistedIdea,
+        updatedAt: new Date()
+      }
+    },
+    { new: true }
+  ).lean().catch(() => null);
 
   if (req.user && analysis?.status === 'openrouter') {
     req.user.aiRemaining = Math.max(0, (req.user.aiRemaining || 0) - 1);
@@ -225,8 +295,8 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
       category: trend.category,
       score: trend.score || 0,
       scoreDetails: trend.scoreDetails || {},
-      analysis: trend.analysis || '',
-      idea: trend.idea || '',
+      analysis: persistedAnalysis,
+      idea: persistedIdea,
       link: trend.link || '',
       image: trend.image || '',
       thumbnail: trend.thumbnail || '',

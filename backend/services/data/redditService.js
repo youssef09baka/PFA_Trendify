@@ -1,5 +1,5 @@
 const { REDDIT_FETCH_LIMIT } = require("../../config/config");
-const { fetchRedditPosts } = require("./redditOAuth");
+const { fetchRedditPosts } = require("./redditRss");
 const {
   cleanTitle,
   isGoodContent,
@@ -8,47 +8,13 @@ const {
 } = require("./cleaner");
 
 const { extractFromReddit } = require('./mediaExtractor');
+const { SUBREDDITS } = require('./redditSubreddits');
 
-const SUBREDDITS = [
-  'technology',
-  'tech',
-  'AI',
-  'MachineLearning',
-  'OpenAI',
-  'programming',
-  'webdev',
-  'Entrepreneur',
-  'startups',
-  'business',
-  'marketing',
-  'investing',
-  'finance',
-  'economics',
-  'CryptoCurrency',
-  'datascience',
-  'Futurology',
-  'science',
-  'gaming',
-  'worldnews',
-  'news',
-  'gadgets',
-  'nottheonion',
-  'Showerthoughts',
-  'dataisbeautiful',
-  'entertainment',
-  'FinancialIndependence',
-  'philosophy',
-  'cybersecurity',
-  'robotics',
-  'artificial',
-  'softwareengineering',
-  'productivity',
-  'innovation',
-  'biotech',
-  'space',
-  'climate',
-  'politics'
-];
+/*
+  Reddit RSS ingestion is now the temporary acquisition path for the blocked JSON endpoint.
+*/
+
+const SUBREDDIT_LIST = SUBREDDITS;
 
 const normalizeTitleKey = (title) =>
   String(title || '')
@@ -61,7 +27,7 @@ const getRedditTrends = async () => {
   const limit = Math.max(40, Number(REDDIT_FETCH_LIMIT || 75));
   let allPosts = [];
 
-  for (const subreddit of SUBREDDITS) {
+  for (const subreddit of SUBREDDIT_LIST) {
     try {
       const posts = await fetchRedditPosts(subreddit, limit);
       allPosts = allPosts.concat(posts || []);

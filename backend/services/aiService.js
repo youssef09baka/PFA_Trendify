@@ -1,5 +1,8 @@
 const axios = require("axios");
 
+const OPENROUTER_MODEL = "openai/gpt-3.5-turbo";
+const OPENROUTER_MAX_TOKENS = 300;
+
 const buildFallbackTrendAnalysis = (trend) => ({
   status: 'fallback',
   summary: trend.analysis || `Ce signal gagne en visibilité et mérite une lecture rapide pour comprendre pourquoi il attire l’attention.`,
@@ -24,30 +27,21 @@ const generateTrendAnalysis = async (trend) => {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "openai/gpt-3.5-turbo",
-        max_tokens: 900,
+        model: OPENROUTER_MODEL,
+        max_tokens: OPENROUTER_MAX_TOKENS,
+        temperature: 0.2,
         messages: [
           {
             role: "user",
-            content: `Analyse this trend as a research brief for a discovery platform.
-Return valid JSON only with these keys:
-{
-  "summary": "...",
-  "whyItMatters": "...",
-  "opportunity": "...",
-  "businessOpportunities": ["...","..."],
-  "contentIdeas": ["...","..."],
-  "growthPotential": "...",
-  "marketInterpretation": "...",
-  "prediction": "...",
-  "confidence": "Low|Medium|High"
-}
-Trend title: ${trend.title}
+            content: `Return compact JSON only with these keys:
+{"summary":"...","whyItMatters":"...","opportunity":"...","businessOpportunities":["..."],"contentIdeas":["..."],"confidence":"Low|Medium|High"}
+
+Trend: ${trend.title}
 Source: ${trend.source || 'unknown'}
 Category: ${trend.category || 'General'}
 Score: ${trend.score || 0}
-Current analysis: ${trend.analysis || ''}
-Current idea: ${trend.idea || ''}`
+Existing summary: ${String(trend.analysis || '').slice(0, 120)}
+Existing idea: ${String(trend.idea || '').slice(0, 120)}`
           }
         ]
       },
@@ -72,9 +66,9 @@ Current idea: ${trend.idea || ''}`
       opportunity: parsed.opportunity || trend.idea || '',
       businessOpportunities: Array.isArray(parsed.businessOpportunities) && parsed.businessOpportunities.length ? parsed.businessOpportunities : [parsed.opportunity || trend.idea || ''],
       contentIdeas: Array.isArray(parsed.contentIdeas) && parsed.contentIdeas.length ? parsed.contentIdeas : [trend.idea || ''],
-      growthPotential: parsed.growthPotential || parsed.prediction || '',
-      marketInterpretation: parsed.marketInterpretation || 'Le signal mérite un suivi humain pour confirmer son potentiel à long terme.',
-      prediction: parsed.prediction || 'Le signal semble en phase de progression et peut continuer à attirer l’attention si la traction reste soutenue.',
+      growthPotential: parsed.summary ? 'Potentiel de traction modéré à fort selon l’engagement observé.' : '',
+      marketInterpretation: parsed.whyItMatters || 'Le signal mérite un suivi humain pour confirmer son potentiel à long terme.',
+      prediction: parsed.summary ? 'Le sujet devrait continuer à attirer l’attention si l’engagement reste soutenu.' : '',
       confidence: parsed.confidence || 'Medium'
     };
   } catch (error) {

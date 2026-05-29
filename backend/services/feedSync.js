@@ -1,11 +1,9 @@
 const { getRealTrends } = require("./data");
-const { generateBatchAnalysis } = require("./aiService");
-const { predictTrend } = require("./mlService");
 const { saveTrends, scoreTrends } = require("./trendService");
-const { TREND_PERSIST_LIMIT, TREND_ANALYSIS_LIMIT } = require("../config/config");
+const { TREND_PERSIST_LIMIT } = require("../config/config");
 const mongoose = require('mongoose');
 
-const DEFAULT_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+const DEFAULT_INTERVAL_MS = 60 * 60 * 1000; // 60 minutes
 
 let timer = null;
 let running = false;
@@ -28,25 +26,9 @@ const runSync = async () => {
 
     const scored = scoreTrends(raw);
     const toPersist = scored.slice(0, Math.max(300, Number(TREND_PERSIST_LIMIT || 1000)));
-    const analysisBatch = toPersist.slice(0, Math.min(toPersist.length, Number(TREND_ANALYSIS_LIMIT || 250)));
-
-    const analyzed = await generateBatchAnalysis(analysisBatch);
-    const analysisByTitle = new Map(analyzed.map((trend) => [trend.title, trend]));
-
-    const predictions = await Promise.all(toPersist.map((t) => predictTrend(t)));
-
-    const withPredictions = toPersist.map((t, i) => {
-      const analysisTrend = analysisByTitle.get(t.title);
-      return {
-        ...t,
-        analysis: analysisTrend?.analysis || t.analysis || '',
-        idea: analysisTrend?.idea || t.idea || '',
-        ml_prediction: predictions[i]
-      };
-    });
 
     if (mongoose.connection && mongoose.connection.readyState === 1) {
-      const persisted = await saveTrends(withPredictions);
+      const persisted = await saveTrends(toPersist);
       console.info(`[SYNC] feed sync completed — trends upserted: ${persisted.length}`);
     } else {
       console.warn('[SYNC] DB not connected - skipping persistence for this run');
@@ -60,10 +42,13 @@ const runSync = async () => {
 
 const start = (intervalMs = DEFAULT_INTERVAL_MS) => {
   if (timer) return;
+  const resolvedIntervalMs = Number.isFinite(intervalMs) && intervalMs > 0 ? intervalMs : DEFAULT_INTERVAL_MS;
+  const intervalMinutes = Math.round(resolvedIntervalMs / (60 * 1000));
+
   // run immediately
   runSync().catch((e) => console.error('[SYNC] immediate run failed', e));
-  timer = setInterval(() => runSync().catch((e) => console.error('[SYNC] scheduled run failed', e)), intervalMs);
-  console.info('[SYNC] started, intervalMs=', intervalMs);
+  timer = setInterval(() => runSync().catch((e) => console.error('[SYNC] scheduled run failed', e)), resolvedIntervalMs);
+  console.info(`[SYNC] started, intervalMs=${resolvedIntervalMs}, intervalMinutes=${intervalMinutes}, next scheduled run in ${intervalMinutes} minutes`);
 };
 
 const stop = () => {
@@ -74,4 +59,4 @@ const stop = () => {
   }
 };
 
-module.exports = { start, stop, runSync };
+module.exports = { start, stop, runSync, DEFAULT_INTERVAL_MS };
