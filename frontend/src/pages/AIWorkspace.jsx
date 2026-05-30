@@ -52,13 +52,19 @@ export default function AIWorkspace() {
   }, [loadWorkspace]);
 
   useEffect(() => {
+    // Debug logs requested for runtime verification
+    console.log('analysis', analysis);
+    console.log('trend', trend);
+    console.log('ML_PREDICTION_RAW =', trend?.ml_prediction);
+  }, [analysis, trend]);
+
+  useEffect(() => {
     if (!analysis) return;
     const stages = [
       analysis.summary || 'Synthèse en cours…',
       analysis.opportunity || 'Opportunité en cours…',
       (analysis.contentIdeas || []).join(' '),
-      analysis.marketInterpretation || 'Interprétation en cours…',
-      analysis.prediction || 'Prédiction en cours…'
+      analysis.marketInterpretation || 'Interprétation en cours…'
     ].filter(Boolean);
 
     if (!stages.length) return;
@@ -78,12 +84,36 @@ export default function AIWorkspace() {
       { title: 'Opportunité', text: analysis.opportunity || 'Aucune opportunité détaillée.' },
       { title: 'Pistes business', text: (analysis.businessOpportunities || []).join(' • ') || 'Aucune piste business disponible.' },
       { title: 'Idées de contenu', text: (analysis.contentIdeas || []).join(' • ') || 'Aucune idée de contenu disponible.' },
-      { title: 'Potentiel de croissance', text: analysis.growthPotential || analysis.prediction || 'Potentiel de croissance en cours d’évaluation.' },
+      { title: 'Potentiel de croissance', text: analysis.growthPotential || 'Potentiel de croissance en cours d’évaluation.' },
       { title: 'Interprétation marché', text: analysis.marketInterpretation || 'Aucune interprétation disponible.' },
-      { title: 'Prédiction', text: analysis.prediction || 'Aucune prédiction disponible.' },
+      { title: 'Prédiction ML', text: (() => {
+        const v = trend?.ml_prediction;
+        if (!v) {
+          if (trend?.source === 'Google Trends') {
+            return 'Prédiction ML indisponible pour cette source.';
+          }
+          return 'Prédiction ML en cours…';
+        }
+        if (v === 'HIGH') return '🔥 HIGH POTENTIAL\nLe modèle Random Forest estime un fort potentiel de traction.';
+        if (v === 'LOW') return '📉 LOW POTENTIAL\nLe modèle Random Forest estime un potentiel limité.';
+        return 'Prédiction indisponible. Le modèle n’a pas pu produire de résultat.';
+      })() },
       { title: 'Confiance', text: `Niveau de confiance : ${analysis.confidence || 'Moyenne'}` }
     ];
-  }, [analysis]);
+  }, [analysis, trend?.ml_prediction, trend?.source]);
+
+  const getPredictionBadgeStyle = (value) => {
+    switch (value) {
+      case 'HIGH':
+        return { background: 'rgba(22, 163, 74, 0.12)', color: '#166534' };
+      case 'LOW':
+        return { background: 'rgba(239, 68, 68, 0.12)', color: '#991b1b' };
+      case 'UNAVAILABLE':
+        return { background: 'rgba(148, 163, 184, 0.12)', color: '#334155' };
+      default:
+        return { background: 'rgba(148, 163, 184, 0.12)', color: '#334155' };
+    }
+  };
 
   return (
     <div className="page-layout" style={{ background: 'var(--bg)' }}>
@@ -159,8 +189,37 @@ export default function AIWorkspace() {
                 <div className="summary-row"><span className="summary-label">Source</span><strong>{trend?.source || '—'}</strong></div>
                 <div className="summary-row"><span className="summary-label">Catégorie</span><strong>{trend?.category || '—'}</strong></div>
                 <div className="summary-row"><span className="summary-label">Score</span><strong>{trend?.score !== undefined ? formatScore(trend.score) : '—'}</strong></div>
-                <div className="summary-row"><span className="summary-label">Momentum</span><strong>{trend?.ml_prediction || '—'}</strong></div>
+                <div className="summary-row">
+                  <span className="summary-label">Momentum</span>
+                  {trend?.ml_prediction ? (
+                    <span className="signal-pill" style={getPredictionBadgeStyle(trend.ml_prediction)}>{trend.ml_prediction === 'HIGH' ? '🔥 HIGH POTENTIAL' : trend.ml_prediction === 'LOW' ? '📉 LOW POTENTIAL' : 'Prediction unavailable'}</span>
+                  ) : trend?.source === 'Google Trends' ? (
+                    <strong>Prédiction ML indisponible pour cette source.</strong>
+                  ) : (
+                    <strong>—</strong>
+                  )}
+                </div>
               </div>
+
+              {trend?.ml_prediction && (
+                <div style={{ marginTop: 12, padding: 12, border: '1px solid var(--divider)', borderRadius: 8 }}>
+                  <div style={{ marginBottom: 8 }}>
+                    <small style={{ color: 'var(--text3)' }}>Prédiction ML</small>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                      <strong style={{ fontSize: 14 }}>{trend.ml_prediction === 'HIGH' ? '🔥 HIGH POTENTIAL' : trend.ml_prediction === 'LOW' ? '📉 LOW POTENTIAL' : 'Prediction unavailable'}</strong>
+                    </div>
+                    <div style={{ color: 'var(--text3)', marginTop: 8 }}>
+                      {trend.ml_prediction === 'HIGH' ? 'Le modèle Random Forest estime un fort potentiel de traction.' : trend.ml_prediction === 'LOW' ? 'Le modèle Random Forest estime un potentiel limité.' : 'Le modèle Random Forest n’a pas pu produire de prédiction.'}
+                    </div>
+                    <div style={{ marginTop: 8, color: 'var(--text3)' }}><strong>Modèle :</strong> Random Forest</div>
+                  </div>
+
+                  <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px dashed var(--divider)', color: 'var(--text3)' }}>
+                    <small>Confiance IA</small>
+                    <div style={{ marginTop: 6 }}>{analysis?.confidence || 'Moyenne'}</div>
+                  </div>
+                </div>
+              )}
 
               <div className="panel-card card-content" style={{ marginTop: 12, padding: 12, border: '1px solid var(--divider)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>

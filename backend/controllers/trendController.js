@@ -1,8 +1,8 @@
-const axios = require("axios");
 const asyncHandler = require("../middleware/asyncHandler");
 const { generateBatchAnalysis } = require("../services/aiService");
 const { getRealTrends } = require("../services/data");
-const { ML_SERVICE_URL } = require("../config/config");
+const { generateMlFeatures } = require("../services/featureGenerator");
+const { predictTrend } = require("../services/mlService");
 
 const getTrends = asyncHandler(async (req, res, next) => {
   const rawTrends = await getRealTrends();
@@ -58,38 +58,17 @@ const getTrends = asyncHandler(async (req, res, next) => {
 
   scoredTrends.sort((a, b) => b.score - a.score);
 
-  for (const trend of scoredTrends) {
-    const modelInputReady = [
-      "num_comments",
-      "post_length",
-      "hour",
-      "title_length",
-      "sentiment"
-    ].every((field) => typeof trend[field] === "number");
+  for (let i = 0; i < scoredTrends.length; i += 1) {
+    const source = String(scoredTrends[i]?.source || "").toLowerCase();
+    const normalizedTrend = source.includes("reddit")
+      ? generateMlFeatures(scoredTrends[i])
+      : scoredTrends[i];
 
-    if (!modelInputReady) {
-      trend.ml_prediction = "UNAVAILABLE";
-      continue;
-    }
+    normalizedTrend.ml_prediction = source.includes("reddit")
+      ? await predictTrend(normalizedTrend)
+      : null;
 
-    try {
-      const mlResponse = await axios.post(
-        ML_SERVICE_URL,
-        {
-          num_comments: trend.num_comments,
-          post_length: trend.post_length,
-          hour: trend.hour,
-          title_length: trend.title_length,
-          sentiment: trend.sentiment
-        }
-      );
-      trend.ml_prediction = mlResponse.data.prediction;
-    } catch (mlError) {
-      console.warn(
-        `[ML] prediction failed for "${trend.title}": ${mlError.response?.data || mlError.message}`
-      );
-      trend.ml_prediction = "UNKNOWN";
-    }
+    scoredTrends[i] = normalizedTrend;
   }
 
   const enrichedTrends = await generateBatchAnalysis(scoredTrends);

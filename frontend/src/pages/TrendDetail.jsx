@@ -24,6 +24,19 @@ export default function TrendDetail() {
     return trend.summary || trend.description || trend.analysis || 'Signal important détecté par le flux de veille.';
   }, [trend]);
 
+  const getPredictionBadgeStyle = (value) => {
+    switch (value) {
+      case 'HIGH':
+        return { background: 'rgba(22, 163, 74, 0.12)', color: '#166534' };
+      case 'LOW':
+        return { background: 'rgba(239, 68, 68, 0.12)', color: '#991b1b' };
+      case 'UNAVAILABLE':
+        return { background: 'rgba(148, 163, 184, 0.12)', color: '#334155' };
+      default:
+        return { background: 'rgba(148, 163, 184, 0.12)', color: '#334155' };
+    }
+  };
+
   useEffect(() => {
     if (!id) return;
 
@@ -158,7 +171,15 @@ export default function TrendDetail() {
                     </div>
                     <div className="mini-card">
                       <small>Momentum</small>
-                      <strong>{trend.ml_prediction || 'Flux en cours'}</strong>
+                      {trend.ml_prediction ? (
+                        <span className="signal-pill" style={getPredictionBadgeStyle(trend.ml_prediction)}>
+                          {trend.ml_prediction === 'HIGH' ? '🔥 HIGH POTENTIAL' : trend.ml_prediction === 'LOW' ? '📉 LOW POTENTIAL' : 'Prediction unavailable'}
+                        </span>
+                      ) : trend.source === 'Google Trends' ? (
+                        <strong>Prédiction ML indisponible pour cette source.</strong>
+                      ) : (
+                        <strong>Flux en cours</strong>
+                      )}
                       <p>{trend.updatedAt ? `Mis à jour le ${new Date(trend.updatedAt).toLocaleDateString('fr-FR')}` : 'Dernière mise à jour indisponible.'}</p>
                     </div>
                     <div className="mini-card">

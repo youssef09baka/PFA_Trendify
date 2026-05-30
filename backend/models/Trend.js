@@ -48,6 +48,26 @@ const trendSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  num_comments: {
+    type: Number,
+    default: 0
+  },
+  post_length: {
+    type: Number,
+    default: 0
+  },
+  hour: {
+    type: Number,
+    default: 0
+  },
+  title_length: {
+    type: Number,
+    default: 0
+  },
+  sentiment: {
+    type: Number,
+    default: 0
+  },
   image: {
     type: String,
     default: ""

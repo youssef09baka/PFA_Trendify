@@ -252,26 +252,8 @@ export default function Feed() {
       const normalized = dedupeTrends(rawItems.map((t) => ({ ...t, _enriching: false })));
       const nextHasMore = Boolean(data?.meta?.hasMore);
       const nextPageNumber = Number(data?.meta?.page || nextPage);
-      const duplicateRemoved = rawItems.length - normalized.length;
-
       setBaseData((prev) => {
         const merged = reset ? normalized : dedupeTrends([...prev, ...normalized]);
-        const appended = merged.length - prev.length;
-        window.__FEED_DEBUG__ = {
-          ...window.__FEED_DEBUG__,
-          page: nextPageNumber,
-          hasMore: nextHasMore,
-          loading: loadingRef.current,
-          observerActive: observerActiveRef.current,
-          lastReturnedCount: normalized.length,
-          lastDuplicateFiltered: duplicateRemoved,
-          lastAppendedCount: appended,
-          lastRequestPage: nextPage,
-          lastReset: reset,
-          totalVisible: merged.length,
-          observerTriggerCount: observerTriggerCountRef.current,
-          timestamp: Date.now(),
-        };
         return merged;
       });
 
@@ -285,17 +267,6 @@ export default function Feed() {
         sourceCounts: data?.meta?.sourceCounts || {},
         categoryCounts: data?.meta?.categoryCounts || {}
       }));
-      window.__FEED_DEBUG__ = {
-        ...window.__FEED_DEBUG__,
-        page: nextPageNumber,
-        hasMore: nextHasMore,
-        loading: false,
-        observerActive: observerActiveRef.current,
-        lastReturnedCount: normalized.length,
-        lastDuplicateFiltered: duplicateRemoved,
-        observerTriggerCount: observerTriggerCountRef.current,
-        timestamp: Date.now(),
-      };
     } catch (error) {
       console.warn('[FEED-PAGINATION] request failed', {
         page: nextPage,
@@ -417,21 +388,7 @@ export default function Feed() {
         fallbackTimerRef.current = null;
       }
     };
-  }, [baseData.length, meta.hasMore, loading, loadingMore, loadNextPage, filter]);
-
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-
-    console.debug('[FEED-INFSCROLL] diagnostics', {
-      page: pageRef.current,
-      visibleTrends: baseData.length,
-      hasMore: hasMoreRef.current,
-      loading: loadingRef.current,
-      observerActive: observerActiveRef.current,
-      observerTriggerCount: observerTriggerCountRef.current,
-      timestamp: Date.now(),
-    });
-  }, [baseData.length, meta.hasMore, loading, loadingMore]);
+  }, [baseData.length, meta.hasMore, loading, loadingMore, loadNextPage, filter, createObserver]);
 
   const handleSave = async (id) => {
     const isSaved = saved.includes(id);
@@ -480,7 +437,8 @@ export default function Feed() {
     );
   });
 
-  const personalizedTrends = applyFeedMix(filteredTrends, getSeenTrendIds());
+  // Preserve already-loaded order once we've loaded more than the first page.
+  const personalizedTrends = applyFeedMix(filteredTrends, getSeenTrendIds(), { preserveOrder: meta.page > 1 });
 
   const handleViewDetail = (id) => {
     rememberTrendView(id);

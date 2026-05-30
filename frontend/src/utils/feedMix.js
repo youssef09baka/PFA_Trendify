@@ -29,28 +29,29 @@ const getTrendAgeHours = (trend) => {
   return Math.max(0, (Date.now() - new Date(sourceTime).getTime()) / (1000 * 60 * 60));
 };
 
-export const applyFeedMix = (items = [], seenIds = []) => {
+export const applyFeedMix = (items = [], seenIds = [], options = {}) => {
   const visibleSeen = Array.isArray(seenIds) ? seenIds.map(String) : getSeenTrendIds();
   const runtimeNoise = Math.random() * 0.18;
+  const preserveOrder = Boolean(options.preserveOrder);
 
-  const mixed = (items || [])
-    .map((trend) => {
-      const ageHours = getTrendAgeHours(trend);
-      const freshnessBoost = Math.max(0, 6 - ageHours * 0.18);
-      const unseenBoost = visibleSeen.includes(String(trend._id || trend.id || trend.slug || trend.title)) ? 0 : 1.8;
-      const hashFactor = (Math.abs(String(trend.title || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)) % 11) * 0.03;
-      const randomFactor = hashFactor + runtimeNoise;
-      const mixedScore = Number(trend.score || 0) + freshnessBoost + unseenBoost + randomFactor;
+  const mapped = (items || []).map((trend) => {
+    const ageHours = getTrendAgeHours(trend);
+    const freshnessBoost = Math.max(0, 6 - ageHours * 0.18);
+    const unseenBoost = visibleSeen.includes(String(trend._id || trend.id || trend.slug || trend.title)) ? 0 : 1.8;
+    const hashFactor = (Math.abs(String(trend.title || '').split('').reduce((sum, char) => sum + char.charCodeAt(0), 0)) % 11) * 0.03;
+    const randomFactor = hashFactor + runtimeNoise;
+    const mixedScore = Number(trend.score || 0) + freshnessBoost + unseenBoost + randomFactor;
 
-      return {
-        ...trend,
-        freshnessBoost,
-        unseenBoost,
-        randomFactor,
-        mixedScore
-      };
-    })
-    .sort((a, b) => b.mixedScore - a.mixedScore || Number(b.score || 0) - Number(a.score || 0));
+    return {
+      ...trend,
+      freshnessBoost,
+      unseenBoost,
+      randomFactor,
+      mixedScore
+    };
+  });
 
-  return mixed;
+  if (preserveOrder) return mapped;
+
+  return mapped.sort((a, b) => b.mixedScore - a.mixedScore || Number(b.score || 0) - Number(a.score || 0));
 };

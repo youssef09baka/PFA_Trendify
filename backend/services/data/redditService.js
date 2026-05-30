@@ -4,8 +4,8 @@ const {
   cleanTitle,
   isGoodContent,
   validateTrend,
-  estimateSentimentScore,
 } = require("./cleaner");
+const { generateMlFeatures } = require("../featureGenerator");
 
 const { extractFromReddit } = require('./mediaExtractor');
 const { SUBREDDITS } = require('./redditSubreddits');
@@ -87,7 +87,8 @@ const getRedditTrends = async () => {
         source_detail: post.data.subreddit
       };
 
-      return validateTrend(trend) ? trend : null;
+      const enrichedTrend = generateMlFeatures(trend);
+      return validateTrend(enrichedTrend) ? enrichedTrend : null;
     })
     .filter(Boolean)
     .sort((a, b) => getScore(b) - getScore(a))

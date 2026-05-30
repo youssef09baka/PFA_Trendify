@@ -80,7 +80,7 @@ const getFeed = asyncHandler(async (req, res, next) => {
         analysis: trend.analysis || '',
         idea: trend.idea || '',
         link: trend.link || '',
-        ml_prediction: trend.ml_prediction || 'UNKNOWN',
+        ml_prediction: trend.ml_prediction === null ? null : trend.ml_prediction || 'UNKNOWN',
         createdAt: trend.createdAt,
         savedCount: trend.savedCount || 0,
         isSaved: savedSet.has(String(trend._id))
@@ -148,7 +148,7 @@ const getFeed = asyncHandler(async (req, res, next) => {
       analysis: trend.analysis || '',
       idea: trend.idea || '',
       link: trend.link || '',
-      ml_prediction: trend.ml_prediction || 'UNKNOWN',
+      ml_prediction: trend.ml_prediction === null ? null : trend.ml_prediction || 'UNKNOWN',
       createdAt: trend.createdAt,
       savedCount: trend.savedCount || 0,
       isSaved: savedSet.has(String(trend._id))
@@ -246,6 +246,17 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
   const canReuseStoredAnalysis = hasStoredAnalysis && hasRealStoredAnalysis(trend.analysis, trend.idea);
 
   if (canReuseStoredAnalysis) {
+    // Ensure ml_prediction is fresh for Reddit when returning stored analysis
+    let mlPrediction = trend.ml_prediction;
+    if (String(trend.source || '').toLowerCase().includes('reddit')) {
+      try {
+        mlPrediction = await predictTrend(trend);
+        await Trend.findByIdAndUpdate(trend._id, { $set: { ml_prediction: mlPrediction, updatedAt: new Date() } }).catch(() => null);
+      } catch (err) {
+        // keep existing value if prediction fails
+      }
+    }
+
     return res.status(200).json({
       trend: {
         id: trend._id,
@@ -259,7 +270,8 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
         link: trend.link || '',
         image: trend.image || '',
         thumbnail: trend.thumbnail || '',
-        mediaType: trend.mediaType || 'none'
+        mediaType: trend.mediaType || 'none',
+        ml_prediction: mlPrediction
       },
       analysis: {
         status: 'stored',
@@ -311,6 +323,7 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
 
   const persistedAnalysis = analysis?.summary || trend.analysis || '';
   const persistedIdea = analysis?.opportunity || trend.idea || '';
+  const mlPrediction = await predictTrend(trend);
 
   await Trend.findByIdAndUpdate(
     trend._id,
@@ -318,6 +331,7 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
       $set: {
         analysis: persistedAnalysis,
         idea: persistedIdea,
+        ml_prediction: mlPrediction,
         updatedAt: new Date()
       }
     },
@@ -342,7 +356,8 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
       link: trend.link || '',
       image: trend.image || '',
       thumbnail: trend.thumbnail || '',
-      mediaType: trend.mediaType || 'none'
+      mediaType: trend.mediaType || 'none',
+      ml_prediction: mlPrediction
     },
     analysis: {
       ...analysis,

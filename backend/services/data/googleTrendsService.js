@@ -51,13 +51,9 @@ const getGoogleTrends = async () => {
           source: "Google Trends",
           link: `https://trends.google.com/trends/explore?q=${encodeURIComponent(trend.query)}`,
           fetchedAt: new Date(),
-          num_comments: 0,
-          post_length: title.length,
-          hour: new Date().getUTCHours(),
-          title_length: title.length,
-          sentiment: estimateSentimentScore(trend.query),
           searchVolume,
           deltaValue,
+          sentiment: estimateSentimentScore(trend.query),
           tags: title
             .toLowerCase()
             .split(/\s+/)

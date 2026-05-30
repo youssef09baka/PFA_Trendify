@@ -93,7 +93,7 @@ const withStubbedModules = async (scenario = 'real') => {
   const next = (err) => { nextError = err; };
 
   analyzeTrend(req, res, next);
-  await new Promise((resolve) => setImmediate(resolve));
+  await new Promise((resolve) => setTimeout(resolve, 250));
 
   if (originalTrendService) require.cache[require.resolve('../services/trendService')] = originalTrendService;
   else delete require.cache[require.resolve('../services/trendService')];

@@ -2,6 +2,7 @@ const Trend = require("../models/Trend");
 const { Types } = require('mongoose');
 const { extractMediaForTrend, isPlaceholderMediaUrl } = require('./data/mediaExtractor');
 const { computeMediaFingerprint, findDuplicateMediaCandidates } = require('./data/mediaUniqueness');
+const { generateMlFeatures } = require("./featureGenerator");
 
 const slugifyTitle = (title) =>
   title
@@ -442,7 +443,15 @@ const saveTrends = async (trends) => {
         // ignore media extraction failures
       }
 
-      const finalTrend = normalizeTrendMedia(normalizedTrend);
+      let finalTrend = normalizeTrendMedia(normalizedTrend);
+      const isReddit = String(finalTrend.source || '').toLowerCase().includes('reddit');
+      if (isReddit) {
+        finalTrend = generateMlFeatures(finalTrend);
+      }
+
+      const mlPrediction = isReddit
+        ? (finalTrend.ml_prediction === null ? null : finalTrend.ml_prediction || 'UNKNOWN')
+        : null;
 
       const update = {
         title: finalTrend.title,
@@ -456,9 +465,14 @@ const saveTrends = async (trends) => {
         },
         analysis: finalTrend.analysis || '',
         idea: finalTrend.idea || '',
-        ml_prediction: finalTrend.ml_prediction || 'UNKNOWN',
+        ml_prediction: mlPrediction,
         popularity: finalTrend.popularity || 0,
         growth: finalTrend.growth || 0,
+        num_comments: typeof finalTrend.num_comments === 'number' ? finalTrend.num_comments : 0,
+        post_length: typeof finalTrend.post_length === 'number' ? finalTrend.post_length : 0,
+        hour: typeof finalTrend.hour === 'number' ? finalTrend.hour : new Date().getUTCHours(),
+        title_length: typeof finalTrend.title_length === 'number' ? finalTrend.title_length : (typeof finalTrend.title === 'string' ? finalTrend.title.length : 0),
+        sentiment: typeof finalTrend.sentiment === 'number' ? finalTrend.sentiment : 0,
         image: finalTrend.image || '',
         video: finalTrend.video || '',
         thumbnail: finalTrend.thumbnail || '',
@@ -487,7 +501,7 @@ const saveTrends = async (trends) => {
   return persisted;
 };
 
-const normalizeStoredTrends = (trends = []) => scoreTrends(Array.isArray(trends) ? trends : []);
+const normalizeStoredTrends = (trends = []) => scoreTrends(Array.isArray(trends) ? trends.map(generateMlFeatures) : []);
 
 const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 'score', viral, seenIds = [], runtimeSeed } = {}) => {
   const query = {};
@@ -528,7 +542,9 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 's
   await repairDuplicateMedia(refreshedItems);
   const scoredItems = normalizeStoredTrends(refreshedItems);
   const seed = Number(runtimeSeed ?? Math.random());
-  const mixedItems = mixFeedItems(scoredItems, { seenIds, seed });
+  // Only apply the expensive/mixing reorder for the first page. For subsequent pages,
+  // preserve the DB pagination order to avoid reordering already-visible items.
+  const mixedItems = Number(page) === 1 ? mixFeedItems(scoredItems, { seenIds, seed }) : scoredItems;
   const sourceCounts = Object.fromEntries((sourceCountsResult || []).map((entry) => [entry._id || 'Autre', Number(entry.count) || 0]));
   const categoryCounts = Object.fromEntries((categoryCountsResult || []).map((entry) => [entry._id || 'Non catégorisé', Number(entry.count) || 0]));
   const totalPages = Math.max(1, Math.ceil(total / Number(limit)));
