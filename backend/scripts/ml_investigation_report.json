@@ -1,0 +1,82 @@
+{
+  "n_trees": 200,
+  "feature_names": [
+    "num_comments",
+    "post_length",
+    "hour",
+    "title_length",
+    "sentiment"
+  ],
+  "importances": [
+    0.7434015324356007,
+    0.18318291918887988,
+    0.009594621949760561,
+    0.050124487043786095,
+    0.013696439381972667
+  ],
+  "training_shape": [
+    2983,
+    12
+  ],
+  "training_label_counts": {
+    "0": 2386,
+    "1": 597
+  },
+  "train_sample_prediction_counts": {
+    "0": 65,
+    "1": 35
+  },
+  "live_sample_prediction_counts": null,
+  "feature_stats": {
+    "num_comments": {
+      "train_min": 3.0,
+      "train_max": 18061.0,
+      "train_mean": 1056.9678176332552,
+      "live_min": null,
+      "live_max": null,
+      "live_mean": null,
+      "train_count": 2983,
+      "live_count": 0
+    },
+    "post_length": {
+      "train_min": 0.0,
+      "train_max": 31050.0,
+      "train_mean": 663.8947368421053,
+      "live_min": null,
+      "live_max": null,
+      "live_mean": null,
+      "train_count": 2983,
+      "live_count": 0
+    },
+    "hour": {
+      "train_min": 0.0,
+      "train_max": 23.0,
+      "train_mean": 12.946697955078779,
+      "live_min": null,
+      "live_max": null,
+      "live_mean": null,
+      "train_count": 2983,
+      "live_count": 0
+    },
+    "title_length": {
+      "train_min": 1.0,
+      "train_max": 56.0,
+      "train_mean": 13.395239691585653,
+      "live_min": null,
+      "live_max": null,
+      "live_mean": null,
+      "train_count": 2983,
+      "live_count": 0
+    },
+    "sentiment": {
+      "train_min": -1.0,
+      "train_max": 1.0,
+      "train_mean": 0.0446456787060184,
+      "live_min": null,
+      "live_max": null,
+      "live_mean": null,
+      "train_count": 2983,
+      "live_count": 0
+    }
+  }
+}

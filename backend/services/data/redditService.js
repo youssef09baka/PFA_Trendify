@@ -1,18 +1,16 @@
+// Reddit ingestion now prefers OAuth API. If OAuth credentials are missing, the service falls back to the RSS parser.
 const { REDDIT_FETCH_LIMIT } = require("../../config/config");
-const { fetchRedditPosts } = require("./redditRss");
+const { fetchRedditPosts } = require("./redditApi");
 const {
   cleanTitle,
   isGoodContent,
   validateTrend,
+  estimateSentimentScore
 } = require("./cleaner");
 const { generateMlFeatures } = require("../featureGenerator");
 
 const { extractFromReddit } = require('./mediaExtractor');
 const { SUBREDDITS } = require('./redditSubreddits');
-
-/*
-  Reddit RSS ingestion is now the temporary acquisition path for the blocked JSON endpoint.
-*/
 
 const SUBREDDIT_LIST = SUBREDDITS;
 
