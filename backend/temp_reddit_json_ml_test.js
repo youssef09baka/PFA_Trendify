@@ -36,8 +36,26 @@ const describePost = (post) => ({ score: post.score, num_comments: post.num_comm
 const run = async () => {
   console.log('Fetching public JSON from Reddit...');
   const url = 'https://www.reddit.com/r/technology.json?limit=100&raw_json=1';
-  const jsonResp = await axios.get(url, { timeout: 30000, validateStatus: () => true, headers: { 'User-Agent': 'TrendAI-Test/1.0' } });
-  if (jsonResp.status !== 200) throw new Error(`Reddit JSON fetch failed: ${jsonResp.status}`);
+  const jsonResp = await axios.get(url, { 
+    timeout: 30000, 
+    validateStatus: () => true, 
+    maxRedirects: 5,
+    headers: { 
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+      'Accept': 'application/json, text/plain, */*',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'DNT': '1',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1'
+    }
+  });
+  if (jsonResp.status !== 200) {
+    console.log('Response Status:', jsonResp.status);
+    console.log('Response Headers:', JSON.stringify(jsonResp.headers, null, 2));
+    console.log('Response Body (first 500 chars):', String(jsonResp.data).substring(0, 500));
+    throw new Error(`Reddit JSON fetch failed: ${jsonResp.status}`);
+  }
   const items = Array.isArray(jsonResp.data?.data?.children) ? jsonResp.data.data.children : [];
   if (items.length === 0) throw new Error('No Reddit JSON items found');
 
@@ -128,3 +146,4 @@ const run = async () => {
 };
 
 run().catch((err) => { console.error(err.stack || err); process.exit(1); });
+

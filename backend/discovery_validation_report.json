@@ -1,0 +1,146 @@
+{
+  "timestamp": "2026-06-15T13:27:20.464Z",
+  "sources": [
+    {
+      "id": "cached_db",
+      "name": "MongoDB Cached Reddit Posts",
+      "description": "Use existing posts in database from previous ingestions",
+      "commands": "Query Trend collection with source=\"Reddit\" and num_comments > 0"
+    },
+    {
+      "id": "live_reddit_json",
+      "name": "Live Reddit JSON (www.reddit.com)",
+      "description": "Direct JSON endpoint (may be blocked)",
+      "url": "https://www.reddit.com/r/technology.json",
+      "status": "Need to test"
+    },
+    {
+      "id": "old_reddit_json",
+      "name": "Old Reddit JSON (old.reddit.com)",
+      "description": "Legacy endpoint (may be blocked)",
+      "url": "https://old.reddit.com/r/technology.json",
+      "status": "Need to test"
+    },
+    {
+      "id": "oauth_api",
+      "name": "Reddit OAuth API",
+      "description": "Official API (requires Bearer token)",
+      "url": "https://oauth.reddit.com/r/technology",
+      "status": "Blocked - cannot create app"
+    },
+    {
+      "id": "browser_automation",
+      "name": "Browser Automation (Playwright)",
+      "description": "Headless browser to extract JSON from www.reddit.com",
+      "status": "Need to test installation"
+    },
+    {
+      "id": "synth_data",
+      "name": "Synthetic Test Data",
+      "description": "Generate realistic feature vectors with varying engagement",
+      "status": "Can create immediately"
+    },
+    {
+      "id": "mock_api",
+      "name": "Mock Reddit API Server",
+      "description": "Local mock server with realistic data for testing",
+      "status": "Can create immediately"
+    },
+    {
+      "id": "historical_db",
+      "name": "Historical Database (with real comments)",
+      "description": "Query DB for posts that DO have num_comments > 0",
+      "status": "Need to check if any exist"
+    }
+  ],
+  "testResults": {
+    "cachedDb": {
+      "viable": false,
+      "count": 0
+    },
+    "browser": {
+      "viable": false,
+      "canInstall": true
+    },
+    "synthetic": {
+      "viable": true,
+      "predictions": [
+        {
+          "title": "Breaking: Major tech announcement",
+          "num_comments": 250,
+          "post_length": 500,
+          "hour": 14,
+          "title_length": 40,
+          "sentiment": 0.8,
+          "prediction": null
+        },
+        {
+          "title": "Tech discussion thread",
+          "num_comments": 45,
+          "post_length": 800,
+          "hour": 19,
+          "title_length": 25,
+          "sentiment": 0.3,
+          "prediction": null
+        },
+        {
+          "title": "New startup funding",
+          "num_comments": 120,
+          "post_length": 300,
+          "hour": 10,
+          "title_length": 22,
+          "sentiment": 0.5,
+          "prediction": null
+        },
+        {
+          "title": "Industry news",
+          "num_comments": 5,
+          "post_length": 100,
+          "hour": 8,
+          "title_length": 15,
+          "sentiment": 0,
+          "prediction": null
+        },
+        {
+          "title": "Random tech thought",
+          "num_comments": 0,
+          "post_length": 50,
+          "hour": 3,
+          "title_length": 20,
+          "sentiment": 0,
+          "prediction": null
+        },
+        {
+          "title": "Trending AI discussion",
+          "num_comments": 890,
+          "post_length": 2000,
+          "hour": 15,
+          "title_length": 28,
+          "sentiment": 0.9,
+          "prediction": null
+        },
+        {
+          "title": "Minor update",
+          "num_comments": 2,
+          "post_length": 80,
+          "hour": 9,
+          "title_length": 14,
+          "sentiment": 0,
+          "prediction": null
+        }
+      ],
+      "highCount": 0,
+      "lowCount": 0
+    }
+  },
+  "viableSources": [
+    {
+      "source": "Synthetic Data + ML Testing",
+      "score": 9,
+      "effort": 1,
+      "quality": "ML produces meaningful HIGH/LOW (0 HIGH, 0 LOW)",
+      "remarks": "Perfect for immediate testing and validation"
+    }
+  ],
+  "recommendation": "Synthetic Data + ML Testing"
+}

@@ -1,66 +1,31 @@
-const axios = require("axios");
-const { ML_SERVICE_URL } = require("../config/config");
-const { generateMlFeatures } = require("./featureGenerator");
+const { classifyTrendPotential } = require("./potentialClassifier");
 
-const normalizeMlPrediction = (value) => {
-  const normalized = String(value ?? "").trim().toLowerCase();
-
-  if (normalized === "1" || normalized === "high" || normalized.includes("high")) {
-    return "HIGH";
-  }
-
-  if (normalized === "0" || normalized === "low" || normalized.includes("low")) {
-    return "LOW";
-  }
-
-  if (normalized === "medium" || normalized.includes("medium")) {
-    return "UNAVAILABLE";
-  }
-
-  return "UNAVAILABLE";
-};
-
-const isRedditSource = (trend) =>
-  String(trend?.source || "").toLowerCase().includes("reddit");
-
+/**
+ * Predict trend potential using score-based classifier
+ * 
+ * This replaces the external ML service with an internal classifier
+ * that uses verified thresholds based on real production data:
+ * - HIGH:        score >= 70 (top tier)
+ * - LOW:         score < 70 (bottom tier)
+ * - UNAVAILABLE: null/undefined/NaN/invalid score
+ * 
+ * @param {Object} trend - Trend object with score field
+ * @returns {Object} Prediction object with classification, confidence, reasoning
+ */
 const predictTrend = async (trend) => {
-  if (!isRedditSource(trend)) {
-    return null;
+  if (!trend || typeof trend.score !== 'number' || isNaN(trend.score)) {
+    return {
+      classification: 'UNAVAILABLE',
+      confidence: 0.0,
+      reasoning: ['Invalid trend data'],
+      explanation: 'Cannot predict: missing or invalid score field'
+    };
   }
 
-  const requiredFields = [
-    "num_comments",
-    "post_length",
-    "hour",
-    "title_length",
-    "sentiment"
-  ];
-
-  const normalizedTrend = generateMlFeatures(trend);
-  const hasNumericInputs = requiredFields.every(
-    (field) => typeof normalizedTrend[field] === "number"
-  );
-
-  if (!hasNumericInputs) {
-    return "UNAVAILABLE";
-  }
-
-  try {
-    const response = await axios.post(ML_SERVICE_URL, {
-      num_comments: normalizedTrend.num_comments,
-      post_length: normalizedTrend.post_length,
-      hour: normalizedTrend.hour,
-      title_length: normalizedTrend.title_length,
-      sentiment: normalizedTrend.sentiment
-    }, {
-      timeout: 8000
-    });
-
-    return normalizeMlPrediction(response.data?.prediction ?? "UNAVAILABLE");
-  } catch (error) {
-    console.warn(`[ML] prediction failed for trend "${trend.title}": ${error.message}`);
-    return "UNAVAILABLE";
-  }
+  // Use the classifier to predict potential
+  const prediction = classifyTrendPotential(trend);
+  
+  return prediction;
 };
 
 module.exports = { predictTrend };

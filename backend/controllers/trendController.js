@@ -1,7 +1,6 @@
 const asyncHandler = require("../middleware/asyncHandler");
 const { generateBatchAnalysis } = require("../services/aiService");
 const { getRealTrends } = require("../services/data");
-const { generateMlFeatures } = require("../services/featureGenerator");
 const { predictTrend } = require("../services/mlService");
 
 const getTrends = asyncHandler(async (req, res, next) => {
@@ -59,16 +58,17 @@ const getTrends = asyncHandler(async (req, res, next) => {
   scoredTrends.sort((a, b) => b.score - a.score);
 
   for (let i = 0; i < scoredTrends.length; i += 1) {
-    const source = String(scoredTrends[i]?.source || "").toLowerCase();
-    const normalizedTrend = source.includes("reddit")
-      ? generateMlFeatures(scoredTrends[i])
-      : scoredTrends[i];
-
-    normalizedTrend.ml_prediction = source.includes("reddit")
-      ? await predictTrend(normalizedTrend)
-      : null;
-
-    scoredTrends[i] = normalizedTrend;
+    // Apply ML prediction to ALL sources (not just Reddit)
+    const mlPrediction = await predictTrend(scoredTrends[i]);
+    
+    // Store prediction details
+    scoredTrends[i] = {
+      ...scoredTrends[i],
+      ml_prediction: mlPrediction.classification,
+      ml_confidence: mlPrediction.confidence,
+      ml_reasoning: mlPrediction.reasoning,
+      ml_explanation: mlPrediction.explanation
+    };
   }
 
   const enrichedTrends = await generateBatchAnalysis(scoredTrends);

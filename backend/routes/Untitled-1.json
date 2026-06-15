@@ -1,0 +1,13 @@
+{
+  "name": "analyze_feed_cards",
+  "arguments": {
+    "focus_on": [
+      "spacing_rhythm",
+      "typography_hierarchy",
+      "empty_visual_balance",
+      "metadata_composition",
+      "editorial_feel"
+    ],
+    "preserve_architecture": true
+  }
+}

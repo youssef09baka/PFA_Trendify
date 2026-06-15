@@ -19,7 +19,7 @@ const uri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/pfa_v1';
       ]
     });
     const unavailable = await Trend.countDocuments({
-      ml_prediction: { $in: ['UNKNOWN', 'UNAVAILABLE', null, '', 'medium', 'Medium', 'MEDIUM'] }
+      ml_prediction: { $in: ['UNKNOWN', 'UNAVAILABLE', null, ''] }
     });
 
     console.log('total:', total);
