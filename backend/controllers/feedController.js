@@ -1,3 +1,9 @@
+/**
+ * Feed Controller
+ * Generates personalized trends feed based on user preferences and trend scoring.
+ * Handles feed retrieval, trend analysis, related trends, and AI insights.
+ */
+
 const asyncHandler = require("../middleware/asyncHandler");
 const Trend = require("../models/Trend");
 const User = require("../models/User");

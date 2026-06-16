@@ -1,3 +1,9 @@
+/**
+ * AI Service
+ * Generates trend analysis and content insights using OpenRouter API.
+ * Provides batch analysis, trend-specific insights, and fallback content generation.
+ */
+
 const axios = require("axios");
 
 const OPENROUTER_MODEL = "openai/gpt-3.5-turbo";

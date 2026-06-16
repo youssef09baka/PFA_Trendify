@@ -51,12 +51,7 @@ export default function AIWorkspace() {
     return () => window.clearTimeout(timer);
   }, [loadWorkspace]);
 
-  useEffect(() => {
-    // Debug logs requested for runtime verification
-    console.log('analysis', analysis);
-    console.log('trend', trend);
-    console.log('ML_PREDICTION_RAW =', trend?.ml_prediction);
-  }, [analysis, trend]);
+
 
   useEffect(() => {
     if (!analysis) return;

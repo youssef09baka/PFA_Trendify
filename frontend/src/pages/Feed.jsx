@@ -84,17 +84,6 @@ function displaySourceLabel(source) {
   return value;
 }
 
-function displayCategoryLabel(category) {
-  if (!category) return null;
-  const normalized = String(category).trim();
-  if (!normalized) return null;
-  return normalized
-    .split(/[^a-zA-Z0-9]+/)
-    .filter(Boolean)
-    .map((part) => part[0].toUpperCase() + part.slice(1).toLowerCase())
-    .join(' ');
-}
-
 function formatSummary(trend) {
   const raw = trend.analysis || trend.summary || trend.description;
   if (!raw) {

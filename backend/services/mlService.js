@@ -1,3 +1,9 @@
+/**
+ * ML Service
+ * Wrapper for trend classification and prediction using machine learning models.
+ * Normalizes prediction values (HIGH, LOW, UNAVAILABLE) across the system.
+ */
+
 const { classifyTrendPotential } = require("./potentialClassifier");
 
 const ALLOWED_PREDICTIONS = ['HIGH', 'LOW', 'UNAVAILABLE'];

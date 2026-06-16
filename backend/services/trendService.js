@@ -1,3 +1,9 @@
+/**
+ * Trend Service
+ * Manages trend scoring, enrichment, media extraction, and database persistence.
+ * Provides core functionality for trend retrieval, filtering, and related content discovery.
+ */
+
 const Trend = require("../models/Trend");
 const { Types } = require('mongoose');
 const { extractMediaForTrend, isPlaceholderMediaUrl } = require('./data/mediaExtractor');

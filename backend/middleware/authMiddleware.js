@@ -1,3 +1,9 @@
+/**
+ * Authentication Middleware
+ * Protects routes with JWT validation and manages daily AI analysis quota reset.
+ * Ensures user identity verification and enforces usage limits.
+ */
+
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const { JWT_SECRET, AI_ANALYSIS_QUOTA } = require("../config/config");

@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Trend = require("../models/Trend");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("../middleware/asyncHandler");
@@ -142,7 +143,6 @@ const saveTrend = asyncHandler(async (req, res, next) => {
   }
 
   // check trend exists
-  const Trend = require('../models/Trend');
   const trend = await Trend.findById(trendId);
   if (!trend) {
     const error = new Error('Trend not found');
@@ -177,7 +177,6 @@ const unsaveTrend = asyncHandler(async (req, res, next) => {
   user.savedTrends.splice(idx, 1);
   await user.save();
 
-  const Trend = require('../models/Trend');
   await Trend.findByIdAndUpdate(trendId, { $inc: { savedCount: -1 } }).catch(() => null);
 
   res.status(200).json({ message: 'Unsaved', isSaved: false });
@@ -192,7 +191,6 @@ const getSavedTrends = asyncHandler(async (req, res, next) => {
   }
 
   const ids = (user.savedTrends || []).map(String);
-  const Trend = require('../models/Trend');
   const trends = await Trend.find({ _id: { $in: ids } }).lean();
 
   // preserve order of saved IDs
