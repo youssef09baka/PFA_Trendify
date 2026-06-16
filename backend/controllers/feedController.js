@@ -8,6 +8,55 @@ const { generateBatchAnalysis, generateTrendAnalysis } = require("../services/ai
 const { predictTrend } = require("../services/mlService");
 const { saveTrends, scoreTrends, getFeedTrends, getTrendById, getRelatedTrends } = require("../services/trendService");
 
+const ALLOWED_PREDICTIONS = ['HIGH', 'LOW', 'UNAVAILABLE'];
+
+const normalizePredictionValue = (value) => {
+  if (value === null) return null;
+  if (typeof value === 'object' && value !== null) {
+    if (typeof value.classification === 'string') return value.classification.trim().toUpperCase();
+    if (typeof value.ml_prediction === 'string') return value.ml_prediction.trim().toUpperCase();
+    return 'UNAVAILABLE';
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toUpperCase();
+    if (normalized === '1') return 'HIGH';
+    if (normalized === '0') return 'LOW';
+    return normalized;
+  }
+  return 'UNAVAILABLE';
+};
+
+const safePredictionValue = (value) => {
+  const normalized = normalizePredictionValue(value);
+  if (normalized === null) return 'UNAVAILABLE';
+  if (!ALLOWED_PREDICTIONS.includes(normalized)) return 'UNAVAILABLE';
+  return normalized;
+};
+
+const shouldRefreshRedditPrediction = (trend) => {
+  if (!trend || String(trend.source || '').toLowerCase().indexOf('reddit') === -1) return false;
+  const normalized = normalizePredictionValue(trend.ml_prediction);
+  return normalized === null || normalized === 'UNKNOWN' || normalized === 'UNAVAILABLE';
+};
+
+const refreshRedditPrediction = async (trend) => {
+  if (!shouldRefreshRedditPrediction(trend)) {
+    return safePredictionValue(trend.ml_prediction);
+  }
+
+  const predicted = await predictTrend(trend);
+  const normalized = normalizePredictionValue(predicted);
+  const safeValue = safePredictionValue(normalized);
+  if (trend?._id && typeof trend._id !== 'undefined') {
+    await Trend.findByIdAndUpdate(
+      trend._id,
+      { $set: { ml_prediction: safeValue || 'UNAVAILABLE', updatedAt: new Date() } },
+      { new: true }
+    ).catch(() => null);
+  }
+  return safeValue;
+};
+
 const FALLBACK_CACHE_PATTERNS = [
   /ai unavailable/i,
   /no idea available/i,
@@ -63,28 +112,30 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
     const finalStored = filteredStored.length > 0 ? filteredStored : storedTrends;
 
+    const items = await Promise.all(finalStored.map(async (trend) => ({
+      id: trend._id,
+      _id: trend._id,
+      title: trend.title,
+      score: trend.score,
+      source: trend.source,
+      category: trend.category,
+      popularity: trend.popularity || 0,
+      growth: trend.growth || 0,
+      image: trend.image || '',
+      video: trend.video || '',
+      thumbnail: trend.thumbnail || '',
+      mediaType: trend.mediaType || 'none',
+      analysis: trend.analysis || '',
+      idea: trend.idea || '',
+      link: trend.link || '',
+      ml_prediction: await refreshRedditPrediction(trend),
+      createdAt: trend.createdAt,
+      savedCount: trend.savedCount || 0,
+      isSaved: savedSet.has(String(trend._id))
+    })));
+
     return res.status(200).json({
-      items: finalStored.map((trend) => ({
-        id: trend._id,
-        _id: trend._id,
-        title: trend.title,
-        score: trend.score,
-        source: trend.source,
-        category: trend.category,
-        popularity: trend.popularity || 0,
-        growth: trend.growth || 0,
-        image: trend.image || '',
-        video: trend.video || '',
-        thumbnail: trend.thumbnail || '',
-        mediaType: trend.mediaType || 'none',
-        analysis: trend.analysis || '',
-        idea: trend.idea || '',
-        link: trend.link || '',
-        ml_prediction: trend.ml_prediction === null ? null : trend.ml_prediction || 'UNKNOWN',
-        createdAt: trend.createdAt,
-        savedCount: trend.savedCount || 0,
-        isSaved: savedSet.has(String(trend._id))
-      })),
+      items,
       meta: stored.meta || { total: finalStored.length, page, limit, totalPages: 1, hasMore: false, sourceCounts: {}, categoryCounts: {} },
       user: {
         aiRemaining: user?.aiRemaining ?? 0
@@ -131,28 +182,30 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
   const finalTrends = filteredTrends.length > 0 ? filteredTrends : persistedTrends;
 
+  const items = await Promise.all(finalTrends.map(async (trend) => ({
+    id: trend._id,
+    _id: trend._id,
+    title: trend.title,
+    score: trend.score,
+    source: trend.source,
+    category: trend.category,
+    popularity: trend.popularity || 0,
+    growth: trend.growth || 0,
+    image: trend.image || '',
+    video: trend.video || '',
+    thumbnail: trend.thumbnail || '',
+    mediaType: trend.mediaType || 'none',
+    analysis: trend.analysis || '',
+    idea: trend.idea || '',
+    link: trend.link || '',
+    ml_prediction: await refreshRedditPrediction(trend),
+    createdAt: trend.createdAt,
+    savedCount: trend.savedCount || 0,
+    isSaved: savedSet.has(String(trend._id))
+  })));
+
   const response = {
-    items: finalTrends.map((trend) => ({
-      id: trend._id,
-      _id: trend._id,
-      title: trend.title,
-      score: trend.score,
-      source: trend.source,
-      category: trend.category,
-      popularity: trend.popularity || 0,
-      growth: trend.growth || 0,
-      image: trend.image || '',
-      video: trend.video || '',
-      thumbnail: trend.thumbnail || '',
-      mediaType: trend.mediaType || 'none',
-      analysis: trend.analysis || '',
-      idea: trend.idea || '',
-      link: trend.link || '',
-      ml_prediction: trend.ml_prediction === null ? null : trend.ml_prediction || 'UNKNOWN',
-      createdAt: trend.createdAt,
-      savedCount: trend.savedCount || 0,
-      isSaved: savedSet.has(String(trend._id))
-    })),
+    items,
     meta: {
       total: stored.meta?.total || finalTrends.length,
       page: stored.meta?.page || page,
@@ -204,7 +257,7 @@ const getTrendDetail = asyncHandler(async (req, res, next) => {
     excerpt: trend.excerpt || '',
     analysis: trend.analysis || '',
     idea: trend.idea || '',
-    ml_prediction: trend.ml_prediction,
+    ml_prediction: safePredictionValue(trend.ml_prediction),
     score: trend.score || 0,
     scoreDetails: trend.scoreDetails || {},
     source: trend.source,
@@ -247,11 +300,12 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
 
   if (canReuseStoredAnalysis) {
     // Ensure ml_prediction is fresh for Reddit when returning stored analysis
-    let mlPrediction = trend.ml_prediction;
+    let mlPrediction = normalizePredictionValue(trend.ml_prediction);
     if (String(trend.source || '').toLowerCase().includes('reddit')) {
       try {
-        mlPrediction = await predictTrend(trend);
-        await Trend.findByIdAndUpdate(trend._id, { $set: { ml_prediction: mlPrediction, updatedAt: new Date() } }).catch(() => null);
+        const predicted = await predictTrend(trend);
+        mlPrediction = safePredictionValue(predicted);
+        await Trend.findByIdAndUpdate(trend._id, { $set: { ml_prediction: mlPrediction }, updatedAt: new Date() }).catch(() => null);
       } catch (err) {
         // keep existing value if prediction fails
       }
@@ -271,7 +325,7 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
         image: trend.image || '',
         thumbnail: trend.thumbnail || '',
         mediaType: trend.mediaType || 'none',
-        ml_prediction: mlPrediction.classification
+        ml_prediction: safePredictionValue(mlPrediction)
       },
       analysis: {
         status: 'stored',
@@ -323,7 +377,8 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
 
   const persistedAnalysis = analysis?.summary || trend.analysis || '';
   const persistedIdea = analysis?.opportunity || trend.idea || '';
-  const mlPrediction = await predictTrend(trend);
+  const mlPredictionObject = await predictTrend(trend);
+  const mlPrediction = safePredictionValue(mlPredictionObject);
 
   await Trend.findByIdAndUpdate(
     trend._id,
@@ -357,7 +412,7 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
       image: trend.image || '',
       thumbnail: trend.thumbnail || '',
       mediaType: trend.mediaType || 'none',
-      ml_prediction: mlPrediction.classification.classification
+      ml_prediction: safePredictionValue(mlPrediction)
     },
     analysis: {
       ...analysis,

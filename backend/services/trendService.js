@@ -3,6 +3,32 @@ const { Types } = require('mongoose');
 const { extractMediaForTrend, isPlaceholderMediaUrl } = require('./data/mediaExtractor');
 const { computeMediaFingerprint, findDuplicateMediaCandidates } = require('./data/mediaUniqueness');
 const { generateMlFeatures } = require("./featureGenerator");
+const { predictTrend } = require("./mlService");
+
+const ALLOWED_PREDICTIONS = ['HIGH', 'LOW', 'UNAVAILABLE'];
+
+const normalizeMlPrediction = (value) => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === 'object' && value !== null) {
+    if (typeof value.classification === 'string') return value.classification.trim().toUpperCase();
+    if (typeof value.ml_prediction === 'string') return value.ml_prediction.trim().toUpperCase();
+    return null;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toUpperCase();
+    if (normalized === '1') return 'HIGH';
+    if (normalized === '0') return 'LOW';
+    return normalized;
+  }
+  return null;
+};
+
+const safeMlPredictionValue = (value) => {
+  const normalized = normalizeMlPrediction(value);
+  if (normalized === null) return 'UNAVAILABLE';
+  if (!ALLOWED_PREDICTIONS.includes(normalized)) return 'UNAVAILABLE';
+  return normalized;
+};
 
 const slugifyTitle = (title) =>
   title
@@ -449,9 +475,16 @@ const saveTrends = async (trends) => {
         finalTrend = generateMlFeatures(finalTrend);
       }
 
-      const mlPrediction = isReddit
-        ? (finalTrend.ml_prediction === null ? null : finalTrend.ml_prediction || 'UNKNOWN')
-        : null;
+      let mlPrediction = normalizeMlPrediction(finalTrend.ml_prediction);
+      if (
+        isReddit &&
+        (!mlPrediction || (typeof mlPrediction === 'string' && !['HIGH', 'LOW'].includes(mlPrediction)))
+      ) {
+        const predicted = await predictTrend(finalTrend);
+        mlPrediction = safeMlPredictionValue(predicted);
+      }
+
+      const mlPredictionValue = mlPrediction || 'UNAVAILABLE';
 
       const update = {
         title: finalTrend.title,
@@ -465,7 +498,7 @@ const saveTrends = async (trends) => {
         },
         analysis: finalTrend.analysis || '',
         idea: finalTrend.idea || '',
-        ml_prediction: mlPrediction,
+        ml_prediction: mlPredictionValue,
         popularity: finalTrend.popularity || 0,
         growth: finalTrend.growth || 0,
         num_comments: typeof finalTrend.num_comments === 'number' ? finalTrend.num_comments : 0,

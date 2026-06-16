@@ -38,7 +38,7 @@ const trendSchema = new mongoose.Schema({
   },
   ml_prediction: {
     type: String,
-    default: "UNKNOWN"
+    default: "UNAVAILABLE"
   },
   popularity: {
     type: Number,
