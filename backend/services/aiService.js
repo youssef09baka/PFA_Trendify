@@ -33,15 +33,27 @@ const generateTrendAnalysis = async (trend) => {
         messages: [
           {
             role: "user",
-            content: `Return compact JSON only with these keys:
-{"summary":"...","whyItMatters":"...","opportunity":"...","businessOpportunities":["..."],"contentIdeas":["..."],"confidence":"Low|Medium|High"}
+            content: `You are a market intelligence analyst for entrepreneurs, startups, marketers and product teams. Return compact JSON only with these keys:
+{"summary":"...","whyItMatters":"...","opportunity":"...","businessOpportunities":["..."],"contentIdeas":["..."],"confidence":"Low|Medium|High or empty"}
 
 Trend: ${trend.title}
 Source: ${trend.source || 'unknown'}
 Category: ${trend.category || 'General'}
 Score: ${trend.score || 0}
 Existing summary: ${String(trend.analysis || '').slice(0, 120)}
-Existing idea: ${String(trend.idea || '').slice(0, 120)}`
+Existing idea: ${String(trend.idea || '').slice(0, 120)}
+
+Rules:
+- Write trend-specific analysis that uses the actual topic.
+- Focus on business relevance, product direction, marketing and startup opportunity.
+- Generate one clear, actionable opportunity.
+- Generate 2-3 distinct business opportunities.
+- Generate 2-3 distinct content ideas.
+- Do not repeat wording between fields.
+- Do not use generic phrases such as: monitor this trend, current traction, worth watching, short-form update, social highlight.
+- Do not use boilerplate or vague business language.
+- Business opportunities and content ideas must be different.
+- If a field cannot be determined, return an empty string for that field.`
           }
         ]
       },

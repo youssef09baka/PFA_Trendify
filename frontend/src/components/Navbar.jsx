@@ -16,8 +16,8 @@ export default function Navbar() {
   const is = p => location.pathname === p;
 
   const links = user ? [
-    { to:'/dashboard',   label:'Tableau',      icon:<LayoutDashboard size={15}/> },
     { to:'/feed',        label:'Flux',          icon:<Rss size={15}/> },
+    { to:'/dashboard',   label:'Tableau',      icon:<LayoutDashboard size={15}/> },
     { to:'/preferences', label:'Préférences',   icon:<Settings size={15}/> },
   ] : [];
 

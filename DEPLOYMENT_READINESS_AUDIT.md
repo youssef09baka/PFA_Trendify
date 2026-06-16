@@ -182,7 +182,7 @@ ML_SERVICE_URL=http://ml:5001/predict
 
 **OpenRouter/API Keys** (For trend analysis):
 ```env
-OPENROUTER_API_KEY=sk-or-v1-...   # For AI model access
+OPENROUTER_API_KEY=your_openrouter_api_key   # For AI model access
 SERPAPI_KEY=...                   # For Google search (optional)
 ```
 
@@ -294,7 +294,7 @@ mongodb+srv://username:password@cluster.mongodb.net/trend_predictor?retryWrites=
 
 ### API Key Setup
 ```
-OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxxxxxx
+OPENROUTER_API_KEY=your_openrouter_api_key
 ```
 
 ### Configuration
@@ -561,7 +561,7 @@ MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/trend_predictor
 PORT=5000
 JWT_SECRET=your-secure-secret-key-32-chars-minimum
 FRONTEND_URL=http://localhost:4173
-OPENROUTER_API_KEY=sk-or-v1-xxxxx
+OPENROUTER_API_KEY=your_openrouter_api_key
 NODE_ENV=production
 ML_SERVICE_URL=http://localhost:5001/predict
 EOF

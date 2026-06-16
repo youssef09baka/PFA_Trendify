@@ -33,7 +33,7 @@ const getFeed = asyncHandler(async (req, res, next) => {
   const forceRefresh = String(req.query.refresh || "false").toLowerCase() === "true";
   const page = req.query.page ? Number(req.query.page) : 1;
   const limit = req.query.limit ? Number(req.query.limit) : 12;
-  const sort = req.query.sort || 'score';
+  const sort = req.query.sort || 'newest';
   const category = req.query.category || undefined;
   const source = req.query.source || undefined;
   const viral = req.query.viral === 'true' || req.query.viral === '1';
@@ -271,7 +271,7 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
         image: trend.image || '',
         thumbnail: trend.thumbnail || '',
         mediaType: trend.mediaType || 'none',
-        ml_prediction: mlPrediction
+        ml_prediction: mlPrediction.classification
       },
       analysis: {
         status: 'stored',
@@ -357,7 +357,7 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
       image: trend.image || '',
       thumbnail: trend.thumbnail || '',
       mediaType: trend.mediaType || 'none',
-      ml_prediction: mlPrediction
+      ml_prediction: mlPrediction.classification.classification
     },
     analysis: {
       ...analysis,

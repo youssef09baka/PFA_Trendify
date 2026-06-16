@@ -188,7 +188,8 @@ export default function Feed() {
   const [hidden, setHidden] = useState([]);
   const [saved, setSaved] = useState([]);
   const [savedItems, setSavedItems] = useState([]);
-  const [filter, setFilter] = useState('All');
+  const sourceOptions = ['Newest', 'Google', 'Reddit'];
+  const [filter, setFilter] = useState('Newest');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -243,7 +244,7 @@ export default function Feed() {
     let params = { page: nextPage, limit: PAGE_SIZE, seen: getSeenTrendIds().join(',') };
 
     try {
-      if (filter && filter !== 'All') params.source = filter;
+      if (filter && filter !== 'Newest') params.source = filter;
 
       const response = await api.get('/feed', { params });
 
@@ -423,22 +424,26 @@ export default function Feed() {
   };
 
   const visibleTrends = baseData.filter((t) => !hidden.includes(t._id || t.id));
-  const sourceCounts = meta.sourceCounts || {};
-  const sources = ['All', ...Object.keys(sourceCounts).sort((a, b) => (sourceCounts[b] || 0) - (sourceCounts[a] || 0))];
   const filteredTrends = visibleTrends.filter((trend) => {
-    const sourceMatch = filter === 'All' || displaySourceLabel(trend.source).toLowerCase().includes(filter.toLowerCase());
+    const sourceValue = String(trend.source || '').toLowerCase();
+    const sourceMatch = filter === 'Newest' ||
+      (filter === 'Google' && sourceValue.includes('google')) ||
+      (filter === 'Reddit' && sourceValue.includes('reddit'));
     const query = search.trim().toLowerCase();
     if (!query) return sourceMatch;
     return (
       sourceMatch &&
       ((trend.title || '').toLowerCase().includes(query) ||
         (trend.category || '').toLowerCase().includes(query) ||
-        displaySourceLabel(trend.source).toLowerCase().includes(query))
+        sourceValue.includes(query))
     );
   });
 
-  // Preserve already-loaded order once we've loaded more than the first page.
-  const personalizedTrends = applyFeedMix(filteredTrends, getSeenTrendIds(), { preserveOrder: meta.page > 1 });
+  // Preserve strict chronological order when the feed is already sorted by newest.
+  const personalizedTrends = applyFeedMix(filteredTrends, getSeenTrendIds(), {
+    preserveOrder: filter === 'Newest' || meta.page > 1,
+    sortMode: filter === 'Newest' ? 'newest' : undefined
+  });
 
   const handleViewDetail = (id) => {
     rememberTrendView(id);
@@ -480,9 +485,16 @@ export default function Feed() {
               />
             </div>
             <div className="feed-chip-row">
-              {sources.map((source) => (
-                <Button key={source} type="button" variant={filter === source ? 'primary' : 'ghost'} className={filter === source ? 'feed-chip active' : 'feed-chip'} onClick={() => setFilter(source)} style={{ padding: '6px 12px' }}>
-                  {source}{source !== 'All' ? ` (${sourceCounts[source] || 0})` : ''}
+              {sourceOptions.map((sourceOption) => (
+                <Button
+                  key={sourceOption}
+                  type="button"
+                  variant={filter === sourceOption ? 'primary' : 'ghost'}
+                  className={filter === sourceOption ? 'feed-chip active' : 'feed-chip'}
+                  onClick={() => setFilter(sourceOption)}
+                  style={{ padding: '6px 12px' }}
+                >
+                  {sourceOption}
                 </Button>
               ))}
             </div>

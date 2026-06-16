@@ -32,7 +32,7 @@ const getTrendAgeHours = (trend) => {
 export const applyFeedMix = (items = [], seenIds = [], options = {}) => {
   const visibleSeen = Array.isArray(seenIds) ? seenIds.map(String) : getSeenTrendIds();
   const runtimeNoise = Math.random() * 0.18;
-  const preserveOrder = Boolean(options.preserveOrder);
+  const preserveOrder = Boolean(options.preserveOrder || options.sortMode === 'newest');
 
   const mapped = (items || []).map((trend) => {
     const ageHours = getTrendAgeHours(trend);

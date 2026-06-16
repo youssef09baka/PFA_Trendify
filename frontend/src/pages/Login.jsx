@@ -46,7 +46,7 @@ export default function Login() {
     try {
       const { data } = await api.post('/users/login', { email, password });
       login(data.user, data.token);
-      navigate('/dashboard');
+      navigate('/feed');
     } catch (err) {
       setError(formatAuthError(err, 'Identifiants incorrects.'));
     } finally {

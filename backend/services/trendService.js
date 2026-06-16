@@ -506,7 +506,9 @@ const normalizeStoredTrends = (trends = []) => scoreTrends(Array.isArray(trends)
 const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 'score', viral, seenIds = [], runtimeSeed } = {}) => {
   const query = {};
   if (category) query.category = category;
-  if (source) query.source = source;
+  if (source) {
+    query.source = { $regex: new RegExp(source, 'i') };
+  }
   if (viral) {
     query.$or = [
       { ml_prediction: 1 },
@@ -517,9 +519,10 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 's
 
   const skip = Math.max(0, (Number(page) - 1)) * Number(limit);
 
-  let sortOption = { score: -1, updatedAt: -1 };
-  if (sort === 'newest') sortOption = { createdAt: -1 };
+  let sortOption = { fetchedAt: -1, createdAt: -1 };
+  if (sort === 'score') sortOption = { score: -1, updatedAt: -1 };
   else if (sort === 'trending') sortOption = { score: -1, fetchedAt: -1 };
+  else if (sort === 'newest') sortOption = { fetchedAt: -1, createdAt: -1 };
 
   const [total, items, sourceCountsResult, categoryCountsResult] = await Promise.all([
     Trend.countDocuments(query),
@@ -542,9 +545,9 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 's
   await repairDuplicateMedia(refreshedItems);
   const scoredItems = normalizeStoredTrends(refreshedItems);
   const seed = Number(runtimeSeed ?? Math.random());
-  // Only apply the expensive/mixing reorder for the first page. For subsequent pages,
-  // preserve the DB pagination order to avoid reordering already-visible items.
-  const mixedItems = Number(page) === 1 ? mixFeedItems(scoredItems, { seenIds, seed }) : scoredItems;
+  // Only apply the expensive/mixing reorder for explicit ranking modes.
+  // Do not alter the strict chronological order when sorting by newest.
+  const mixedItems = Number(page) === 1 && sort !== 'newest' ? mixFeedItems(scoredItems, { seenIds, seed }) : scoredItems;
   const sourceCounts = Object.fromEntries((sourceCountsResult || []).map((entry) => [entry._id || 'Autre', Number(entry.count) || 0]));
   const categoryCounts = Object.fromEntries((categoryCountsResult || []).map((entry) => [entry._id || 'Non catégorisé', Number(entry.count) || 0]));
   const totalPages = Math.max(1, Math.ceil(total / Number(limit)));

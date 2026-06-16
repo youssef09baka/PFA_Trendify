@@ -4,11 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
 import Button from '../components/Button';
-import Input from '../components/Input';
 import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
-import { Search, Zap, RefreshCw, ArrowRight } from 'lucide-react';
-import { formatScore } from '../utils/ui';
+import { RefreshCw } from 'lucide-react';
 
 function displaySourceLabel(source) {
   const key = (source || '').toLowerCase();
@@ -21,35 +19,19 @@ function displaySourceLabel(source) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [trends, setTrends] = useState([]);
   const [savedTrends, setSavedTrends] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
-  const [search, setSearch] = useState('');
-  const [filterSource, setFilterSource] = useState('all');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [recentSearches, setRecentSearches] = useState([]);
   const [aiLeft, setAiLeft] = useState(Number(user?.aiRemaining) || 0);
-  const [categoryCounts, setCategoryCounts] = useState({});
-  const [analysisMessage, setAnalysisMessage] = useState('');
 
   async function fetchTrends() {
-    setLoading(true);
     try {
       const { data } = await api.get('/feed');
-      if (data && Array.isArray(data.items)) {
-        setTrends(data.items);
-      }
-      if (data?.meta?.categoryCounts) setCategoryCounts(data.meta.categoryCounts);
       if (data?.user?.aiRemaining !== undefined) {
         setAiLeft(Number(data.user.aiRemaining) || 0);
       }
     } catch {
-      setAnalysisMessage('Impossible de charger les tendances pour le moment.');
-      setTimeout(() => setAnalysisMessage(''), 4200);
-    } finally {
-      setLoading(false);
-      setLastUpdate(new Date());
+      // Silent fail
     }
   }
 
@@ -60,8 +42,10 @@ export default function Dashboard() {
         setSavedTrends(data.items);
       }
     } catch {
-      setAnalysisMessage('Impossible de charger les tendances sauvegardées.');
-      setTimeout(() => setAnalysisMessage(''), 4200);
+      // Silent fail
+    } finally {
+      setLoading(false);
+      setLastUpdate(new Date());
     }
   }
 
@@ -77,82 +61,6 @@ export default function Dashboard() {
   const preferencesCount = user?.preferences?.length || 0;
   const savedCount = savedTrends.length;
 
-  const topCategories = Object.entries(categoryCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
-    .map(([category, count]) => ({ category, count }));
-
-  const sourceOptions = [
-    { key: 'all', label: 'Toutes les sources' },
-    { key: 'reddit', label: 'Reddit' },
-    { key: 'google', label: 'Google' },
-    { key: 'youtube', label: 'YouTube' },
-  ];
-
-  const filteredTrends = trends.filter((trend) => {
-    const sourceMatch =
-      filterSource === 'all' ||
-      (trend.source || '').toLowerCase().includes(filterSource);
-
-    const categoryMatchFilter =
-      filterCategory === 'all' ||
-      (trend.category || '').toLowerCase() === (filterCategory === 'all' ? '' : filterCategory.toLowerCase());
-
-    const searchValue = search.trim().toLowerCase();
-    if (!searchValue) return sourceMatch && categoryMatchFilter;
-
-    const titleMatch = (trend.title || '').toLowerCase().includes(searchValue);
-    const categoryMatch = (trend.category || '').toLowerCase().includes(searchValue);
-    const sourceMatchText = (trend.source || '').toLowerCase().includes(searchValue);
-    return sourceMatch && categoryMatchFilter && (titleMatch || categoryMatch || sourceMatchText);
-  });
-
-  const recentDiscoveries = filteredTrends.slice(0, 4);
-
-  const handleSearchSubmit = (event) => {
-    event.preventDefault();
-    const query = search.trim();
-    if (!query) return;
-    setRecentSearches((previous) => {
-      const next = [query, ...previous.filter((item) => item !== query)];
-      return next.slice(0, 4);
-    });
-  };
-
-  const handleAnalyze = async () => {
-    if (aiLeft <= 0) {
-      setAnalysisMessage('Vous avez atteint la limite quotidienne d’analyses IA. Revenez demain.');
-      return;
-    }
-
-    setAnalysisMessage('Analyse IA lancée. Mise à jour des tendances en cours...');
-
-    try {
-      const { data } = await api.get('/feed', { params: { refresh: true } });
-      if (data && Array.isArray(data.items)) {
-        setTrends(data.items);
-      }
-      if (data?.user?.aiRemaining !== undefined) {
-        setAiLeft(data.user.aiRemaining);
-      }
-      setAnalysisMessage('Les dernières tendances ont été réévaluées et enregistrées.');
-    } catch (error) {
-      if (error.response?.status === 429) {
-        setAnalysisMessage(error.response.data?.message || 'Quota IA atteint. Revenez demain.');
-      } else {
-        setAnalysisMessage('Impossible de renouveler les analyses IA pour le moment.');
-      }
-    } finally {
-      setTimeout(() => {
-        setAnalysisMessage('');
-      }, 4200);
-    }
-  };
-
-  const handleRecentSearch = (value) => {
-    setSearch(value);
-  };
-
   return (
     <div className="page-layout">
       <Navbar />
@@ -164,8 +72,7 @@ export default function Dashboard() {
               <span className="eyebrow">Votre espace de veille intelligent</span>
               <h1>Veille, découvertes et actions</h1>
               <p>
-                Retrouvez vos tendances sauvegardées, explorez les signaux récents et déclenchez l’analyse IA
-                uniquement lorsque cela apporte de la valeur.
+                Retrouvez vos tendances sauvegardées et explorez les derniers signaux en veille.
               </p>
             </div>
 
@@ -188,26 +95,6 @@ export default function Dashboard() {
                   <strong>{lastUpdate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</strong>
                 </div>
               </div>
-
-              <form className="dashboard-search" onSubmit={handleSearchSubmit}>
-                <label htmlFor="dashboard-search-input" style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 8 }}>
-                  Recherche dans votre espace
-                </label>
-                <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                  <div style={{ flex: 1 }}>
-                    <Input
-                      id="dashboard-search-input"
-                      aria-label="Rechercher dans l'espace"
-                      placeholder="Rechercher un thème, une source ou une catégorie"
-                      value={search}
-                      onChange={(event) => setSearch(event.target.value)}
-                      icon={<Search size={16} />}
-                      helper="Appuyez sur Entrée pour enregistrer cette recherche."
-                    />
-                  </div>
-                  <Button type="submit" variant="primary" style={{ padding: '12px 18px' }}>Rechercher</Button>
-                </div>
-              </form>
             </div>
           </section>
 
@@ -256,116 +143,6 @@ export default function Dashboard() {
                       </div>
                     </Link>
                   ))
-                )}
-              </div>
-            </div>
-
-            <div className="workspace-panel">
-              <div className="workspace-panel-header">
-                <div>
-                  <h2>Explorer</h2>
-                  <p>Les signaux les plus visibles par catégorie.</p>
-                </div>
-              </div>
-
-              <div className="workspace-panel-content">
-                <div className="workspace-summary-row" style={{ gap: 10, flexWrap: 'wrap' }}>
-                  <span style={{ fontWeight: 700, color: 'var(--text)' }}>{filteredTrends.length}</span>
-                  <span style={{ color: 'var(--text3)' }}>tendances correspondant à vos filtres</span>
-                </div>
-
-                <div className="workspace-chip-row">
-                  {topCategories.map((category) => (
-                    <Button key={category.category} type="button" variant="ghost" className="chip" onClick={() => setFilterCategory(category.category)} style={{ padding: '9px 14px' }}>{category.category} • {category.count}</Button>
-                  ))}
-                </div>
-
-                <div className="recent-trends-grid">
-                  {recentDiscoveries.length === 0 ? (
-                    <div style={{ padding: 24, borderRadius: 18, background: 'var(--glass)', border: '1px solid var(--glass-b)', color: 'var(--text3)' }}>
-                      Aucun signal n’apparaît avec les filtres actuels. Ajustez un filtre ou actualisez le flux pour retrouver des tendances visibles.
-                    </div>
-                  ) : (
-                    recentDiscoveries.slice(0, 4).map((trend) => (
-                      <div key={trend._id || trend.id || trend.title} className="recent-trend-card">
-                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginBottom: 10 }}>
-                          <strong style={{ fontSize: 13, color: 'var(--text)' }}>{trend.title}</strong>
-                          <span style={{ fontSize: 11, color: 'var(--text3)' }}>{displaySourceLabel(trend.source)}</span>
-                        </div>
-                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', color: 'var(--text3)', fontSize: 12 }}>
-                          <span>{trend.category || 'Sans catégorie'}</span>
-                          <span>Score {formatScore(trend.score)}</span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="workspace-panel">
-              <div className="workspace-panel-header">
-                <div>
-                  <h2>Espace recherche</h2>
-                  <p>Affinez rapidement vos signaux par source ou catégorie.</p>
-                </div>
-              </div>
-
-              <div className="workspace-panel-content">
-                <div className="workspace-chip-row">
-                  {sourceOptions.map((source) => (
-                    <Button key={source.key} type="button" variant={source.key === filterSource ? 'primary' : 'ghost'} className={source.key === filterSource ? 'chip active' : 'chip'} onClick={() => setFilterSource(source.key)} style={{ padding: '9px 14px' }}>{source.label}</Button>
-                  ))}
-                </div>
-
-                {recentSearches.length > 0 && (
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', marginBottom: 10 }}>
-                      Recherches récentes
-                    </div>
-                    <div className="recent-search">
-                      {recentSearches.map((value) => (
-                        <Button key={value} type="button" variant="ghost" onClick={() => handleRecentSearch(value)} style={{ padding: '8px 14px' }}>{value}</Button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="workspace-summary-row" style={{ marginTop: 18 }}>
-                  <span>Tendances affichées</span>
-                  <strong>{filteredTrends.length}</strong>
-                </div>
-              </div>
-            </div>
-
-            <div className="workspace-panel">
-              <div className="workspace-panel-header">
-                <div>
-                  <h2>Analyse IA</h2>
-                  <p>Quota temporaire de développement — la valeur réelle vient du backend.</p>
-                </div>
-              </div>
-
-              <div className="workspace-panel-content ai-box">
-                <div className="ai-status">
-                  <div>
-                    <span>Analyses restantes</span>
-                    <strong>{aiLeft} restant{aiLeft > 1 ? 's' : ''}</strong>
-                  </div>
-                  <div>
-                    <span>Utilisation responsable</span>
-                    <strong>Version premium</strong>
-                  </div>
-                </div>
-
-                <div className="ai-note">
-                  L’IA est utilisée pour mettre à jour et enrichir les analyses de tendance lorsque cela apporte de la valeur.
-                </div>
-
-                <Button type="button" variant="primary" onClick={handleAnalyze} disabled={aiLeft <= 0} style={{ width: '100%' }}>Rafraîchir les analyses IA</Button>
-
-                {analysisMessage && (
-                  <div style={{ fontSize: 13, color: 'var(--text3)' }}>{analysisMessage}</div>
                 )}
               </div>
             </div>

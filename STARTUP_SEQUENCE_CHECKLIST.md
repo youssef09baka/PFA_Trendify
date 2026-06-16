@@ -515,7 +515,7 @@ ML_SERVICE_URL=http://localhost:5001/predict
 
 **OPTIONAL (for features)**:
 ```env
-OPENROUTER_API_KEY=sk-or-v1-xxxxx
+OPENROUTER_API_KEY=your_openrouter_api_key
 SERPAPI_KEY=xxxxx
 REDDIT_CLIENT_ID=xxxxx
 REDDIT_CLIENT_SECRET=xxxxx

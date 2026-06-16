@@ -36,8 +36,8 @@ export default function Preferences() {
     try {
       const { data } = await api.put('/users/preferences', { preferences: selected });
       setSelected(data.preferences || selected);
-      setMessage('Préférences enregistrées. Redirection vers le dashboard...');
-      setTimeout(() => navigate('/dashboard'), 700);
+      setMessage('Préférences enregistrées. Redirection vers le flux...');
+      setTimeout(() => navigate('/feed'), 700);
     } catch (err) {
       setMessage(err.response?.data?.message || 'Erreur lors de la sauvegarde.');
     } finally {
