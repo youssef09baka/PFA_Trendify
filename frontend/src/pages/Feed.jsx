@@ -140,7 +140,6 @@ function FeedCard({ trend, isSaved, onSave, onView }) {
         <div className="feed-card-copy">
           <div className="feed-pill-row">
             <span className="pill pill-source">{displaySourceLabel(trend.source)}</span>
-            {displayCategoryLabel(trend.category) && <span className="pill pill-category">{displayCategoryLabel(trend.category)}</span>}
           </div>
 
           <h2 className="feed-card-title">{trend.title}</h2>

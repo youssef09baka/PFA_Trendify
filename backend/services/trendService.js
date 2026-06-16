@@ -476,10 +476,8 @@ const saveTrends = async (trends) => {
       }
 
       let mlPrediction = normalizeMlPrediction(finalTrend.ml_prediction);
-      if (
-        isReddit &&
-        (!mlPrediction || (typeof mlPrediction === 'string' && !['HIGH', 'LOW'].includes(mlPrediction)))
-      ) {
+      // Generate predictions for ALL sources, not just Reddit
+      if (!mlPrediction || (typeof mlPrediction === 'string' && !['HIGH', 'LOW'].includes(mlPrediction))) {
         const predicted = await predictTrend(finalTrend);
         mlPrediction = safeMlPredictionValue(predicted);
       }

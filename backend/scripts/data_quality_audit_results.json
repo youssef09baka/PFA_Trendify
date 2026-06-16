@@ -1,0 +1,4493 @@
+{
+  "categoryMismatches": [],
+  "tagIssues": [
+    {
+      "id": "6a3166e48e1bebecf21fad2d",
+      "title": "nintendo switch 2 update notes",
+      "tags": [
+        "nintendo",
+        "switch",
+        "update",
+        "notes"
+      ],
+      "issues": [
+        {
+          "type": "GENERIC_TAGS",
+          "value": [
+            "update"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad21",
+      "title": "tmz",
+      "tags": [],
+      "issues": [
+        {
+          "type": "NO_TAGS",
+          "value": true
+        }
+      ]
+    }
+  ],
+  "scorePredictionMismatches": [
+    {
+      "id": "6a3182f08e1bebecf21fb416",
+      "title": "love island producer died",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb413",
+      "title": "iran",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb40e",
+      "title": "lukaku",
+      "score": 77,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182ef8e1bebecf21fb409",
+      "title": "uruguay",
+      "score": 77,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182df8e1bebecf21fb406",
+      "title": "jersey mikes vs chickfila",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb404",
+      "title": "tropical storm watch",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb402",
+      "title": "iran new zealand",
+      "score": 75,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb401",
+      "title": "doordash",
+      "score": 75,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb400",
+      "title": "tycen proper",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb3ff",
+      "title": "tom holland",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb3fe",
+      "title": "entourage",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb3fd",
+      "title": "taylor swift",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e58e1bebecf21fad33",
+      "title": "marlins vs phillies",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad2f",
+      "title": "mets vs reds",
+      "score": 74,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad30",
+      "title": "sparks vs valkyries",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad31",
+      "title": "pirates vs athletics",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad2e",
+      "title": "twins vs rangers",
+      "score": 76,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad2b",
+      "title": "angels vs diamondbacks",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad2c",
+      "title": "james beard awards 2026",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad27",
+      "title": "padres vs cardinals",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad29",
+      "title": "fire vs lynx",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad25",
+      "title": "tim payne",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad24",
+      "title": "product recall",
+      "score": 74,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad23",
+      "title": "jaylen brown trade rumors celtics",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad22",
+      "title": "saving private ryan",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad17",
+      "title": "dustin may",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad0c",
+      "title": "shinnecock hills golf club",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad07",
+      "title": "wordle hint",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad10",
+      "title": "ninja theory",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad04",
+      "title": "vanessa trump and tiger woods",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166e08e1bebecf21facfc",
+      "title": "arabia saudita uruguay",
+      "score": 74,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166d08e1bebecf21face5",
+      "title": "gen 9 1216",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166d08e1bebecf21face6",
+      "title": "star wars ahsoka season 2",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166d18e1bebecf21face7",
+      "title": "b52 bomber",
+      "score": 79,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166d18e1bebecf21face8",
+      "title": "rockies vs cubs",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166d08e1bebecf21face3",
+      "title": "sean combs 2028 release update",
+      "score": 74,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166d08e1bebecf21face2",
+      "title": "tigers vs astros",
+      "score": 74,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166d08e1bebecf21face1",
+      "title": "allegiant air route cuts 2026",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166d08e1bebecf21facdd",
+      "title": "iraq vs norway",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166d08e1bebecf21facdc",
+      "title": "rays vs dodgers",
+      "score": 74,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facda",
+      "title": "citizenship",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facd8",
+      "title": "corey feldman",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facd7",
+      "title": "flash flooding",
+      "score": 70,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facd5",
+      "title": "bonnie tyler",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facd6",
+      "title": "united states department of veterans affairs",
+      "score": 71,
+      "prediction": "UNAVAILABLE",
+      "issue": "HIGH_SCORE_BUT_LOW_PREDICTION",
+      "severity": "HIGH"
+    }
+  ],
+  "sourceMismatches": [
+    {
+      "id": "6a3173b28e1bebecf21faeab",
+      "title": "Feeling stuck",
+      "source": "Reddit",
+      "issue": "REDDIT_SOURCE_MISMATCH"
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae89",
+      "title": "A2P issue need help",
+      "source": "Reddit",
+      "issue": "REDDIT_SOURCE_MISMATCH"
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae69",
+      "title": "New Job Listings",
+      "source": "Reddit",
+      "issue": "REDDIT_SOURCE_MISMATCH"
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae63",
+      "title": "Optimising SEO",
+      "source": "Reddit",
+      "issue": "REDDIT_SOURCE_MISMATCH"
+    },
+    {
+      "id": "6a31720b8e1bebecf21fae38",
+      "title": "Calculating tokens",
+      "source": "Reddit",
+      "issue": "REDDIT_SOURCE_MISMATCH"
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae2c",
+      "title": "Such a hypocrite",
+      "source": "Reddit",
+      "issue": "REDDIT_SOURCE_MISMATCH"
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae26",
+      "title": "OpenAI on June 23",
+      "source": "Reddit",
+      "issue": "REDDIT_SOURCE_MISMATCH"
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae2d",
+      "title": "One weird trick",
+      "source": "Reddit",
+      "issue": "REDDIT_SOURCE_MISMATCH"
+    },
+    {
+      "id": "6a3171f88e1bebecf21fae1d",
+      "title": "How to bypass this",
+      "source": "Reddit",
+      "issue": "REDDIT_SOURCE_MISMATCH"
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae13",
+      "title": "Slavery again",
+      "source": "Reddit",
+      "issue": "REDDIT_SOURCE_MISMATCH"
+    }
+  ],
+  "mediaIssues": [],
+  "uiAbsurdities": [
+    {
+      "id": "6a318c328e1bebecf21fb5c4",
+      "title": "Logitech completes G3 lineup with budget gaming keyboard and mouse",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a318c1f8e1bebecf21fb5c2",
+      "title": "Mark Zuckerberg Orders His Employees to Start Having Fun Again After Brutal Layoffs Culled Their Colleagues",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f78e1bebecf21fb41f",
+      "title": "strauss zelnick gta 6 interview",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f48e1bebecf21fb41e",
+      "title": "trump g7",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f48e1bebecf21fb41d",
+      "title": "2027 silverado",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f48e1bebecf21fb41c",
+      "title": "francia vs",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f38e1bebecf21fb41b",
+      "title": "austria vs jordan",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f38e1bebecf21fb41a",
+      "title": "portugal vs dr congo",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f38e1bebecf21fb419",
+      "title": "jd vance",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb418",
+      "title": "taylor swift travis kelce cameo",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb417",
+      "title": "breckenridge pharmaceuticals duloxetine recall",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb416",
+      "title": "love island producer died",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb415",
+      "title": "stock",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb414",
+      "title": "ryan pace",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb413",
+      "title": "iran",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA",
+        "TOO_SHORT_TITLE"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb412",
+      "title": "xbox game pass",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb411",
+      "title": "algeria",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb410",
+      "title": "oba femi",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb40f",
+      "title": "noaa hurricane",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb40e",
+      "title": "lukaku",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb40d",
+      "title": "strait of hormuz",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb40c",
+      "title": "rashee rice",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb40b",
+      "title": "lincoln lawyer",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182f08e1bebecf21fb40a",
+      "title": "arthur rinderknech",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182ef8e1bebecf21fb409",
+      "title": "uruguay",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182e78e1bebecf21fb408",
+      "title": "Canadian Government Moves to Shut Down Lawful Access Hearing In Order To Fast Track Passing the Bill This Week",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182e68e1bebecf21fb407",
+      "title": "Psychologists say patients are turning to chatbots as mental health professionals",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182df8e1bebecf21fb406",
+      "title": "jersey mikes vs chickfila",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182df8e1bebecf21fb405",
+      "title": "shrek 5",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb404",
+      "title": "tropical storm watch",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb403",
+      "title": "the view",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb402",
+      "title": "iran new zealand",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb401",
+      "title": "doordash",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb400",
+      "title": "tycen proper",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb3ff",
+      "title": "tom holland",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb3fe",
+      "title": "entourage",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182db8e1bebecf21fb3fd",
+      "title": "taylor swift",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182d98e1bebecf21fb3fc",
+      "title": "simon benoit",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182d38e1bebecf21fb3fa",
+      "title": "The retail SSD market has almost disappeared says Silicon Motion exec PC OEMs are buying thirdparty drives as direct NAND supply dries up",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182d38e1bebecf21fb3fb",
+      "title": "NPR Most parents track their 18 to 25yearold kids on their smartphones Is it healthy",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3182d38e1bebecf21fb3f9",
+      "title": "Google Chromes Next Update Will Mark the End of Popular Ad Blockers Slashdot",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173d18e1bebecf21faeee",
+      "title": "What happens when frontier LLMs are deployed in rural Rwanda Lessons on usefulness language gaps and incorrect answers",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173d18e1bebecf21faeed",
+      "title": "Built a Paninian RetrievalAugmented Generation PRAG framework for safer medical AI seeking feedback",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173d18e1bebecf21faeec",
+      "title": "AI Billionaires Want to Control EVERY Aspect of Your Life Aaron Bastani Meets Karen Hao",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173c98e1bebecf21faeeb",
+      "title": "Iraq PM to visit Washington to boost economic ties with US",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173c98e1bebecf21faee9",
+      "title": "UK places sanctions on Russian shadow ships and Russian Yandex Bank",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173c98e1bebecf21faeea",
+      "title": "Strait of Hormuz transit will take weeks to resume largest tanker operator tells FT",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173c98e1bebecf21faee8",
+      "title": "US to give Poland new 4 billion loan for arms purchases PAP reports",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173c98e1bebecf21faee7",
+      "title": "Worldfirst therapy to make cells young again trialled in a person",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173c98e1bebecf21faee6",
+      "title": "Europeans to test Trump on Iran deal risks urge Ukraine rethink at G7",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173c98e1bebecf21faee5",
+      "title": "Russias central bank head absent for three weeks amid Ukraine war tensions",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173c88e1bebecf21faee4",
+      "title": "Ministers say Israel wont be bound by Iran deal as opposition castigates Netanyahus absolute failure",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faed9",
+      "title": "PM Carney 1st Canadian firm awarded contract under SAFE agreement",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faed8",
+      "title": "World Zionist Organization removed from Canadas West Bank sanctions draft before release sources",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faed3",
+      "title": "Hezbollah claims Iran promised nuclear deal will include Israeli withdrawal from Lebanon",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faed1",
+      "title": "Trump reaffirms pledge to send 5000 troops to Poland",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faeca",
+      "title": "Russia must answer for war crimes after striking Kyiv heritage site says EUs Kaja Kallas",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faedd",
+      "title": "UK Sends 6000 LaserGuided Martlet Missiles to Bolster Ukraines Air Defenses",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faedb",
+      "title": "Yemens SpiderMan climber AlQaqa Ibn Antar dies in 400foot fall into a volcanic crater",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faec1",
+      "title": "US wont move troops despite signed Iran deal as doubts linger over Tehrans next move",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faec6",
+      "title": "Canada eliminates human rights watchdog that oversees companies operating abroad",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faed5",
+      "title": "Israel tells Trump it is not bound by Lebanon clause in Iran deal",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faec3",
+      "title": "Zelensky Says Putin Rejected G7 Peace Talks Offer",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faec0",
+      "title": "Exiled Lebanese journalist Maria Maalouf slams absurd 15year sentence exclusive",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bd8e1bebecf21faee2",
+      "title": "Irans Fars News Agency Says Hormuz Maritime Fees Added to US Deal Last Minute",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faee0",
+      "title": "No Pokmon Go Data Isnt Being Used to Train Military Drones Niantic Spatial Insists",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faed0",
+      "title": "Hezbollah fires missiles toward Kfar Tibnit",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faed7",
+      "title": "Armed forces face cuts without more funding warns defence chief",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faec8",
+      "title": "Pauline Hansons One Nation outsourcing work to Philippines",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faec9",
+      "title": "Poland inducts first F35As as Warsaw moves to double fleet size",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faec4",
+      "title": "Zelenskyy visits damaged Kyiv monastery and vows Russias attack will not go unanswered",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faede",
+      "title": "Fatal opioid overdoses in Canada decline for second year in a row",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faedc",
+      "title": "The European Parliament approved legislation to implement the EUs trade deal with the United States",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faed2",
+      "title": "Trump threatens 100 tariff on French wines over digital tax",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faec7",
+      "title": "US intel assesses Iran can shut down the Strait of Hormuz at will from now on",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faec5",
+      "title": "VP Vance says US expects Strait of Hormuz to be open toll free long term",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faecc",
+      "title": "Captain of Russian shadow fleet tanker detained by UK has been charged",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faeda",
+      "title": "EU says China trained Russian troops as bloc weighs tougher stance on Beijing",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faecb",
+      "title": "Taiwan posts secondlowest monthly births on record in May with 6832 births",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faece",
+      "title": "Trump Says Syria Would Do Better at Taming Hezbollah Than Israel",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faedf",
+      "title": "Ethiopia election 2026 Tigray excluded and on edge",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faecd",
+      "title": "Iran Will Never Have Nuclear Weapons Not Today And Not Tomorrow Netanyahu",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faec2",
+      "title": "Zelensky Trump Macron hold behindthescenes meeting at G7 summit as Ukraine pushes peace talks",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faed4",
+      "title": "Russia says strategic bomber crashes in Siberia on training flight",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bd8e1bebecf21faee1",
+      "title": "Russian Geran2 Drone Debris Found at Kyiv Monastery After Moscow Blamed Patriot Missile",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faed6",
+      "title": "Switzerland approves additional forces for Kosovo peacekeeping mission",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faecf",
+      "title": "Russian man shot dead in Poland reportedly a Putin critic",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173bc8e1bebecf21faebf",
+      "title": "Need Help Understanding Local Google Ads",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b78e1bebecf21faebe",
+      "title": "Lost in the Marketing world unemployed for over a year now NOT ASKING FOR A JOB but for advice",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faebd",
+      "title": "Looking for advice How to scale marketing effectively highticket ecommercefurniture brands",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faebc",
+      "title": "How to switch from content marketing to a more impactful and broader marketing role",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeba",
+      "title": "Free editorial but give us names and contacts of suppliers Scam",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeb9",
+      "title": "Creative ideas to attract people to an IT security trade show booth",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faebb",
+      "title": "How effective is ambient scent marketing",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeb7",
+      "title": "How to pivot to a sustainability marketing role",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeb8",
+      "title": "ow do I break into luxury marketing without direct luxury experience",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeb1",
+      "title": "Help How do you scale Digital PR for a client that refuses to leave their very small niche",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeb2",
+      "title": "PR releases are just too expensive Tell me Im wrong",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeb3",
+      "title": "Marketing Folks which is the more fun place to be in between brand and growth marketing in the long term",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeb4",
+      "title": "Going into my 3rd year of marketing",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeb5",
+      "title": "How do you communicate a repositioning without a trigger or news angle",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeb6",
+      "title": "Am I crazy or is this workload impossible in 25 hours a month",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeb0",
+      "title": "I love marketingbut I hate working in marketing",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b68e1bebecf21faeaf",
+      "title": "I analyzed all the posts on rmarketing for the month of April and the most popular Pain Point described was",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b28e1bebecf21faeae",
+      "title": "Dishonest agencies one after another",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b28e1bebecf21faead",
+      "title": "Dunkin marketing campaign idea for foray into Canada",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b28e1bebecf21faeac",
+      "title": "Fulfillment house for swag and POP materials",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b28e1bebecf21faeab",
+      "title": "Feeling stuck",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b28e1bebecf21faeaa",
+      "title": "Whats wrong with CMOs these days",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b28e1bebecf21faea9",
+      "title": "Who finalizes disclosures in marketing ads",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173b28e1bebecf21faea8",
+      "title": "Marketing to Niche Manufacturing Companies",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173ae8e1bebecf21faea7",
+      "title": "Canada Moves On From US Amid Tension With President Donald Trump Prime Minister Mark Carney Says New World Order Will Be Built From Europe",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173ae8e1bebecf21faea6",
+      "title": "rWorldNews Discussion Thread US and Israel launch attack on Iran Iran retaliates Thread 19",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173ae8e1bebecf21faea5",
+      "title": "Sweden passes good behaviour law to kick out misbehaving immigrants",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173ae8e1bebecf21faea4",
+      "title": "rWorldNews Live Thread Russian Invasion of Ukraine Day 1573 Part 1 Thread 1720",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae94",
+      "title": "Lukashenko says Belarus poses no military threat to Ukraine apologizes to Zelensky for past remarks",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae9d",
+      "title": "Warning shots fired from Russian warship at vessel in English Channel",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae97",
+      "title": "EU says China trained Russian troops to fight in Ukraine war",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae95",
+      "title": "The US is using an Iranian smuggling tactic to sneak oil out of the Gulf reports Reuters",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae96",
+      "title": "India temporarily bans Telegram over exam paper leak concerns",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae8e",
+      "title": "Hungary passes 8year PM limit barring Orbns return",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21faea3",
+      "title": "Belarus President Lukashenko labels Israels actions in Gaza a Holocaust says It was simply wiped off the face of the Earth",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae98",
+      "title": "Portuguese human rights organization honors the victims of Hamas October 7 massacre",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae91",
+      "title": "Carryon bags to be free EU rules",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae9f",
+      "title": "Netherlands bans gay conversion therapy after Senate majority backs new law",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae9e",
+      "title": "Trump says 300B fund to rebuild Iran is Fake News",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae93",
+      "title": "Netanyahu declares victory over Iran and rules out withdrawal from Lebanon Israel",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21faea2",
+      "title": "Just response to Russian strikes Ukraine hit major oil refinery in Moscow Zelensky confirms",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae8f",
+      "title": "Iran says the US war deal requires Israel to withdraw from Lebanon",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae9c",
+      "title": "Putin shown bespoke TV bulletins with no bad news about Russia",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae90",
+      "title": "Iran Says Strait of Hormuz Wont Have Tolls but It Will Have Fees",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae9a",
+      "title": "Lukashenko Apologizes to Zelenskyy Says Entering War Would Harm Belarus",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21faea1",
+      "title": "Semyon Skrepetsky Russian artist known as Putin critic shot dead in Poland Newsaz",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21faea0",
+      "title": "French spies drop AI giant Palantir over US overreliance fears",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae92",
+      "title": "Six Russian ships flee Channel in 77 minutes after UK seizes Putin shadow tanker",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae99",
+      "title": "Women Who Fled Iran Are to Be Deported to Central African Republic Lawyers Say",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae9b",
+      "title": "Russia Is Now Disguising Fuel Trucks as Milk Tankers to Get Them Into Crimea Alive",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae8d",
+      "title": "Im fighting so hard not to say anything on this social post thats looking for a catchall coordinator",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae8c",
+      "title": "A question for those who manage hire multiple microinfluencers",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae8b",
+      "title": "Thinking work vs doing work",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae8a",
+      "title": "How do I start an Ambassador Program",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae89",
+      "title": "A2P issue need help",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae88",
+      "title": "Awareness with Gen Z is Target KPI is it OK to have no segmentation",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae87",
+      "title": "How are you tracking B2B Lead Sources from LLMS and Socials",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae86",
+      "title": "5 years in SEO outdated 3 months in AEO visionary",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae84",
+      "title": "How much to charge as a freelancer with one year of experience",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae85",
+      "title": "Product Marketing is no more about craft The only thing Csuite wants is AI workflows",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae83",
+      "title": "In your opinion which marketing fundamentals have remained largely unchanged over time",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae82",
+      "title": "How is your marketing team working with your companys SDR team",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae81",
+      "title": "How do you test ad variations properly",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae7f",
+      "title": "What are some genuinely welledited TikTokReels product videos youve enjoyed lately",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae80",
+      "title": "Client expects me to film authentic HVAC ads for them am I wrong for pushing back",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae7e",
+      "title": "Why companies prefey shady tacticts instead of honesty Is honest marketing dead",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae7d",
+      "title": "What is a marketing campaign manager",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae7c",
+      "title": "How to transition out of GrowthPerformance Marketing",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae7b",
+      "title": "In house marketers how are you actually using AI in your work Anyone feeling behind",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae7a",
+      "title": "Whats an awful client experience youve had recently Ill go first",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae79",
+      "title": "How to prove to my boss our agency is doing a terrible job",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae78",
+      "title": "Has anyone removed their primary Facebook Page from a Meta Business Portfolio Any consequences",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae77",
+      "title": "AppsFlyer use hundreds of Reddit accounts to leave fake positive reviews of their service",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae75",
+      "title": "When nobody stops a bad idea",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a18e1bebecf21fae76",
+      "title": "Navigating the hell that is Meta Business Suite as a novice",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae74",
+      "title": "Marketing Folks how often do you have to do take home assignments to get an offer",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae73",
+      "title": "For those working in marketing at a financial services company are you required to have the SIE Series 6 or Series 7",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae72",
+      "title": "API to Get US Addresses in Radius Around Coordinate",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae71",
+      "title": "Does having your KOLs add the paid partnership tag affect your engagement",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae6d",
+      "title": "How do you handle urgent external pages when IT says 3 weeks minimum",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae6f",
+      "title": "How to better relationship with sales",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae6e",
+      "title": "Meta is now asking if youre really sure you want to turn off their AI enhancements",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae70",
+      "title": "What is Vibe Marketing",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae6b",
+      "title": "Performance Marketing Intern Here Trying to Understand Meta Ads Beyond Just Getting Leads",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae6c",
+      "title": "I think Im getting aged out of marketing at 41",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3173a08e1bebecf21fae6a",
+      "title": "How would you guys go about your marketing team 100 relying on AI for creative and idea creation",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae69",
+      "title": "New Job Listings",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae68",
+      "title": "Magazines reach out for feature articles",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae67",
+      "title": "Advice for working with a difficult client",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae66",
+      "title": "Help with physical marketing",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae65",
+      "title": "Career crisis being lowballed",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae64",
+      "title": "What types of jobs combine marketing and design",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae63",
+      "title": "Optimising SEO",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae62",
+      "title": "Stay Away From Pathos Communications",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae61",
+      "title": "Misunderstood Marketing Manager",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739d8e1bebecf21fae60",
+      "title": "Slightly unethical question",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739c8e1bebecf21fae5f",
+      "title": "Looking for marketing SOPs",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739c8e1bebecf21fae5e",
+      "title": "Meta Ads Manager Down",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739c8e1bebecf21fae5d",
+      "title": "Working in marketing in Canada for giant companies",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31739c8e1bebecf21fae5c",
+      "title": "Hiring Process for GroupM in India",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae54",
+      "title": "The true potential of the bouncy castle industry will only be unlocked once we have mastered spacetravel and established external bases",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae53",
+      "title": "Il paradosso della Gabbia DOro A volte le cose vanno semplicemente lasciate andare",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae52",
+      "title": "Is it actually worth using image aggregators for GPT Image 2 instead of generating directly in ChatGPT",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae51",
+      "title": "Has your day to day use of ChatGPT changed much in the last 612 months",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae50",
+      "title": "Cryptids only had to hide from 2008 2022 Before 2008 portable video cameras were grainy after 2022 everyone would say the video was AI",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae4f",
+      "title": "Mira Murati is a scammer",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae4e",
+      "title": "CODEX offered me a RateLimit Resetand Im suspicious",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae4d",
+      "title": "I would like to have a tool for learning a new language so that",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae4b",
+      "title": "A person can be useful in a group without ever being anyones favorite person",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae4c",
+      "title": "I bet we wont see GPT 56 this year",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae4a",
+      "title": "Birds probably dont enjoy roller coasters Their head stabilizers cancel out half the experience",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae49",
+      "title": "Most of this AI marketing drama is just prompting with better packaging And its a shame",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae48",
+      "title": "Is platformopenaicom down",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae47",
+      "title": "Most people will go their entire life not ever having a drink and taking a piss at the same time a state of liquid dynamic equilibrium",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae46",
+      "title": "chatgpt makes tool call when im depressed",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae45",
+      "title": "Efficient Image validation IST vs Plan",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae44",
+      "title": "My Weirdest Web Design Sales Trick Actually Works",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae43",
+      "title": "Need help for my academics survey",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae42",
+      "title": "Looking for ai expertsomeone who is fascinated about this topic I am writing an article about the impact of ai on genza mental health for my study",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae41",
+      "title": "A Cognitive Prosthesis Is Not a Stapler",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae3f",
+      "title": "Participants Needed Research on the Experience and Use of AI in the Workplace",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae40",
+      "title": "isnt instant thinking unlimited on ChatGPT pro I got a out of thinking reset at XYZ message am confused this is not 55 pro just regular 55 thinking",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae3e",
+      "title": "You are the villain in someones life most likely unintentionally",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae3d",
+      "title": "Ai and politics university project",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae3b",
+      "title": "Is it Possible To Make 1M By Selling Websites",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae3c",
+      "title": "Who is the one person most responsible for todays state of AI",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae3a",
+      "title": "Wouldnt car alarms be more effective loud on the INSIDE Occasional loud bursts on the outside to draw attention but extreme noise on the inside would prevent the thief from wanting to remain to hotwire steal inside the car",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720f8e1bebecf21fae39",
+      "title": "Is the free GPT Plus month offer already over",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31720b8e1bebecf21fae38",
+      "title": "Calculating tokens",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae2c",
+      "title": "Such a hypocrite",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae37",
+      "title": "AI Alignment Thicc Future vs Flatline Future",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae34",
+      "title": "Was shocked when my 8 year old brother told me he made a game and showed me this",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae2b",
+      "title": "So if GPT56 is on part with Fable 5 wont the government take it down to",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae24",
+      "title": "When you spend your career in AI calling for regulation so the government listens and yeets your latest model over security concerns",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae25",
+      "title": "OpenAI thinks Lincon Logs are descriminatory",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae27",
+      "title": "Talk Show Host Is this the future of motion capture",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae26",
+      "title": "OpenAI on June 23",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae2e",
+      "title": "What happened to Sunbuddy AI and why did OpenAI sue them httpssunbuddyai",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae29",
+      "title": "Updated Mythos benchmarks",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae31",
+      "title": "There seems to be a mistake",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae32",
+      "title": "Paid for ChatGPT Plus on iOS still stuck on Free plan",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae2a",
+      "title": "Built a Fable 5 availability tracker in 30 minutes",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae33",
+      "title": "10 reason why AI will never replace photoshop",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae36",
+      "title": "Flowers for Anthropic",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae2d",
+      "title": "One weird trick",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae30",
+      "title": "Hes Ready to dominate the market",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae35",
+      "title": "Your AI Agents Could Cost 14KMonth Local AI Compute Is Coming",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae2f",
+      "title": "Worse AI take temptation",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae28",
+      "title": "Do not claim any free trials",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171fa8e1bebecf21fae23",
+      "title": "I built MOS MemoryOS a lightweight selfhosted memory microservice for LLMs using Nodejs pgvector and local embeddings",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171f98e1bebecf21fae22",
+      "title": "Why was Anthropic able to create Fable and OpenAI didnt l",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171f98e1bebecf21fae21",
+      "title": "openais leaked 2025 financials 13b revenue 38b in losses",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171f98e1bebecf21fae20",
+      "title": "The hardest part of AI memory isnt remembering things",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171f98e1bebecf21fae1f",
+      "title": "What premium AI do you prefer using and why",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171f88e1bebecf21fae1e",
+      "title": "Companies are not getting the full value from AI because they are cutting the wrong people",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171f88e1bebecf21fae1d",
+      "title": "How to bypass this",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171f88e1bebecf21fae1c",
+      "title": "Built an opensource way to give GPT agents a real browser not headless",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171f58e1bebecf21fae1b",
+      "title": "Cant change intelligence",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171f48e1bebecf21fae1a",
+      "title": "Interaction with agents",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae17",
+      "title": "Fable 5 ban explained",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae0a",
+      "title": "Guysssss GPT55 is also really dangeroussss seriouslyyyy",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae11",
+      "title": "AI Economics for Dummies",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae0b",
+      "title": "South Korea Restores KF21 Boramae Fighter Production After Presidential Intervention as IndoPacific Airpower Race Intensifies",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae13",
+      "title": "Slavery again",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae16",
+      "title": "AI responses need an I dont know button",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e58e1bebecf21fae19",
+      "title": "OpenClaw the hype train has moved on",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae14",
+      "title": "OpenAI Monthly limit instead of weekly",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae0d",
+      "title": "I absolutely love AI",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e58e1bebecf21fae18",
+      "title": "Specification gaming",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae0f",
+      "title": "Does ChatGPT provide more value than its price suggests",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae15",
+      "title": "Aaaand yep that should work",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae0c",
+      "title": "I wanted to do something nice but this is kinda cursed",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae0e",
+      "title": "DD Creepy Crawlies Edition Integrated feedback received on the woodland creatures post",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae10",
+      "title": "AI giants score below 25 in UC Berkeleyled test of realworld application",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3171e48e1bebecf21fae12",
+      "title": "Pro account NEVER dropped below 30 on the 5 hour limit until now",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3170558e1bebecf21fae00",
+      "title": "Social media under16s ban cuts a vital lifeline for queer kids",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a31703c8e1bebecf21fadfe",
+      "title": "UK confirms social media ban for kids is coming Meta YouTube and Snapchat respond",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d6a8e1bebecf21faded",
+      "title": "OpenAI hit with multistate probe into possible user harm as its IPO looms",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fadea",
+      "title": "Justice Department approves Paramount Skydances acquisition of Warner Bros Discovery",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fade9",
+      "title": "Kushner project being developed on disputed land Albanian villagers say",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fadec",
+      "title": "Judge orders Justin Baldoni to cover Blake Livelys legal fees",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fadeb",
+      "title": "Facebook down Messenger and app not working in huge outage",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fade8",
+      "title": "Autistic children injected with unapproved stem cell treatments supported by RFK Jr",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fade6",
+      "title": "Active shooter barricaded in building in Midland TX",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fade7",
+      "title": "Spy turtles and spy fish being used to monitor Chinese waters Beijing claims China",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fade5",
+      "title": "Fire destroys medical supply warehouse in Tracy California",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fade4",
+      "title": "US Judge indefinitely blocks Trumps antiweaponizaton fund",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fade3",
+      "title": "Only 1 in 4 F35s is fully mission capable GAO finds",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fade2",
+      "title": "Tree mortality in New Mexico tripled in 2025 driven by drought climate change insects Local News santafenewmexicancom",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fade0",
+      "title": "Once beset by power outages Puerto Ricans also hit with severe water shortages",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fade1",
+      "title": "Former Louisiana mayor sentenced to 90 days over rape of 16yearold boy",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21faddf",
+      "title": "Judge issues injunction blocking administrations AntiWeaponization Fund",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21fadde",
+      "title": "US puts up 750K to evacuate an American who was aboard hantavirus cruise ship from remote island",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21faddc",
+      "title": "Woman mauled by shark off Sydney beach grabs onto a lifeguards paddleboard",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d5e8e1bebecf21faddd",
+      "title": "Gene Shalit TODAY show movie critic dies at 100",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d518e1bebecf21fadda",
+      "title": "Tesla presented misleading Full SelfDriving safety data to European regulators",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d488e1bebecf21fadd9",
+      "title": "NBA star James Harden arrested in Texas on weapons charge",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadd5",
+      "title": "Settler products from occupied Palestine sold to Europe as Israeli investigation finds",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadd4",
+      "title": "12 people presumed dead in Missouri plane crash",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadd3",
+      "title": "A man who set fire to homes linked to Starmer is in jail His Russianspeaking handler slipped away",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadd6",
+      "title": "McConnell hospitalized and receiving excellent care spokesperson says",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadd2",
+      "title": "US shortens cyber fix window to three days as AI threats rise",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadd1",
+      "title": "Fox is buying Roku for 22 billion",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadcf",
+      "title": "Arrest over push of woman into buss path in Putney in 2017",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadd0",
+      "title": "A US Air Force B52 bomber crashes at Edwards Air Force Base in California the base says",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadce",
+      "title": "California Gov Gavin Newsom says Department of Justice is investigating him his wife",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadc9",
+      "title": "A womans hypothermia death in Pittsburgh after her release from ICE custody is ruled a homicide",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadcb",
+      "title": "Nineyearold Perth girl fatally shot by police in Pakistan while on family holiday",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadca",
+      "title": "Nara Organics recalls infant formula after 3 babies are diagnosed with botulism",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadcc",
+      "title": "UK intercepts Russian shadow fleet tanker for first time",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadcd",
+      "title": "New World Screwworm cases climb to nine in US with two more confirmed in Texas",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadc7",
+      "title": "Japan to roll out nationwide LGBTQIA education for the first time",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadc8",
+      "title": "Supreme Court rejects former Trump adviser Carter Pages bid to revive James Comey lawsuit",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadc6",
+      "title": "Judge orders Trump administration to restore censored National Park exhibits",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadc5",
+      "title": "SpiderMan of Yemen dies in fall while climbing volcanic crater",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadc4",
+      "title": "NYPD Florida man charged in connection with cab destruction amid Knicks revelry",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadc3",
+      "title": "FBI arrests 5 people in connection with drone attack plot against White House UFC Freedom 250 event",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadc2",
+      "title": "Russian warship fired warning shots at yacht in the English Channel",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadc0",
+      "title": "Starbucks Korea to temporarily shut all stores for history lesson after bungled coffee promotion",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadc1",
+      "title": "Britain unveils sweeping ban on social media for under16s",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadbf",
+      "title": "Immigration agent hit by vehicle in NJ fires gun at fleeing suspect police say",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadbe",
+      "title": "Israeli firm BlackCore suspected of meddling in New York and Scotland votes France says",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadbd",
+      "title": "US Senate candidate with same name as incumbent Dan Sullivan ineligible for ballot official rules",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadbc",
+      "title": "Israeli military strikes Beirut suburbs in the leadup to anticipated USIran deal",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadbb",
+      "title": "Russian artist and critic of Putin shot dead in eastern Poland",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadb9",
+      "title": "Man sues law enforcement alleging AI facial recognition technology led to wrongful arrest",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadba",
+      "title": "Calls grow for independent investigation into a Montreal police station after allegedly racist violent behaviour during police stops",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadb8",
+      "title": "Palestine Action ban is lawful Court of Appeal rules",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadb6",
+      "title": "Wisconsin beagle farm closing hundreds of dogs to be sent to Florida rescue group",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadb7",
+      "title": "Russia was behind arson attacks targeting PM BBC reveals",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadb5",
+      "title": "Jeffco Public Schools says 61 boys the Trump administration found on girls sports rosters were mascots managers",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3d8e1bebecf21fadd8",
+      "title": "Ukraine starts first phase of EU membership talks in Rubicon moment",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3d8e1bebecf21fadd7",
+      "title": "NYC Knicks celebrations marred by 7 shootings police say",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadb4",
+      "title": "Antarcticas west coast missing an area of sea ice the size of France as temperatures peak 20C above average",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadb2",
+      "title": "Norwegian crown princesss son found guilty of rape",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadb3",
+      "title": "12 people many students taken to hospital from BC waterpark",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadaf",
+      "title": "Palestinian American woman held without charge by Israeli military US news",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadb1",
+      "title": "Boy 14 arrested for armed robbery of kids lemonade stand in Southie",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadb0",
+      "title": "Half of worlds children exposed to at least three climate hazards Unicef says Climate crisis",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadae",
+      "title": "SpaceX buys AI coding startup Cursor for 60 billion",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadac",
+      "title": "Eight crew believed dead in California B52 bomber crash CNN reports",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadad",
+      "title": "Struggling Pizza Hut restaurant chain will be sold for 27 billion",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316d3c8e1bebecf21fadab",
+      "title": "Maria Eduarda Rodrigues de Freitas Woman thrown 40m to her death after staff forget to attach safety rope",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316ca18e1bebecf21fada3",
+      "title": "Sofa Vergara Thinks Its Pretty Cool That the Modern Family Cast Still Use Their Group Chat a Lot",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316ca18e1bebecf21fada2",
+      "title": "Rod Stewart Faces Backlash for Attending World Cup Game Hours After Abruptly Canceling Concert Due to Health Reasons",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad9f",
+      "title": "Fox to buy streaming pioneer Roku in a 22 billion deal",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad9c",
+      "title": "Seth Rogen Laments Hollywoods Risk Aversion Says Superbad Would Never Happen Today In A Hundred Million Years",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad9d",
+      "title": "Amanda Seyfried Nearly Played Joni Mitchell in a Biopic and Learned to Play an Entire Album",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad9b",
+      "title": "Milly Alcock Reveals Supergirl Cape Was Made With Same Fabric As Christopher Reeves 1978 Superman Cape",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad8d",
+      "title": "Guillermo del Toro Sounds the Alarm About AI and Threats to Creative Freedom We Are on the Verge of Cinema Illiteracy",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad8c",
+      "title": "USA TODAY PLAY and Marvel debut new SpiderMan TODAY comic",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad98",
+      "title": "Jane Fonda Attacks ParamountWBD Merger At Protest Event I Have A Personal Stake In CNN I Dont Want To See It Go That Way",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad8e",
+      "title": "Joe Biden Curses Chokes Up on Jay Lenos YouTube Show",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad96",
+      "title": "New documentary A man of great appetites whats it like to be a dictators personal chef",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad93",
+      "title": "Fox Is Buying Roku in 22 Billion Deal",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fada0",
+      "title": "GOP Strategist Spots How Trump Is Trying To Distract From Failure UFC Event At White House Susan Del Percio said even MAGA supporters are turned off by how Trump is ringing in Americas 250th birthday",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad94",
+      "title": "UFC to pay White House fighters in crypto issued by Trump company",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad90",
+      "title": "Jimmy Kimmel Wishes Donald Trump Happy Birthday With Jeffrey EpsteinInspired Birthday Card",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad97",
+      "title": "Sean Strickland thrown out by Secret Service at UFC White House event",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad91",
+      "title": "Barbra Streisand jumps into pivotal Senate race with dire warning Deeply concerned",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad99",
+      "title": "Trump Eviscerated for Defiling DC With Tacky UFC Spectacle President Donald Trump is facing a backlash for turning the White House and Washington DC into a circus for his UFC birthday spectacle",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fada1",
+      "title": "Karen Gillan Working on Doctor Who is what Ill think about when Im old",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad9e",
+      "title": "Adam Sandler Tom Brady invited to UFC White House fight as 1200 seats saved for military",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad92",
+      "title": "Armie Hammer Wants a Second Chance I Made These Problems for Myself",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad9a",
+      "title": "Ive Been an Absolute Wreck Melanie Martinez Breaks Silence After Ex Oliver Trees Tragic Death",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad95",
+      "title": "Fox World Cup Announcer Mocks Japanese Team Then Immediately Has To Eat Crow",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad8f",
+      "title": "Rainn Wilson Claims The Office Was too Inappropriate to Be Made Today Seemingly Forgetting About Peacock Sequel The Paper",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c8c8e1bebecf21fad8b",
+      "title": "Nicole Brown Simpsons Former Lover Speaks Out on Their Passionate Romance OJs Lurking Presence and Why They Were In Danger Exclusive",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c798e1bebecf21fad85",
+      "title": "Pop Singer Oliver Tree Dead at 32 After Tragic Helicopter Crash",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c798e1bebecf21fad86",
+      "title": "The Devil Wears Prada Franchise Glams Up Past 1 Billion At Worldwide Box Office",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c798e1bebecf21fad87",
+      "title": "UFC Star Booted From Fight Night After Turning on Trump The middleweight champion had previously said that he had been banned from Trumps birthday bash for criticizing the president",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c798e1bebecf21fad84",
+      "title": "Bonnie Tyler out of coma but remains in intensive care in Portugal Music The Guardian",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad82",
+      "title": "James Franco is trying to restart his career on TikTok and its weird",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c798e1bebecf21fad83",
+      "title": "Tom Morello postpones London and Paris shows due to family medical emergency",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad80",
+      "title": "Jalen Brunson confirms Justin Bieber fandom in New York Knicks appearance on Jimmy Fallon",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad81",
+      "title": "Londons Shaftesbury Theatre To Be Renamed The Judi Dench Theatre",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad7e",
+      "title": "Clashing Over Indiana Jones Harrison Ford and Steven Spielberg Were Not 100 on Board With Crystal Skull and Fought George Lucas Over Adding Aliens",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad7f",
+      "title": "Trumps highly anticipated White House UFC match sees few recognizable guests Adam Sandler Guy Ritchie and Tom Brady were rumored to be invited by UFC boss Dana White but they appeared to snub the unprecedented birthday bash",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad7d",
+      "title": "Trumps White House UFC headliner accused of assault forced sex stalking",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad79",
+      "title": "Daniel Cormier posts deletes DMs from Eric Trump asking about rigged UFC White House fights",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad7b",
+      "title": "White House cage matches pushed back as storms threaten presidents birthday event Trumps UFC event at the White House has been delayed as forecasters warn of hail wind gusts up to 70 mph and frequent lightning",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad7a",
+      "title": "Robert De Niro slams racist misogynistic Trump in surprise appearance at NYC First Amendment event",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad7c",
+      "title": "Sean Penn To Direct Timely Movie Next ReTeaming With Warner Bros On Story Of January 6th Cop With Bradley Cooper In Talks To Star",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad76",
+      "title": "Backrooms Sends Hollywood Running to Reddit for New Ideas",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad75",
+      "title": "Eric Trump Brutally Trolled After Embarrassing DM Leak Scandal Eric Trump has been brutally trolled in his own comments section as he continues to distance himself from an embarrassing leak surrounding his fathers UFC event",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad72",
+      "title": "Were coming for his ass Jane Fonda Robert De Niro and Bette Midler target Trump at New York benefit concert",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad73",
+      "title": "Theres No Cure Famed NYC TV Anchor Reveals Diagnosis Live OnAir And Its Powerful",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad77",
+      "title": "Steven Spielberg says he would never make a Netflix film I am a moviemaker who believes in big motion picture 70mm theatrical experiences",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad70",
+      "title": "Absolute Worst Of America Critics Torch Trump UFC Event After Disgusting Comment",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad62",
+      "title": "Jelly Roll files for divorce from Bunny XO amid tour setback and MAGA backlash",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad63",
+      "title": "Fox News halted as viewers turn on Donald Trump over shameful peace plan boast",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad5b",
+      "title": "Reeks of Corruption Trump DOJ Bypassed Antitrust Staff to Approve ParamountWarner Bros Merger",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad74",
+      "title": "Tom Holland Confirms Marriage to Zendaya by Saying Family Members Were All There at the Wedding Thats All Youll Get on That",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad5c",
+      "title": "Jesse Watters branded dumb by Fox News viewers over Iran deal scoop",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad5a",
+      "title": "Nate Bargatze Faces Fan Revolt After Showing Up at Trumps White House UFC Event",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad59",
+      "title": "Full video of the monologue Jimmy Kimmel got cancelled for",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad71",
+      "title": "They Were All There Tom Holland Addresses Zendaya Marriage Rumours for the First Time",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad6c",
+      "title": "UFC Boss Says Never Again To Another White House Fight Night Dana White called fight night at the White House a smashing success but insists it will never happen again",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad5d",
+      "title": "MAGA television host claims the left sabotaged Donald Trumps Reflecting Pool with algae",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad5e",
+      "title": "Beloved Comedian Who Says Hes Not Political Spotted At Trumps UFC Fight With RFK Jr",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad6d",
+      "title": "Jon Stewart Derides White Houses UFC Event As GodAwful Mockery That Managed To Devalue Both Combat Sports Our National Dignity",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad69",
+      "title": "Sheryl Crow Blasts Trumps Disgraceful UFC Birthday Bash Lets Be Better America This administration is corrupt and does not give a damn about the American people artist says",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad6a",
+      "title": "UFC Boss Dana White Condemns Fighter Josh Hokit for Saying Michelle Obama Is a Man I Hate That Kind of Nonsense",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad6b",
+      "title": "Gavin Newsom accused Donald Trump of using the UFC Freedom 250 event to promote a company the president owns stock in sell subscriptions promote corporate sponsors and push Trump crypto",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad5f",
+      "title": "Total Eclipse of the Heart singer Bonnie Tyler 75 wakes up from coma after suffering cardiac arrest a month ago",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c798e1bebecf21fad88",
+      "title": "Trump Gets a Brutal Reality Check on His UFC Birthday Bash Donald Trumps UFC birthday bash may have delivered a packed arena but a brutal new poll shows Americans were not impressed by the madeforTV spectacle",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c798e1bebecf21fad89",
+      "title": "Tom Holland confirms that he and Zendaya are married Tom Holland",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad68",
+      "title": "Vanilla Ice mocked for doubling down on MAGA Fest performance",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad6e",
+      "title": "Corey Feldman Hospitalized After Medical Emergency on Flight",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad60",
+      "title": "Laverne Cox Says Shes Lost 90 Percent of Her Income Due to Trumps DEI Rollbacks",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad78",
+      "title": "White House UFC Fighter Calls Michelle Obama A Man in Disgraceful Victory Tirade",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad66",
+      "title": "Donald Trump falls asleep front row during UFC White House event Less than a week after taking a nap during the New York Knicks game Trump was caught sleeping at his 80th birthday event",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad6f",
+      "title": "Ian McKellen Says he Imagined Destroying MaraLago for Avengers Doomsday The Russos Told Me To Look More Furious Make it Look As If You Hate What Youre Destroying So I Stood There and Shouted MaraLago",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad64",
+      "title": "Robert De Niro Exercises His Right to Free Speech at First Amendment Event I Cant Love a Country Thats Led by Donald Trump",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad65",
+      "title": "Rosie ODonnell slams racist MAGA supporters after Hokit Michelle Obama remark",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad61",
+      "title": "Jon Stewart Slams Fighter Josh Hokit as a Fing Ahole For Saying Michelle Obama Is a Man at UFC Freedom 250",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c788e1bebecf21fad67",
+      "title": "With UFC Freedom 250 at the White House Trump Has Reached Peak Idiocracy",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a316c4e8e1bebecf21fad57",
+      "title": "AI for less price war in China deepens amid intense competition",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166eb8e1bebecf21fad34",
+      "title": "fullmetal alchemist seiko watch",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e58e1bebecf21fad33",
+      "title": "marlins vs phillies",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad32",
+      "title": "wdc stock",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad2f",
+      "title": "mets vs reds",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad30",
+      "title": "sparks vs valkyries",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad31",
+      "title": "pirates vs athletics",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad2e",
+      "title": "twins vs rangers",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad2d",
+      "title": "nintendo switch 2 update notes",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad2b",
+      "title": "angels vs diamondbacks",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad2a",
+      "title": "a j brown",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad2c",
+      "title": "james beard awards 2026",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad27",
+      "title": "padres vs cardinals",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad29",
+      "title": "fire vs lynx",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e48e1bebecf21fad28",
+      "title": "g7 countries",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad25",
+      "title": "tim payne",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad24",
+      "title": "product recall",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad23",
+      "title": "jaylen brown trade rumors celtics",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad22",
+      "title": "saving private ryan",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad20",
+      "title": "owen cooper",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad21",
+      "title": "tmz",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA",
+        "TOO_SHORT_TITLE"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad1f",
+      "title": "tory burch",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad1e",
+      "title": "on the border",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad1d",
+      "title": "doug burgum",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e18e1bebecf21fad26",
+      "title": "nate bargatze trump",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad1c",
+      "title": "jeffrey epstein",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad1a",
+      "title": "eton college",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad19",
+      "title": "united states",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad18",
+      "title": "belgium",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad1b",
+      "title": "star wars",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad17",
+      "title": "dustin may",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad16",
+      "title": "zach nunn",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad12",
+      "title": "jason whitlock victor wembanyama critique",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad14",
+      "title": "mlb all star voting",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad13",
+      "title": "invincible",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad15",
+      "title": "mortgage news daily",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad0e",
+      "title": "wind advisory",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad0c",
+      "title": "shinnecock hills golf club",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad0d",
+      "title": "longrange capital",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad0b",
+      "title": "jalen hurts",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad0a",
+      "title": "doordash app down",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad09",
+      "title": "blgica egipto",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad08",
+      "title": "morningstar",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad07",
+      "title": "wordle hint",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad10",
+      "title": "ninja theory",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad11",
+      "title": "ukraine midrange drone strikes",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad06",
+      "title": "shore fire",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad05",
+      "title": "liv golf news",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad04",
+      "title": "vanessa trump and tiger woods",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad03",
+      "title": "christopher jackson",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad02",
+      "title": "fathers day gift",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad01",
+      "title": "hamilton",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21fad00",
+      "title": "wordle hint today",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21facff",
+      "title": "berlin open",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21facfe",
+      "title": "espaa vs",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21facfd",
+      "title": "ian mckellen",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21facfc",
+      "title": "arabia saudita uruguay",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166e08e1bebecf21facfb",
+      "title": "wordle today",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166dc8e1bebecf21facfa",
+      "title": "france senegal",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d88e1bebecf21facf9",
+      "title": "Teslas Wild Robotic Charging Arm Never Happened Xiaomi Just Made It Reality",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d78e1bebecf21facf1",
+      "title": "Facebooks new AI Mode search gets its info from public posts",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d78e1bebecf21facf0",
+      "title": "The US governments Anthropic models ban was never about an AI jailbreak",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d78e1bebecf21facf2",
+      "title": "Anthropics new models were restricted by the US Europes top AI startup has been waiting for this moment",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d78e1bebecf21facec",
+      "title": "DOJ Lawyers Argue xAI Is Vital for National Security in NAACP Lawsuit",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d78e1bebecf21faced",
+      "title": "Hackers Publish Knicks and Madison Square Garden Data Online",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d88e1bebecf21facf4",
+      "title": "UK declares under16 social media ban to protect children but experts warn of enforcement challenges",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d78e1bebecf21facee",
+      "title": "Bell Telus under fire for charging fees that appear to violate new rules Canadas telecom regulator sent warning letters to each telecom suggesting their new fees should be scrapped",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d78e1bebecf21facef",
+      "title": "Amazon commits 10bn to data center campus in Montgomery City Missouri",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d88e1bebecf21facf3",
+      "title": "The price tags are eyewatering New Surface Pro and Surface Laptop packing speedy Snapdragon X2 CPUs are now on sale but prepare your wallet for a shock",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d88e1bebecf21facf6",
+      "title": "Jumping spiders inspire wildly efficient 3D camera",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d88e1bebecf21facf7",
+      "title": "Why Nokia thinks it can win the 6G race",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d88e1bebecf21facf5",
+      "title": "Scientists shut down cancer DNA repair to overcome drug resistance",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d88e1bebecf21facf8",
+      "title": "TSMC says panel packaging wont replace CoWoS anytime soon for the largest future AI processors waferlevel tech can scale to 58 massive dies in one package",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d78e1bebecf21faceb",
+      "title": "Justice Department Decision to Allow Paramount Deal Surprised Staff Investigators",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d78e1bebecf21facea",
+      "title": "Feds freaked over Fable 5 after simple fix this code prompt not jailbreak says researcher",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d78e1bebecf21face9",
+      "title": "A Single Polymarket Trader Lost 42 Million on the World Cup in Less Than 24 Hours",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21face5",
+      "title": "gen 9 1216",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21face6",
+      "title": "star wars ahsoka season 2",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d18e1bebecf21face7",
+      "title": "b52 bomber",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d18e1bebecf21face8",
+      "title": "rockies vs cubs",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21face4",
+      "title": "where is cape verde",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21face3",
+      "title": "sean combs 2028 release update",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21face2",
+      "title": "tigers vs astros",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21face1",
+      "title": "allegiant air route cuts 2026",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21face0",
+      "title": "is doordash down",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21facdf",
+      "title": "is doordash down right now",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21facdd",
+      "title": "iraq vs norway",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21facde",
+      "title": "saudi arabia vs uruguay",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166d08e1bebecf21facdc",
+      "title": "rays vs dodgers",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facd9",
+      "title": "jonathan owens",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facda",
+      "title": "citizenship",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facd8",
+      "title": "corey feldman",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facd7",
+      "title": "flash flooding",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facd5",
+      "title": "bonnie tyler",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facd6",
+      "title": "united states department of veterans affairs",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    },
+    {
+      "id": "6a3166cc8e1bebecf21facd4",
+      "title": "calcium supplements",
+      "issues": [
+        "EMPTY_OR_SHORT_ANALYSIS",
+        "EMPTY_OR_SHORT_IDEA"
+      ]
+    }
+  ],
+  "summaryStats": {
+    "totalTrends": 500,
+    "trendsBySource": {
+      "Reddit": 388,
+      "Google Trends": 112
+    },
+    "trendsByCategory": {
+      "Tech": 1,
+      "AI": 118,
+      "Search Trends": 102,
+      "Finance": 7,
+      "Gaming": 6,
+      "Discussion": 199,
+      "Science": 5,
+      "Business": 37,
+      "Entertainment": 11,
+      "Startups": 1,
+      "Social": 12,
+      "Web Culture": 1
+    },
+    "trendsByPrediction": {
+      "LOW": 34,
+      "UNAVAILABLE": 456,
+      "HIGH": 10
+    },
+    "avgScore": "56.13",
+    "emptyAnalysis": 500,
+    "emptyIdea": 500,
+    "emptyMedia": 0
+  }
+}

@@ -87,7 +87,6 @@ export default function TrendDetail() {
     if (!trend) return [];
     return [
       { label: 'Source', value: trend.source || '–' },
-      { label: 'Catégorie', value: trend.category || '–' },
       { label: 'Score', value: trend.score !== undefined ? formatScore(trend.score) : '–' },
       { label: 'Tags', value: trend.tags?.length ? trend.tags.join(', ') : 'Aucun' },
       { label: 'Média', value: trend.mediaType || 'Aucun' },
@@ -157,7 +156,6 @@ export default function TrendDetail() {
 
                   <div className="signal-pill-row">
                     <span className="signal-pill signal-pill--primary">{trend.source || 'Source inconnue'}</span>
-                    <span className="signal-pill signal-pill--secondary">{trend.category || 'Catégorie'}</span>
                     {trend.tags?.slice(0, 5).map((tag) => (
                       <span key={tag} className="signal-pill signal-pill--tag">#{tag}</span>
                     ))}
@@ -210,7 +208,7 @@ export default function TrendDetail() {
                         <div className="signal-bullet-mark">2</div>
                         <div>
                           <strong>Contexte actuel</strong>
-                          <p>{trend.category ? `${trend.category} est en phase de progression.` : 'Contexte de catégorie indisponible.'}</p>
+                          <p>Ce signal est en phase de progression et mérite votre attention.</p>
                         </div>
                       </div>
                       <div className="signal-bullet">

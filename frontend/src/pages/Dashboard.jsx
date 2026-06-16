@@ -139,7 +139,6 @@ export default function Dashboard() {
                       <div className="workspace-item-title">{trend.title || 'Signal sauvegardé'}</div>
                       <div className="workspace-item-meta">
                         <span>{displaySourceLabel(trend.source)}</span>
-                        <span>{trend.category || 'Sans catégorie'}</span>
                       </div>
                     </Link>
                   ))

@@ -187,7 +187,7 @@ export default function AIWorkspace() {
               <div className="summary-list">
                 <div className="summary-row"><span className="summary-label">Titre</span><strong>{trend?.title || '—'}</strong></div>
                 <div className="summary-row"><span className="summary-label">Source</span><strong>{trend?.source || '—'}</strong></div>
-                <div className="summary-row"><span className="summary-label">Catégorie</span><strong>{trend?.category || '—'}</strong></div>
+
                 <div className="summary-row"><span className="summary-label">Score</span><strong>{trend?.score !== undefined ? formatScore(trend.score) : '—'}</strong></div>
                 <div className="summary-row">
                   <span className="summary-label">Momentum</span>
