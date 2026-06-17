@@ -1,21 +1,31 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import PrivateRoute from './components/PrivateRoute';
 
-function App() {
-  const [message, setMessage] = useState("");
+import LandingPage  from './pages/LandingPage';
+import LoginPage    from './pages/Login';
+import SignupPage   from './pages/Signup';
+import Preferences  from './pages/Preferences';
+import Dashboard    from './pages/Dashboard';
+import Feed         from './pages/Feed';
 
-  useEffect(() => {
-    axios.get("http://localhost:5000")
-      .then(res => setMessage(res.data.message))
-      .catch(err => console.log(err));
-  }, []);
-
+export default function App() {
   return (
-    <div>
-      <h1>Frontend React 🚀</h1>
-      <p>{message}</p>
-    </div>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/"            element={<LandingPage />} />
+            <Route path="/login"       element={<LoginPage />} />
+            <Route path="/signup"      element={<SignupPage />} />
+            <Route path="/preferences" element={<PrivateRoute><Preferences /></PrivateRoute>} />
+            <Route path="/dashboard"   element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+            <Route path="/feed"        element={<PrivateRoute><Feed /></PrivateRoute>} />
+            <Route path="*"            element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
-
-export default App;

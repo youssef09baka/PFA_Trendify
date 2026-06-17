@@ -71,3 +71,4 @@ const getGoogleTrends = async () => {
 };
 
 module.exports = { getGoogleTrends };
+

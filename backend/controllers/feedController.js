@@ -4,45 +4,40 @@ const getFeed = async (req, res) => {
   try {
     const user = req.user;
 
-    console.log("USER PREF:", user?.preferences);
-
-    // 🔥 récupérer trends
+    // 🔥 1. récupérer trends depuis trendController
     const fakeReq = {};
-    const fakeRes = {
-      status: () => ({
-        json: (data) => data
-      })
-    };
+    let trends;
 
-    const trends = await new Promise((resolve) => {
-      fakeRes.status = () => ({
-        json: (data) => resolve(data)
-      });
+    const trendsPromise = new Promise((resolve) => {
+      const fakeRes = {
+        status: () => ({
+          json: (data) => resolve(data)
+        })
+      };
 
       getTrends(fakeReq, fakeRes);
     });
 
-    // 🔥 NORMALISER préférences (important)
-    const preferences = (user?.preferences || []).map(p => p.toLowerCase());
+    trends = await trendsPromise;
 
-    // 🔥 FILTRAGE INTELLIGENT
+    // 🔥 2. sécurité
+    if (!Array.isArray(trends)) trends = [];
+
+    // 🔥 3. personnalisation
     let filteredTrends = trends;
 
-    if (preferences.length > 0) {
-      filteredTrends = trends.filter(trend => {
-        const title = trend.title.toLowerCase();
-        const analysis = trend.analysis.toLowerCase();
-
-        return preferences.some(pref =>
-          title.includes(pref) || analysis.includes(pref)
-        );
-      });
+    if (user && user.preferences && user.preferences.length > 0) {
+      filteredTrends = trends.filter(trend =>
+        user.preferences.some(pref =>
+          trend.title.toLowerCase().includes(pref.toLowerCase())
+        )
+      );
     }
 
-    // 🔥 fallback si aucun match
+    // 🔥 4. fallback si rien trouvé
     const finalTrends = filteredTrends.length > 0 ? filteredTrends : trends;
 
-    // 🔥 transformer en feed
+    // 🔥 5. format feed propre (SANS FAKE)
     const feed = finalTrends.map((trend, index) => ({
       id: index + 1,
       title: trend.title,
@@ -50,15 +45,7 @@ const getFeed = async (req, res) => {
       analysis: trend.analysis,
       idea: trend.idea,
       source: trend.source,
-
-      // 🔥 engagement
-      likes: Math.floor(Math.random() * 1000),
-      comments: Math.floor(Math.random() * 200),
-      shares: Math.floor(Math.random() * 100),
-
-      // 🔥 viral score
-      viralScore: trend.score + Math.floor(Math.random() * 50),
-
+      link: trend.link || "",
       createdAt: new Date()
     }));
 
@@ -66,7 +53,7 @@ const getFeed = async (req, res) => {
 
   } catch (error) {
     console.error("FEED ERROR:", error.message);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
