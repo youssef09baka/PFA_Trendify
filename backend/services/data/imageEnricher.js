@@ -6,7 +6,8 @@ const BATCH_SIZE = 50;
 
 const isFallbackVisual = (trend) => {
   const candidate = String(trend?.image || trend?.thumbnail || '');
-  return /data:image\/svg\+xml|images\.unsplash\.com|via\.placeholder\.com|placeholder\.com/i.test(candidate)
+  // Only SVG and placeholder URLs are fallback now (Unsplash removed)
+  return /data:image\/svg\+xml|via\.placeholder\.com|placeholder\.com/i.test(candidate)
     || isPlaceholderMediaUrl(candidate);
 };
 

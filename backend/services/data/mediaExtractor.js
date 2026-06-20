@@ -249,77 +249,10 @@ const fetchWithRetry = async (label, runner) => {
   }
 };
 
-const getFallbackThemeImage = (trend) => {
-  const categoryKey = inferFallbackCategory(trend);
-  const palette = FALLBACK_THEME_IMAGES[categoryKey] || FALLBACK_THEME_IMAGES.default;
-
-  const query = normalizeQuery([trend?.title, trend?.category, trend?.source_detail || trend?.source].filter(Boolean).join(' '));
-  const cacheKey = `${query}|${trend?._id || trend?.slug || trend?.title || 'trend'}`;
-  const cached = FALLBACK_IMAGE_CACHE.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < FALLBACK_CACHE_TTL_MS) {
-    return cached.value;
-  }
-
-  const choice = palette[simpleHash(`${cacheKey}|${trend?.category || ''}|${trend?.source || ''}`) % palette.length];
-  FALLBACK_IMAGE_CACHE.set(cacheKey, { value: choice, timestamp: Date.now() });
-  return choice;
-};
+// REMOVED: getFallbackThemeImage() - Generic theme-based fallback images permanently disabled
+// Only real, relevant images (Reddit, OpenGraph, Wikimedia, Openverse) are used
 
 const fetchWikimediaImage = async (query, options = {}) => {
-  const normalized = normalizeQuery(query);
-  if (!normalized) return null;
-
-  const excludeUrls = new Set((options.excludeUrls || []).map((entry) => safeUrl(entry)).filter(Boolean));
-  const cacheKey = `wikimedia:${normalized}:${Array.from(excludeUrls).join('|')}`;
-  const cached = getCacheEntry(IMAGE_SEARCH_CACHE, cacheKey, SUCCESS_CACHE_TTL_MS);
-  if (cached) {
-    logMediaDebug('CACHE_HIT', { label: 'wikimedia', key: cacheKey, source: 'success' });
-    return cached.value;
-  }
-  const failed = getCacheEntry(IMAGE_SEARCH_CACHE, `${cacheKey}:failed`, FAILURE_CACHE_TTL_MS);
-  if (failed) {
-    logMediaDebug('CACHE_SKIP', { label: 'wikimedia', key: cacheKey, reason: 'recent-failure' });
-    return null;
-  }
-
-  try {
-    const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(normalized)}&gsrnamespace=6&gsrlimit=6&prop=imageinfo&iiprop=url&iiurlwidth=1200&format=json&origin=*`;
-    logMediaDebug('WIKIMEDIA_REQUEST', { query: normalized, url });
-
-    const res = await fetchWithRetry('wikimedia', () => axios.get(url, { timeout: 8000, headers: { 'User-Agent': 'PFA-Feed/1.0' } }));
-    const pages = res.data?.query?.pages || {};
-    const results = Object.values(pages)
-      .map((entry) => {
-        const imageInfo = entry?.imageinfo?.[0] || {};
-        const candidate = safeUrl(imageInfo.url || entry?.thumbnail?.source || '');
-        return {
-          url: candidate,
-          width: Number(imageInfo.width || entry?.thumbnail?.width || 0),
-          height: Number(imageInfo.height || entry?.thumbnail?.height || 0),
-        };
-      })
-      .filter((entry) => isUsableImageCandidate(entry.url, entry))
-      .filter((entry) => !excludeUrls.has(entry.url));
-
-    logMediaDebug('WIKIMEDIA_RESPONSE', { query: normalized, resultsCount: results.length, rejected: excludeUrls.size });
-
-    const firstImage = results[0]?.url || null;
-    if (firstImage) {
-      IMAGE_SEARCH_CACHE.set(cacheKey, { value: firstImage, timestamp: Date.now() });
-      logMediaDebug('CACHE_STORE', { label: 'wikimedia', key: cacheKey, ttlMs: SUCCESS_CACHE_TTL_MS });
-      return firstImage;
-    }
-  } catch (e) {
-    logMediaDebug('WIKIMEDIA_ERROR', { query: normalized, message: e?.message || 'request-failed', status: e?.response?.status || null });
-  }
-
-  IMAGE_SEARCH_CACHE.set(`${cacheKey}:failed`, { value: null, timestamp: Date.now() });
-  return null;
-};
-
-const fetchOpenverseImage = async (query, options = {}) => {
-  const normalized = normalizeQuery(query);
-  if (!normalized) return null;
 
   const excludeUrls = new Set((options.excludeUrls || []).map((entry) => safeUrl(entry)).filter(Boolean));
   const cacheKey = `openverse:${normalized}:${Array.from(excludeUrls).join('|')}`;
@@ -416,7 +349,7 @@ const extractMediaForTrend = async (trend, rawPostData, options = {}) => {
     const searched = await fetchWikimediaImage(query, options).catch(() => null)
       || await fetchOpenverseImage(query, options).catch(() => null);
 
-    if (searched) {
+    if (searched) { 
       const sourceLabel = /wikimedia\.org/i.test(searched) ? 'wikimedia' : 'openverse';
       logMediaDebug('MEDIA_SEARCH_SUCCESS', { title: trend?.title || '', query, image: searched, source: sourceLabel });
       return { image: searched, video: '', thumbnail: searched, mediaType: 'image' };
@@ -425,9 +358,11 @@ const extractMediaForTrend = async (trend, rawPostData, options = {}) => {
     logMediaDebug('MEDIA_SEARCH_SKIPPED', { title: trend?.title || '', query, reason: 'no-usable-source-result' });
   }
 
-  logMediaDebug('MEDIA_FALLBACK_SVG', { title: trend?.title || '', reason: 'no-real-image-found' });
-  const fallback = getFallbackThemeImage(trend);
-  return { image: fallback, video: '', thumbnail: fallback, mediaType: 'image' };
+  // SVG fallback removed - return empty result if no real image found
+  logMediaDebug('MEDIA_EMPTY_RESULT', { title: trend?.title || '', reason: 'no-real-image-found', note: 'SVG fallbacks permanently disabled' });
+  return { image: '', video: '', thumbnail: '', mediaType: 'none' };
 };
 
-module.exports = { extractMediaForTrend, extractFromReddit, getFallbackThemeImage, isPlaceholderMediaUrl, isUsableImageCandidate, buildSearchQueries };
+module.exports = { extractMediaForTrend, extractFromReddit, isPlaceholderMediaUrl, isUsableImageCandidate, buildSearchQueries };
+
+

@@ -578,9 +578,8 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 's
     ])
   ]);
 
-  const refreshedItems = await Promise.all((items || []).map((item) => refreshTrendMedia(item)));
-  await repairDuplicateMedia(refreshedItems);
-  const scoredItems = normalizeStoredTrends(refreshedItems);
+  // Use MongoDB stored data only - dynamic media enrichment disabled
+  const scoredItems = normalizeStoredTrends(items);
   const seed = Number(runtimeSeed ?? Math.random());
   // Only apply the expensive/mixing reorder for explicit ranking modes.
   // Do not alter the strict chronological order when sorting by newest.
@@ -611,8 +610,8 @@ module.exports = {
     if (!id || !Types.ObjectId.isValid(String(id))) return null;
     const trend = await Trend.findById(id).lean();
     if (!trend) return null;
-    const refreshed = await refreshTrendMedia(trend);
-    return normalizeStoredTrends([refreshed])[0] || refreshed;
+    // Use MongoDB stored data only - dynamic media enrichment disabled
+    return normalizeStoredTrends([trend])[0] || trend;
   },
   getRelatedTrends: async (id, { category, tags, source, limit = 5 } = {}) => {
     const query = { _id: { $ne: id } };

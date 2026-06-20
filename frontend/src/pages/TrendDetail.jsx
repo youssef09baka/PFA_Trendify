@@ -150,9 +150,11 @@ export default function TrendDetail() {
             trend && (
               <div className="detail-layout">
                 <section className="detail-main">
-                  <div className="panel-card panel-media">
-                    <MediaBox key={`${trend._id || trend.id || 'detail'}:${getCardMediaUrl(trend) || 'none'}`} video={trend.video} src={getCardMediaUrl(trend)} poster={getCardMediaUrl(trend)} alt={trend.title} aspect="16:9" controls={!!trend.video} />
-                  </div>
+                  {(getCardMediaUrl(trend) || trend.video) && (
+                    <div className="panel-card panel-media">
+                      <MediaBox key={`${trend._id || trend.id || 'detail'}:${getCardMediaUrl(trend) || 'none'}`} video={trend.video} src={getCardMediaUrl(trend)} poster={getCardMediaUrl(trend)} alt={trend.title} aspect="16:9" controls={!!trend.video} />
+                    </div>
+                  )}
 
                   <div className="signal-pill-row">
                     <span className="signal-pill signal-pill--primary">{trend.source || 'Source inconnue'}</span>

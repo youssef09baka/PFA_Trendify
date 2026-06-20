@@ -48,9 +48,11 @@ function SavedDrawer({ trends, onClose, onRemove }) {
             const id = t.id || t._id;
             return (
               <div className="saved-drawer-item" key={id} style={{ padding: '14px', background: 'var(--glass)', border: '1px solid var(--glass-b)', borderRadius: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
-                <div style={{ width: 54, height: 54, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: 'var(--glass)' }}>
-                  <MediaBox key={`${t.id || t._id || 'saved'}:${getCardMediaUrl(t) || 'none'}`} src={getCardMediaUrl(t)} alt={t.title} aspect="square" />
-                </div>
+                {getCardMediaUrl(t) ? (
+                  <div style={{ width: 54, height: 54, flexShrink: 0, borderRadius: 10, overflow: 'hidden', background: 'var(--glass)' }}>
+                    <MediaBox key={`${t.id || t._id || 'saved'}:${getCardMediaUrl(t) || 'none'}`} src={getCardMediaUrl(t)} alt={t.title} aspect="square" />
+                  </div>
+                ) : null}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', lineHeight: 1.4, marginBottom: 6 }}>{t.title}</p>
                   <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>

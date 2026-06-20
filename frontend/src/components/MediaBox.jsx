@@ -46,6 +46,11 @@ export default function MediaBox({ src, video, poster, alt = '', aspect = '16:9'
     setError(true);
   };
 
+  // Option 1: No placeholder media - return null if no image/video
+  if (!showImage && !showVideo) {
+    return null;
+  }
+
   return (
     <div className={`media-box ${className}`} style={{ paddingTop, width: '100%', position: 'relative', overflow: 'hidden', background: 'var(--glass)', minHeight: '120px' }}>
       {showVideo ? (
@@ -67,9 +72,7 @@ export default function MediaBox({ src, video, poster, alt = '', aspect = '16:9'
           onError={handleImageError}
           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
-      ) : (
-        <div className="media-placeholder" aria-hidden="true">Aucun visuel</div>
-      )}
+      ) : null}
     </div>
   );
 }
