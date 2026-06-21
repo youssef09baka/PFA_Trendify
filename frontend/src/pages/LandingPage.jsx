@@ -5,14 +5,14 @@ import { Zap, TrendingUp, Brain, Globe, ArrowRight, CheckCircle, BarChart2, Cpu,
 
 /* ─── LIVE TICKER DATA ─── */
 const TICKER_ITEMS = [
-  { emoji:'🟠', label:'AI Agents autonomes',      change:'+340%', cat:'Tech'     },
-  { emoji:'🔵', label:'VR Gaming 2025',            change:'+220%', cat:'Gaming'   },
-  { emoji:'🟡', label:'Green Tech Startups',       change:'+180%', cat:'Business' },
-  { emoji:'🟠', label:'Prompt Engineering Jobs',   change:'+155%', cat:'Tech'     },
-  { emoji:'🔵', label:'Online Health Coaching',    change:'+130%', cat:'Health'   },
-  { emoji:'🟡', label:'No-Code Tools',             change:'+200%', cat:'Tech'     },
-  { emoji:'🟠', label:'Micro-SaaS Creators',       change:'+140%', cat:'Business' },
-  { emoji:'🔵', label:'AI Bootcamps',              change:'+300%', cat:'Education'},
+  { emoji:'🟠', label:'Agents IA autonomes',       change:'+340%', cat:'Tech'     },
+  { emoji:'🔵', label:'Jeux VR 2025',              change:'+220%', cat:'Jeux'     },
+  { emoji:'🟡', label:'Startups green tech',       change:'+180%', cat:'Affaires' },
+  { emoji:'🟠', label:'Métiers du prompt',         change:'+155%', cat:'Tech'     },
+  { emoji:'🔵', label:'Coaching santé en ligne',   change:'+130%', cat:'Santé'    },
+  { emoji:'🟡', label:'Outils no-code',            change:'+200%', cat:'Tech'     },
+  { emoji:'🟠', label:'Créateurs micro-SaaS',      change:'+140%', cat:'Affaires' },
+  { emoji:'🔵', label:'Formations IA',             change:'+300%', cat:'Éducation'},
 ];
 
 /* ─── FLOATING ORB ─── */
@@ -162,7 +162,7 @@ export default function LandingPage() {
           {[
             { step:'01', icon:<BarChart2 size={24}/>, title:'Collecte des tendances', desc:'Reddit, Google Trends et YouTube sont surveillés en continu pour détecter des signaux émergents.', color:'var(--y)' },
             { step:'02', icon:<Cpu size={24}/>,        title:'Scoring par l\'IA',    desc:'Une IA calcule un score d\'opportunité basé sur popularité et croissance.', color:'var(--b)' },
-            { step:'03', icon:<Rss size={24}/>,        title:'Feed personnalisé',    desc:'Reçois les tendances triées par score dans ton feed. Sauvegarde, filtre, agis.', color:'#4ADE80' },
+            { step:'03', icon:<Rss size={24}/>,        title:'Flux personnalisé',    desc:'Reçois les tendances triées par score dans ton flux. Sauvegarde, filtre, agis.', color:'#4ADE80' },
           ].map((step, i) => (
             <div key={i} style={{ position:'relative', background:'var(--glass)', border:'1px solid var(--glass-b)', borderRadius:18, padding:'28px 24px', backdropFilter:'blur(12px)' }}>
               <div style={{ fontSize:48, fontWeight:900, letterSpacing:'-3px', color:'var(--glass-b)', fontFamily:'var(--mono)', lineHeight:1, marginBottom:16 }}>{step.step}</div>
@@ -182,7 +182,7 @@ export default function LandingPage() {
         <Orb size={400} top="-80px"  right="-100px" color="rgba(255,220,80,0.06)" delay={0} blur={120}/>
         <Orb size={300} bottom="-60px" left="-80px" color="rgba(96,165,250,0.06)"  delay={2} blur={100}/>
         <div style={{ position:'relative', zIndex:1, maxWidth:580, margin:'0 auto', textAlign:'center' }}>
-          {['Score IA en temps réel','Données Reddit & Google Trends','Feed personnalisé','Idées de contenu générées par IA'].map(item => (
+          {['Score IA en temps réel','Données Reddit & Google Trends','Flux personnalisé','Idées de contenu générées par IA'].map(item => (
             <div key={item} style={{ display:'flex', alignItems:'center', gap:10, justifyContent:'center', marginBottom:10, fontSize:13, color:'var(--text2)' }}>
               <CheckCircle size={15} color="#4ADE80"/> {item}
             </div>
@@ -191,7 +191,7 @@ export default function LandingPage() {
             Prêt à prévoir <span style={{ color:'var(--y)' }}>demain</span> aujourd'hui ?
           </h2>
           <p style={{ fontSize:14, color:'var(--text2)', marginBottom:32, lineHeight:1.6 }}>
-            Passe du signal à l'action avec un feed clair et des opportunités identifiées par l'IA.
+            Passe du signal à l'action avec un flux clair et des opportunités identifiées par l'IA.
           </p>
           <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
             <Link to="/signup" style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'14px 32px', borderRadius:11, background:'var(--y)', color:'#06070D', fontSize:14, fontWeight:800, textDecoration:'none', boxShadow:'0 8px 32px rgba(255,220,80,0.2)' }}>
@@ -213,7 +213,7 @@ export default function LandingPage() {
           TrendAI <span style={{ fontSize:11, fontWeight:400, color:'var(--text3)', marginLeft:6 }}>· PFA ESISA Fès 2025</span>
         </div>
         <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-          {['React 19','Vite','Tailwind v4','Node.js','MongoDB','Claude AI'].map(t => (
+          {['React 19','Vite','Tailwind v4','Node.js','MongoDB','OpenRouter'].map(t => (
             <span key={t} style={{ fontSize:10, padding:'3px 9px', borderRadius:5, background:'var(--glass)', border:'1px solid var(--glass-b)', color:'var(--text3)', fontWeight:600 }}>{t}</span>
           ))}
         </div>

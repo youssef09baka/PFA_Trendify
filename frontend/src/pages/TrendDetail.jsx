@@ -100,7 +100,7 @@ export default function TrendDetail() {
         <div className="detail-page-shell">
           <div className="detail-header">
             <div className="detail-title-group">
-              <Button type="button" variant="ghost" className="detail-back" onClick={() => navigate('/feed')} icon={<ArrowLeft size={16} />}>Retour au feed</Button>
+              <Button type="button" variant="ghost" className="detail-back" onClick={() => navigate('/feed')} icon={<ArrowLeft size={16} />}>Retour au flux</Button>
               <div className="eyebrow">Signal de recherche</div>
               <h1>{trend?.title || 'Chargement du signal...'}</h1>
               <p className="detail-intro">{summary}</p>
@@ -141,7 +141,7 @@ export default function TrendDetail() {
               subtitle="Le lien peut être expiré ou cette tendance n’existe plus."
               action={
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
-                  <Button variant="primary" onClick={() => navigate('/feed')}>Retour au feed</Button>
+                  <Button variant="primary" onClick={() => navigate('/feed')}>Retour au flux</Button>
                   <Button variant="ghost" onClick={() => window.location.reload()}>Réessayer</Button>
                 </div>
               }
@@ -173,7 +173,7 @@ export default function TrendDetail() {
                       <small>Momentum</small>
                       {trend.ml_prediction ? (
                         <span className="signal-pill" style={getPredictionBadgeStyle(trend.ml_prediction)}>
-                          {trend.ml_prediction === 'HIGH' ? '🔥 HIGH POTENTIAL' : trend.ml_prediction === 'LOW' ? '📉 LOW POTENTIAL' : 'Prediction unavailable'}
+                          {trend.ml_prediction === 'HIGH' ? 'Potentiel fort' : trend.ml_prediction === 'LOW' ? 'Potentiel faible' : 'Prédiction indisponible'}
                         </span>
                       ) : trend.source === 'Google Trends' ? (
                         <strong>Prédiction ML indisponible pour cette source.</strong>

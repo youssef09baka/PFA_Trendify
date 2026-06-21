@@ -151,7 +151,7 @@ export default function Preferences() {
                 boxShadow: selected.length ? '0 8px 24px rgba(255,220,80,0.2)' : 'none',
               }}
             >
-              {loading ? 'Sauvegarde...' : <><span>Lancer mon Dashboard</span><ArrowRight size={16}/></>}
+              {loading ? 'Sauvegarde...' : <><span>Lancer mon tableau de bord</span><ArrowRight size={16}/></>}
             </button>
           </div>
         </div>

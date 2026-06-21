@@ -25,7 +25,7 @@ Root `package.json` references `start-dev.ps1` / `stop-dev.ps1` — those script
 - `npm run dev` — nodemon hot-reload on `server.js`
 - `npm start` — production `node server.js`
 - `npm test` — **Node.js built-in test runner**: `node --test test/*.js`
-- `node scripts/<script>.js` — run any utility in `backend/scripts/` (21 scripts: AI provider comparison, data audits, scoring verification, etc.)
+- `node archive/scripts/<script>.js` — archived backend utilities (21 scripts: AI provider comparison, data audits, scoring verification, etc.)
 
 ### Frontend
 - `npm run dev` — Vite dev server
@@ -63,13 +63,11 @@ Optional: `GROQ_API_KEY`, `GOOGLE_CSE_API_KEY`, `GOOGLE_CSE_ENGINE_ID`, `PORT` (
 | `PUT /api/users/preferences` | JWT | Update user preferences |
 | `GET /api/users/profile` | JWT | Get current user |
 | `GET /api/users/saved-trends` | JWT | Saved trends |
-| `GET /api/trends` | No | List all trends |
 | `GET /api/feed` | JWT | Personalized feed |
 | `GET /api/feed/:id` | JWT | Trend detail |
 | `POST /api/feed/:id/analyze` | JWT | AI analysis (consumes quota) |
 | `POST /api/feed/:id/save` | JWT | Save trend |
 | `DELETE /api/feed/:id/save` | JWT | Unsave trend |
-| `POST /api/feed/repair-media` | JWT | Repair duplicate media |
 
 Rate limits: general 600 req/15min, auth 30 req/15min.
 

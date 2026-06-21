@@ -6,8 +6,8 @@
 
 const Trend = require("../models/Trend");
 const { Types } = require('mongoose');
-const { extractMediaForTrend, isPlaceholderMediaUrl } = require('./data/mediaExtractor');
-const { computeMediaFingerprint, findDuplicateMediaCandidates } = require('./data/mediaUniqueness');
+const { isPlaceholderMediaUrl } = require('./data/mediaExtractor');
+const { computeMediaFingerprint } = require('./data/mediaUniqueness');
 const { generateMlFeatures } = require("./featureGenerator");
 const { predictTrend } = require("./mlService");
 
@@ -321,118 +321,6 @@ const normalizeTrendMedia = (trend) => {
   };
 };
 
-const shouldRefreshMedia = (trend) => {
-  if (!trend) return false;
-  const hasPlaceholder = isPlaceholderMediaUrl(trend.image) || isPlaceholderMediaUrl(trend.thumbnail);
-  const hasBlankImageFallback = !trend.image && Boolean(trend.thumbnail);
-  return hasPlaceholder || hasBlankImageFallback || trend.mediaType === 'none' || (!trend.image && !trend.thumbnail && !trend.video);
-};
-
-const shouldReenrichMedia = (trend) => {
-  if (!trend) return false;
-  return shouldRefreshMedia(trend) || (!trend.image && !trend.thumbnail && !trend.video);
-};
-
-const refreshTrendMedia = async (trend) => {
-  const normalizedTrend = normalizeTrendMedia(trend);
-  if (!shouldRefreshMedia(normalizedTrend)) return trend;
-
-  try {
-    const media = await extractMediaForTrend(normalizedTrend, normalizedTrend._raw || null).catch(() => null);
-    const fallbackTrend = normalizeTrendMedia(normalizedTrend);
-    const image = media?.image || media?.thumbnail || fallbackTrend.image || trend.image || '';
-    const thumbnail = media?.thumbnail || media?.image || fallbackTrend.thumbnail || trend.thumbnail || '';
-
-    if (!media && !image) return trend;
-
-    const updated = await Trend.findByIdAndUpdate(
-      trend._id,
-      {
-        $set: {
-          image,
-          thumbnail,
-          mediaType: media?.mediaType || fallbackTrend.mediaType || 'image',
-          mediaFingerprint: computeMediaFingerprint({ ...trend, image, thumbnail }).fingerprint,
-          mediaVerifiedAt: new Date(),
-          mediaSource: 'runtime-refresh'
-        }
-      },
-      { new: true }
-    ).lean();
-
-    return updated || { ...trend, image, thumbnail, mediaType: media?.mediaType || fallbackTrend.mediaType || 'image' };
-  } catch {
-    return trend;
-  }
-};
-
-const shouldRepairDuplicateMedia = (trend) => {
-  if (!trend) return false;
-  const fingerprint = computeMediaFingerprint(trend).fingerprint;
-  return Boolean(fingerprint && fingerprint !== 'none' && (!trend.mediaVerifiedAt || Date.now() - new Date(trend.mediaVerifiedAt).getTime() > 6 * 60 * 60 * 1000));
-};
-
-const repairDuplicateMedia = async (trends = []) => {
-  const duplicates = findDuplicateMediaCandidates(trends);
-  if (duplicates.length === 0) return trends;
-
-  const candidates = new Set();
-  for (const entry of duplicates) {
-    candidates.add(String(entry.left?._id || entry.left?.slug || ''));
-    candidates.add(String(entry.right?._id || entry.right?.slug || ''));
-  }
-
-  const repairs = [];
-  for (const trend of trends) {
-    const candidateKey = String(trend?._id || trend?.slug || '');
-    if (!candidates.has(candidateKey)) continue;
-    if (!shouldRepairDuplicateMedia(trend)) continue;
-
-    try {
-      const duplicateSet = duplicates.filter((entry) => {
-        const leftKey = String(entry.left?._id || entry.left?.slug || '');
-        const rightKey = String(entry.right?._id || entry.right?.slug || '');
-        return leftKey === candidateKey || rightKey === candidateKey;
-      });
-      const excludeUrls = [...new Set(duplicateSet.flatMap((entry) => [entry.left?.image || entry.left?.thumbnail || '', entry.right?.image || entry.right?.thumbnail || '']).filter(Boolean))];
-
-      console.info('[MEDIA] duplicate-image retry', {
-        title: trend.title || trend.slug,
-        duplicateCount: duplicateSet.length,
-        excluded: excludeUrls.length,
-      });
-
-      const fresh = await extractMediaForTrend(trend, trend._raw || null, { excludeUrls }).catch(() => null);
-      if (!fresh || (!fresh.image && !fresh.thumbnail)) continue;
-      const nextImage = fresh.image || fresh.thumbnail || trend.image || '';
-      const nextThumbnail = fresh.thumbnail || nextImage || trend.thumbnail || '';
-      if (!nextImage || nextImage === trend.image || excludeUrls.includes(nextImage)) continue;
-
-      repairs.push(
-        Trend.findOneAndUpdate(
-          { _id: trend._id || trend.slug },
-          {
-            $set: {
-              image: nextImage,
-              thumbnail: nextThumbnail,
-              mediaType: fresh.mediaType || trend.mediaType || 'image',
-              mediaFingerprint: computeMediaFingerprint({ ...trend, image: nextImage, thumbnail: nextThumbnail }).fingerprint,
-              mediaVerifiedAt: new Date(),
-              mediaSource: 'verified-duplicate-repair'
-            }
-          },
-          { new: true }
-        ).lean()
-      );
-    } catch (error) {
-      console.warn('[MEDIA] duplicate repair failed', error.message);
-    }
-  }
-
-  await Promise.all(repairs);
-  return trends;
-};
-
 const chunkArray = (items, size) => {
   const chunks = [];
   for (let index = 0; index < items.length; index += size) {
@@ -443,7 +331,6 @@ const chunkArray = (items, size) => {
 
 const saveTrends = async (trends) => {
   const normalizedInput = Array.isArray(trends) ? trends : [];
-  await repairDuplicateMedia(normalizedInput);
 
   const chunks = chunkArray(normalizedInput, 100);
   const persisted = [];
@@ -455,25 +342,12 @@ const saveTrends = async (trends) => {
       const normalizedCategory = normalizeCategory({ ...normalizedTrend, source: normalizedSource });
       const slug = normalizedTrend.slug || buildSlug({ ...normalizedTrend, source: normalizedSource, category: normalizedCategory });
 
-      try {
-        if (shouldReenrichMedia(normalizedTrend)) {
-          const m = await extractMediaForTrend(normalizedTrend, normalizedTrend._raw || null).catch(() => null);
-          if (m) {
-            normalizedTrend.image = m.image || normalizedTrend.image || '';
-            normalizedTrend.video = m.video || normalizedTrend.video || '';
-            normalizedTrend.thumbnail = m.thumbnail || normalizedTrend.thumbnail || normalizedTrend.image || '';
-            normalizedTrend.mediaType = m.mediaType || normalizedTrend.mediaType || 'image';
-          }
-          normalizedTrend.image = normalizeTrendMedia(normalizedTrend).image;
-          normalizedTrend.thumbnail = normalizeTrendMedia(normalizedTrend).thumbnail;
-          normalizedTrend.mediaType = normalizeTrendMedia(normalizedTrend).mediaType;
-          normalizedTrend.mediaFingerprint = computeMediaFingerprint({ ...normalizedTrend, image: normalizedTrend.image, thumbnail: normalizedTrend.thumbnail }).fingerprint;
-          normalizedTrend.mediaVerifiedAt = new Date();
-          normalizedTrend.mediaSource = 'verification';
-        }
-      } catch (e) {
-        // ignore media extraction failures
-      }
+      normalizedTrend.image = normalizeTrendMedia(normalizedTrend).image;
+      normalizedTrend.thumbnail = normalizeTrendMedia(normalizedTrend).thumbnail;
+      normalizedTrend.mediaType = normalizeTrendMedia(normalizedTrend).mediaType;
+      normalizedTrend.mediaFingerprint = computeMediaFingerprint(normalizedTrend).fingerprint;
+      normalizedTrend.mediaVerifiedAt = new Date();
+      normalizedTrend.mediaSource = 'source-only';
 
       let finalTrend = normalizeTrendMedia(normalizedTrend);
       const isReddit = String(finalTrend.source || '').toLowerCase().includes('reddit');

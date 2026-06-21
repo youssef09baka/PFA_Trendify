@@ -106,17 +106,19 @@ const withStubbedModules = async (scenario = 'real') => {
   return { state, nextError, res, statusCode: res.statusCode };
 };
 
-test('analyzeTrend reuses stored analysis and does not call OpenRouter', async () => {
+test('analyzeTrend always regenerates analysis even when stored values exist', async () => {
   const { state, nextError, res, statusCode } = await withStubbedModules('real');
 
   assert.equal(nextError, null);
-  assert.equal(state.generateCalls, 0, 'stored analysis should avoid OpenRouter');
+  assert.equal(state.generateCalls, 1, 'stored analysis should not bypass OpenRouter');
+  assert.equal(state.reservedQuotaCalls, 1, 'fresh analysis should reserve AI quota');
   assert.equal(statusCode, 200);
-  assert.equal(res.body.analysis.status, 'stored');
-  assert.equal(res.body.analysis.summary, 'Stored analysis');
+  assert.equal(res.body.analysis.status, 'openrouter');
+  assert.equal(res.body.analysis.summary, 'Fresh analysis');
+  assert.equal(res.body.analysis.opportunity, 'Fresh idea');
 });
 
-test('analyzeTrend ignores fallback cache values and regenerates analysis', async () => {
+test('analyzeTrend regenerates analysis when old fallback values exist', async () => {
   const { state, nextError, res, statusCode } = await withStubbedModules('fallback');
 
   assert.equal(nextError, null);

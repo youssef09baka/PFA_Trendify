@@ -63,23 +63,10 @@ const refreshRedditPrediction = async (trend) => {
   return safeValue;
 };
 
-const FALLBACK_CACHE_PATTERNS = [
-  /ai unavailable/i,
-  /no idea available/i,
-  /ce signal gagne en visibilité/i,
-  /le sujet est visible dans les signaux actuels/i,
-  /construisez une mini-édition/i,
-  /créer un extrait de veille rapide/i,
-  /préparer un angle business ou newsletter autour de/i,
-  /transformer le sujet en mini-briefing/i
-];
-
-const hasRealStoredAnalysis = (analysis, idea) => {
-  if (typeof analysis !== 'string' || !analysis.trim()) return false;
-  if (typeof idea !== 'string' || !idea.trim()) return false;
-
-  const combined = `${analysis || ''}\n${idea || ''}`;
-  return !FALLBACK_CACHE_PATTERNS.some((pattern) => pattern.test(combined));
+const clampFeedLimit = (value) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 1) return 12;
+  return Math.min(Math.floor(parsed), 100);
 };
 
 const getFeed = asyncHandler(async (req, res, next) => {
@@ -87,7 +74,7 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
   const forceRefresh = String(req.query.refresh || "false").toLowerCase() === "true";
   const page = req.query.page ? Number(req.query.page) : 1;
-  const limit = req.query.limit ? Number(req.query.limit) : 12;
+  const limit = req.query.limit ? clampFeedLimit(req.query.limit) : 12;
   const sort = req.query.sort || 'newest';
   const category = req.query.category || undefined;
   const source = req.query.source || undefined;
@@ -296,54 +283,6 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
     const err = new Error('Trend not found');
     err.statusCode = 404;
     return next(err);
-  }
-
-  const hasStoredAnalysis = Boolean(
-    typeof trend.analysis === 'string' && trend.analysis.trim() &&
-    typeof trend.idea === 'string' && trend.idea.trim()
-  );
-  const canReuseStoredAnalysis = hasStoredAnalysis && hasRealStoredAnalysis(trend.analysis, trend.idea);
-
-  if (canReuseStoredAnalysis) {
-    // Ensure ml_prediction is fresh for Reddit when returning stored analysis
-    let mlPrediction = normalizePredictionValue(trend.ml_prediction);
-    if (String(trend.source || '').toLowerCase().includes('reddit')) {
-      try {
-        const predicted = await predictTrend(trend);
-        mlPrediction = safePredictionValue(predicted);
-        await Trend.findByIdAndUpdate(trend._id, { $set: { ml_prediction: mlPrediction }, updatedAt: new Date() }).catch(() => null);
-      } catch (err) {
-        // keep existing value if prediction fails
-      }
-    }
-
-    return res.status(200).json({
-      trend: {
-        id: trend._id,
-        title: trend.title,
-        source: trend.source,
-        category: trend.category,
-        score: trend.score || 0,
-        scoreDetails: trend.scoreDetails || {},
-        analysis: trend.analysis || '',
-        idea: trend.idea || '',
-        link: trend.link || '',
-        image: trend.image || '',
-        thumbnail: trend.thumbnail || '',
-        mediaType: trend.mediaType || 'none',
-        ml_prediction: safePredictionValue(mlPrediction)
-      },
-      analysis: {
-        status: 'stored',
-        summary: trend.analysis || '',
-        opportunity: trend.idea || '',
-        businessOpportunities: [trend.idea || ''],
-        contentIdeas: [trend.idea || ''],
-        prediction: trend.analysis || '',
-        confidence: 'Medium'
-      },
-      aiRemaining: req.user?.aiRemaining ?? 0
-    });
   }
 
   if (req.user && typeof req.user.aiRemaining === 'number' && req.user.aiRemaining <= 0) {

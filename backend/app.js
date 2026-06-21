@@ -8,7 +8,6 @@ const rateLimit = require("express-rate-limit");
 const mongoSanitize = require("express-mongo-sanitize");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
-const trendRoutes = require("./routes/trendRoutes");
 const feedRoutes = require("./routes/feedRoutes");
 const requestLogger = require("./middleware/requestLogger");
 const notFound = require("./middleware/notFoundMiddleware");
@@ -45,7 +44,6 @@ app.use(generalLimiter);
 app.use(requestLogger);
 
 app.use("/api/users", userRoutes);
-app.use("/api/trends", trendRoutes);
 app.use("/api/feed", feedRoutes);
 
 app.get("/", (req, res) => {

@@ -1,5 +1,5 @@
 // Reddit ingestion now prefers OAuth API. If OAuth credentials are missing, the service falls back to the RSS parser.
-const { REDDIT_FETCH_LIMIT } = require("../../config/config");
+const { REDDIT_FETCH_LIMIT, REDDIT_DISABLED_SUBREDDITS } = require("../../config/config");
 const { fetchRedditPosts } = require("./redditApi");
 const {
   cleanTitle,
@@ -12,7 +12,14 @@ const { generateMlFeatures } = require("../featureGenerator");
 const { extractFromReddit } = require('./mediaExtractor');
 const { SUBREDDITS } = require('./redditSubreddits');
 
-const SUBREDDIT_LIST = SUBREDDITS;
+const DISABLED_SUBREDDITS = new Set(
+  String(REDDIT_DISABLED_SUBREDDITS || '')
+    .split(',')
+    .map((subreddit) => subreddit.trim().toLowerCase())
+    .filter(Boolean)
+);
+
+const SUBREDDIT_LIST = SUBREDDITS.filter((subreddit) => !DISABLED_SUBREDDITS.has(String(subreddit).toLowerCase()));
 
 const normalizeTitleKey = (title) =>
   String(title || '')

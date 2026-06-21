@@ -30,7 +30,7 @@ function SavedDrawer({ trends, onClose, onRemove }) {
         <div style={{ padding: '20px', borderBottom: '1px solid var(--divider)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)' }}>Sauvegardés</h2>
-            <p style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{list.length} trend{list.length !== 1 ? 's' : ''}</p>
+            <p style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{list.length} signal{list.length > 1 ? 's' : ''}</p>
           </div>
           <div>
             <Button variant="ghost" onClick={onClose} icon={<X size={14} />} iconOnly />

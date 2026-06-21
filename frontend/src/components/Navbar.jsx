@@ -17,7 +17,7 @@ export default function Navbar() {
 
   const links = user ? [
     { to:'/feed',        label:'Flux',          icon:<Rss size={15}/> },
-    { to:'/dashboard',   label:'Tableau',      icon:<LayoutDashboard size={15}/> },
+    { to:'/dashboard',   label:'Tableau de bord',      icon:<LayoutDashboard size={15}/> },
     { to:'/preferences', label:'Préférences',   icon:<Settings size={15}/> },
   ] : [];
 
@@ -79,7 +79,7 @@ export default function Navbar() {
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
 
           {/* Theme toggle */}
-          <Button onClick={toggle} aria-label="Toggle theme" iconOnly variant="ghost" icon={dark ? <Sun size={15} /> : <Moon size={15} />} />
+          <Button onClick={toggle} aria-label="Changer le thème" iconOnly variant="ghost" icon={dark ? <Sun size={15} /> : <Moon size={15} />} />
 
           {/* Desktop: avatar + logout */}
           {user ? (
