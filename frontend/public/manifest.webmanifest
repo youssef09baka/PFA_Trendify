@@ -1,0 +1,17 @@
+{
+  "name": "Trendify",
+  "short_name": "Trendify",
+  "description": "Plateforme de veille des tendances, opportunites business et idees de contenu.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f6fff",
+  "icons": [
+    {
+      "src": "/brand/trendify-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

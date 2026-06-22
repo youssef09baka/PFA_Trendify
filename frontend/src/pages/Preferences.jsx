@@ -1,23 +1,25 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import api from '../api/axios';
 import Navbar from '../components/Navbar';
-import { Cpu, Gamepad2, Briefcase, GraduationCap, HeartPulse, Globe, Rocket, Music, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
+import { Cpu, Gamepad2, Briefcase, GraduationCap, HeartPulse, Globe, Rocket, Music, CheckCircle2, ArrowRight, Sparkles, Moon, Sun } from 'lucide-react';
 
 const CATEGORIES = [
-  { id:'tech',       label:'Technologie',   sub:'IA, Dev, Data',       icon:<Cpu size={24}/>,         color:'#FFDC50', bg:'rgba(255,220,80,0.1)',   border:'rgba(255,220,80,0.3)'   },
-  { id:'gaming',     label:'Gaming',         sub:'VR, Esport, Mobile',  icon:<Gamepad2 size={24}/>,    color:'#60A5FA', bg:'rgba(96,165,250,0.1)',   border:'rgba(96,165,250,0.3)'   },
-  { id:'business',   label:'Business',       sub:'Startup, Finance',    icon:<Briefcase size={24}/>,   color:'#4ADE80', bg:'rgba(74,222,128,0.1)',   border:'rgba(74,222,128,0.3)'   },
-  { id:'education',  label:'Éducation',      sub:'Cours, Bootcamp',     icon:<GraduationCap size={24}/>,color:'#A78BFA',bg:'rgba(167,139,250,0.1)', border:'rgba(167,139,250,0.3)'  },
-  { id:'health',     label:'Santé',          sub:'Fitness, Bien-être',  icon:<HeartPulse size={24}/>,  color:'#F87171', bg:'rgba(248,113,113,0.1)', border:'rgba(248,113,113,0.3)'  },
-  { id:'society',    label:'Société',        sub:'Actualité, Culture',  icon:<Globe size={24}/>,       color:'#FB923C', bg:'rgba(251,146,60,0.1)',  border:'rgba(251,146,60,0.3)'   },
-  { id:'startup',    label:'Startup',        sub:'Levées, Produits',    icon:<Rocket size={24}/>,      color:'#60A5FA', bg:'rgba(96,165,250,0.1)',  border:'rgba(96,165,250,0.3)'   },
-  { id:'creator',    label:'Créateurs',      sub:'YouTube, TikTok',     icon:<Music size={24}/>,       color:'#F472B6', bg:'rgba(244,114,182,0.1)', border:'rgba(244,114,182,0.3)'  },
+  { id:'tech',       label:'Technologie',   sub:'IA, Dev, Data',       icon:<Cpu size={24}/>,          color:'#2563EB', bg:'rgba(37,99,235,0.08)',   border:'rgba(37,99,235,0.22)'   },
+  { id:'gaming',     label:'Gaming',         sub:'VR, Esport, Mobile',  icon:<Gamepad2 size={24}/>,     color:'#0891B2', bg:'rgba(8,145,178,0.08)',   border:'rgba(8,145,178,0.22)'   },
+  { id:'business',   label:'Business',       sub:'Startup, Finance',    icon:<Briefcase size={24}/>,    color:'#16A34A', bg:'rgba(22,163,74,0.08)',   border:'rgba(22,163,74,0.22)'   },
+  { id:'education',  label:'Éducation',      sub:'Cours, Bootcamp',     icon:<GraduationCap size={24}/>,color:'#0EA5E9', bg:'rgba(14,165,233,0.08)',  border:'rgba(14,165,233,0.22)'  },
+  { id:'health',     label:'Santé',          sub:'Fitness, Bien-être',  icon:<HeartPulse size={24}/>,   color:'#DC2626', bg:'rgba(220,38,38,0.07)',   border:'rgba(220,38,38,0.18)'   },
+  { id:'society',    label:'Société',        sub:'Actualité, Culture',  icon:<Globe size={24}/>,        color:'#0284C7', bg:'rgba(2,132,199,0.08)',   border:'rgba(2,132,199,0.22)'   },
+  { id:'startup',    label:'Startup',        sub:'Levées, Produits',    icon:<Rocket size={24}/>,       color:'#059669', bg:'rgba(5,150,105,0.08)',   border:'rgba(5,150,105,0.22)'   },
+  { id:'creator',    label:'Créateurs',      sub:'YouTube, TikTok',     icon:<Music size={24}/>,        color:'#2563EB', bg:'rgba(37,99,235,0.08)',   border:'rgba(37,99,235,0.22)'   },
 ];
 
 export default function Preferences() {
   const { user, updateUser } = useAuth();
+  const { dark, toggle: toggleTheme } = useTheme();
   const [selected, setSelected] = useState(() => Array.isArray(user?.preferences) ? user.preferences : []);
   const [loading,  setLoading]  = useState(false);
   const [message, setMessage] = useState('');
@@ -58,7 +60,7 @@ export default function Preferences() {
           {/* HEADER */}
           <div style={{ textAlign:'center', marginBottom:44 }}>
             <div style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'5px 14px', borderRadius:20, border:'1px solid var(--y-border)', background:'var(--y-dim)', fontSize:11, fontWeight:700, color:'var(--y)', letterSpacing:'.5px', textTransform:'uppercase', marginBottom:20 }}>
-              <Sparkles size={13}/> Personnalisation IA
+              <Sparkles size={13}/> Personnalisation
             </div>
             {message && (
               <div style={{ margin:'0 auto 18px', maxWidth:520, color:'var(--text)', fontSize:13, padding:'12px 16px', borderRadius:12, background:'rgba(255,255,255,0.04)', border:'1px solid rgba(255,255,255,0.08)' }}>
@@ -69,7 +71,7 @@ export default function Preferences() {
               Choisissez vos domaines d'intérêt
             </h1>
             <p style={{ fontSize:14, color:'var(--text2)', lineHeight:1.6, maxWidth:420, margin:'0 auto' }}>
-              L'IA va surveiller ces catégories en temps réel et personnaliser votre feed selon vos choix.
+              Votre flux affichera uniquement les domaines qui vous intéressent.
             </p>
           </div>
 
@@ -87,6 +89,18 @@ export default function Preferences() {
             <div style={{ height:5, borderRadius:3, background:'var(--glass-b)' }}>
               <div style={{ height:'100%', borderRadius:3, width:`${pct}%`, background:'linear-gradient(90deg,var(--y),#FFB800)', transition:'width .4s ease' }}/>
             </div>
+          </div>
+
+          <div className="settings-card" style={{ marginBottom:28 }}>
+            <div>
+              <span className="settings-card-label">Apparence</span>
+              <h2>Thème de l'interface</h2>
+              <p>Gardez une interface claire le jour, ou passez en mode sombre pour les sessions longues.</p>
+            </div>
+            <button type="button" className="theme-toggle-card" onClick={toggleTheme} aria-label="Changer le thème">
+              {dark ? <Moon size={18} /> : <Sun size={18} />}
+              <span>{dark ? 'Mode sombre' : 'Mode clair'}</span>
+            </button>
           </div>
 
           {/* GRID */}

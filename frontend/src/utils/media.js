@@ -23,15 +23,6 @@ export const isPlaceholderMedia = (value) => {
   );
 };
 
-const simpleHash = (value) => {
-  let hash = 2166136261;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return Math.abs(hash);
-};
-
 // REMOVED: getFallbackThemeImage() - No generic fallback images used
 // Only real, relevant images are displayed
 

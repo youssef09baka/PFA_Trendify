@@ -5,18 +5,14 @@ import api from '../api/axios';
 import {
   Bookmark,
   RefreshCw,
-  Search,
   Loader2,
   Filter,
-  ArrowRight,
-  X,
-  Zap
+  X
 } from 'lucide-react';
 import Button from '../components/Button';
 import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import MediaBox from '../components/MediaBox';
-import Input from '../components/Input';
 import { formatScore } from '../utils/ui';
 import { getCardMediaUrl } from '../utils/media';
 import { applyFeedMix, getSeenTrendIds, rememberTrendView } from '../utils/feedMix';
@@ -87,13 +83,13 @@ function displaySourceLabel(source) {
 }
 
 function formatSummary(trend) {
-  const raw = trend.analysis || trend.summary || trend.description;
+  const raw = trend.excerpt || trend.summary || trend.description;
   if (!raw) {
     return 'Analyse rapide non disponible. Consultez la page détail pour approfondir.';
   }
   const cleaned = String(raw).trim();
   if (/ai unavailable/i.test(cleaned)) {
-    return 'Analyse IA indisponible pour ce signal. Consultez la page détail pour le contexte.';
+    return 'Contexte indisponible pour ce signal. Consultez la page détail pour approfondir.';
   }
   return cleaned;
 }
@@ -178,9 +174,8 @@ export default function Feed() {
   const [hidden, setHidden] = useState([]);
   const [saved, setSaved] = useState([]);
   const [savedItems, setSavedItems] = useState([]);
-  const sourceOptions = ['Newest', 'Google', 'Reddit'];
-  const [filter, setFilter] = useState('Newest');
-  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [sortMode, setSortMode] = useState('recent');
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [meta, setMeta] = useState({ page: 1, limit: PAGE_SIZE, hasMore: false });
@@ -233,8 +228,6 @@ export default function Feed() {
     let params = { page: nextPage, limit: PAGE_SIZE, seen: getSeenTrendIds().join(',') };
 
     try {
-      if (filter && filter !== 'Newest') params.source = filter;
-
       const response = await api.get('/feed', { params });
 
       const { data } = response;
@@ -261,7 +254,6 @@ export default function Feed() {
       console.warn('[FEED-PAGINATION] request failed', {
         page: nextPage,
         reset,
-        filter,
         status: error?.response?.status,
         statusText: error?.response?.statusText,
         message: error?.message,
@@ -276,7 +268,7 @@ export default function Feed() {
       if (reset) setLoading(false);
       else setLoadingMore(false);
     }
-  }, [filter]);
+  }, []);
 
   const loadNextPage = useCallback(() => {
     if (loadingRef.current || !hasMoreRef.current) return false;
@@ -291,17 +283,6 @@ export default function Feed() {
       await Promise.all([fetchFeed(1, true), fetchSavedTrends()]);
     })();
   }, [fetchFeed, fetchSavedTrends]);
-
-  useEffect(() => {
-    pageRef.current = 1;
-    hasMoreRef.current = true;
-
-    const timer = window.setTimeout(() => {
-      void fetchFeed(1, true);
-    }, 0);
-
-    return () => window.clearTimeout(timer);
-  }, [filter, fetchFeed]);
 
   const createObserver = useCallback(() => {
     if (!loaderRef.current) return;
@@ -347,7 +328,7 @@ export default function Feed() {
     if (!loaderRef.current || !hasMoreRef.current || loadingRef.current) return;
     if (observerRef.current && observerActiveRef.current) return;
     createObserver();
-  }, [meta.hasMore, loading, loadNextPage, filter, createObserver]);
+  }, [meta.hasMore, loading, loadNextPage, createObserver]);
 
   const handleSave = async (id) => {
     const isSaved = saved.includes(id);
@@ -382,26 +363,23 @@ export default function Feed() {
   };
 
   const visibleTrends = baseData.filter((t) => !hidden.includes(t._id || t.id));
-  const filteredTrends = visibleTrends.filter((trend) => {
-    const sourceValue = String(trend.source || '').toLowerCase();
-    const sourceMatch = filter === 'Newest' ||
-      (filter === 'Google' && sourceValue.includes('google')) ||
-      (filter === 'Reddit' && sourceValue.includes('reddit'));
-    const query = search.trim().toLowerCase();
-    if (!query) return sourceMatch;
-    return (
-      sourceMatch &&
-      ((trend.title || '').toLowerCase().includes(query) ||
-        (trend.category || '').toLowerCase().includes(query) ||
-        sourceValue.includes(query))
-    );
-  });
+  const categoryOptions = Array.from(new Set(
+    visibleTrends
+      .map((trend) => String(trend.category || '').trim())
+      .filter(Boolean)
+  )).slice(0, 8);
+  const filteredTrends = visibleTrends.filter((trend) => (
+    categoryFilter === 'all' || String(trend.category || '').trim() === categoryFilter
+  ));
 
   // Preserve strict chronological order when the feed is already sorted by newest.
-  const personalizedTrends = applyFeedMix(filteredTrends, getSeenTrendIds(), {
-    preserveOrder: filter === 'Newest' || meta.page > 1,
-    sortMode: filter === 'Newest' ? 'newest' : undefined
+  const mixedTrends = applyFeedMix(filteredTrends, getSeenTrendIds(), {
+    preserveOrder: sortMode === 'recent' || meta.page > 1,
+    sortMode: sortMode === 'recent' ? 'newest' : undefined
   });
+  const personalizedTrends = sortMode === 'score'
+    ? [...mixedTrends].sort((a, b) => Number(b.score || 0) - Number(a.score || 0))
+    : mixedTrends;
 
   const handleViewDetail = (id) => {
     rememberTrendView(id);
@@ -415,9 +393,9 @@ export default function Feed() {
         <div style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 20px 40px', width: '100%' }}>
           <section className="feed-page-header">
             <div>
-              <span className="eyebrow">Flux de découverte</span>
-              <h1>Signaux récents</h1>
-              <p>Explorez les dernières tendances sans être noyé par du contenu IA. Analyse manuelle disponible sur la page détail.</p>
+              <span className="eyebrow">Explorer</span>
+              <h1>Feed des tendances</h1>
+              <p>Découvrez les signaux Reddit, Google Trends et les tendances filtrées par vos préférences.</p>
             </div>
             <div className="feed-header-actions">
               <Button variant="ghost" onClick={() => fetchFeed(1, true)} disabled={loading} className="" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -430,29 +408,44 @@ export default function Feed() {
           </section>
 
           <section className="feed-tools">
-            <div className="feed-search">
-              <Search size={16} />
-              <Input
-                id="feed-search"
-                type="search"
-                aria-label="Recherche de tendances"
-                placeholder="Recherche par mot-clé, source ou catégorie"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                helper="Appuyez sur Entrée pour filtrer le flux."
-              />
-            </div>
             <div className="feed-chip-row">
-              {sourceOptions.map((sourceOption) => (
+              <Button
+                type="button"
+                variant={categoryFilter === 'all' ? 'primary' : 'ghost'}
+                className={categoryFilter === 'all' ? 'feed-chip active' : 'feed-chip'}
+                onClick={() => setCategoryFilter('all')}
+                style={{ padding: '6px 12px' }}
+              >
+                Toutes
+              </Button>
+              {categoryOptions.map((category) => (
                 <Button
-                  key={sourceOption}
+                  key={category}
                   type="button"
-                  variant={filter === sourceOption ? 'primary' : 'ghost'}
-                  className={filter === sourceOption ? 'feed-chip active' : 'feed-chip'}
-                  onClick={() => setFilter(sourceOption)}
+                  variant={categoryFilter === category ? 'primary' : 'ghost'}
+                  className={categoryFilter === category ? 'feed-chip active' : 'feed-chip'}
+                  onClick={() => setCategoryFilter(category)}
                   style={{ padding: '6px 12px' }}
                 >
-                  {sourceOption}
+                  {category}
+                </Button>
+              ))}
+            </div>
+
+            <div className="feed-chip-row feed-sort-row">
+              {[
+                { value: 'recent', label: 'Récents' },
+                { value: 'score', label: 'Top score' }
+              ].map((option) => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  variant={sortMode === option.value ? 'primary' : 'ghost'}
+                  className={sortMode === option.value ? 'feed-chip active' : 'feed-chip'}
+                  onClick={() => setSortMode(option.value)}
+                  style={{ padding: '6px 12px' }}
+                >
+                  {option.label}
                 </Button>
               ))}
             </div>
@@ -462,7 +455,6 @@ export default function Feed() {
             <div>
               <span style={{ fontWeight: 700, color: 'var(--text)' }}>{personalizedTrends.length}</span> tendance{personalizedTrends.length > 1 ? 's' : ''} affichée{personalizedTrends.length > 1 ? 's' : ''}
             </div>
-            {search && <div style={{ color: 'var(--text3)', fontSize: 13 }}>Filtrée par «{search}»</div>}
             {meta.hasMore && !loading && !loadingMore ? (
               <Button variant="ghost" onClick={() => void loadNextPage()} style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 Charger plus
@@ -479,7 +471,7 @@ export default function Feed() {
               <EmptyState
                 icon={<Filter size={28} />}
                 title="Aucune tendance trouvée"
-                subtitle="Essayez un autre mot-clé ou changez la source pour explorer plus de signaux."
+                subtitle="Changez de source ou rechargez le flux pour explorer plus de signaux."
                 action={hidden.length > 0 ? <Button variant="ghost" onClick={() => setHidden([])}>Réafficher les tendances masquées</Button> : null}
               />
             ) : personalizedTrends.map((trend) => (

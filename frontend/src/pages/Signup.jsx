@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
-import { Zap, User, Mail, Lock, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react';
+import { User, Mail, Lock, ArrowRight, AlertCircle, ShieldCheck } from 'lucide-react';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
@@ -73,15 +73,9 @@ export default function Signup() {
         position:'relative', zIndex:1,
         border:'1px solid var(--y-border)',
       }}>
-        {/* Logo */}
         <div style={{ display:'flex', alignItems:'center', gap:9, fontWeight:800, fontSize:15, marginBottom:8 }}>
-          <div style={{
-            width:28, height:28, borderRadius:8,
-            background:'var(--y)', display:'flex', alignItems:'center', justifyContent:'center',
-          }}>
-            <Zap size={14} color="#06070D" fill="#06070D"/>
-          </div>
-          TrendAI
+          <img src="/brand/trendify-logo.png" alt="" style={{ width:28, height:28, borderRadius:8 }} />
+          Trendify
         </div>
 
         <div style={{
@@ -96,7 +90,7 @@ export default function Signup() {
         </div>
 
         <h1 style={{ fontSize:24, fontWeight:800, letterSpacing:'-.5px', marginBottom:6 }}>
-          Rejoindre TrendAI
+          Rejoindre Trendify
         </h1>
         <p style={{ fontSize:12, color:'var(--text3)', marginBottom:28 }}>
           L'algorithme qui devance demain.
@@ -121,7 +115,7 @@ export default function Signup() {
             value={form.name}
             onChange={set('name')}
             icon={<User size={15} />}
-            helper="Le nom utilisé pour votre compte TrendAI."
+            helper="Le nom utilisé pour votre compte Trendify."
             required
           />
           <Input

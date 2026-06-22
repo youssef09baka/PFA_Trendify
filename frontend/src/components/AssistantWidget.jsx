@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Bot, Mic, Send, Square, Volume2, X } from 'lucide-react';
+import { MessageCircle, Mic, Send, Square, Volume2, X } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 
@@ -62,7 +62,7 @@ const getBestFrenchVoice = () => {
 const initialMessages = [
   {
     role: 'assistant',
-    content: 'Bonjour, je suis Trendi. Posez-moi une question sur les tendances, les opportunités business ou les idées de contenu détectées par AI Trend Predictor.'
+    content: 'Bonjour, je suis Trendi. Posez-moi une question sur les tendances, les opportunités business ou les idées de contenu détectées par Trendify.'
   }
 ];
 
@@ -229,7 +229,9 @@ export default function AssistantWidget() {
       const answer = data?.data?.answer || 'Je n’ai pas pu produire une réponse exploitable.';
       setMessages((prev) => [...prev, { role: 'assistant', content: answer }]);
     } catch (error) {
-      const answer = error.response?.data?.message || 'Trendi est momentanément indisponible.';
+      const answer = error.response?.data?.status === 'ai_unavailable'
+        ? 'Trendi indisponible\n\nLe moteur IA est actuellement inaccessible. Veuillez réessayer dans quelques instants.'
+        : (error.response?.data?.message || 'Trendi est momentanément indisponible.');
       setMessages((prev) => [...prev, { role: 'assistant', content: answer }]);
     } finally {
       setLoading(false);
@@ -379,7 +381,7 @@ export default function AssistantWidget() {
             })}
             {loading ? (
               <div className="assistant-message assistant-message--assistant">
-                <p>Trendi analyse les signaux AI Trend Predictor...</p>
+                <p>Trendi analyse les signaux de la plateforme...</p>
               </div>
             ) : null}
           </div>
@@ -425,7 +427,7 @@ export default function AssistantWidget() {
         </section>
       ) : (
         <button type="button" className="assistant-launcher" onClick={() => setOpen(true)} aria-label="Ouvrir Trendi">
-          <Bot size={18} />
+          <MessageCircle size={18} />
           Trendi
         </button>
       )}

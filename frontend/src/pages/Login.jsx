@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
-import { Zap, Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import Button from '../components/Button';
 import Input from '../components/Input';
 
@@ -46,7 +46,7 @@ export default function Login() {
     try {
       const { data } = await api.post('/users/login', { email, password });
       login(data.user, data.token);
-      navigate('/feed');
+      navigate('/home');
     } catch (err) {
       setError(formatAuthError(err, 'Identifiants incorrects.'));
     } finally {
@@ -78,15 +78,9 @@ export default function Login() {
         position:'relative', zIndex:1,
         border:'1px solid var(--y-border)',
       }}>
-        {/* Logo */}
         <div style={{ display:'flex', alignItems:'center', gap:9, fontWeight:800, fontSize:15, marginBottom:28 }}>
-          <div style={{
-            width:28, height:28, borderRadius:8,
-            background:'var(--y)', display:'flex', alignItems:'center', justifyContent:'center',
-          }}>
-            <Zap size={14} color="#06070D" fill="#06070D"/>
-          </div>
-          TrendAI
+          <img src="/brand/trendify-logo.png" alt="" style={{ width:28, height:28, borderRadius:8 }} />
+          Trendify
         </div>
 
         <h1 style={{ fontSize:24, fontWeight:800, letterSpacing:'-.5px', marginBottom:6 }}>Bienvenue</h1>

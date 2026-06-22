@@ -21,7 +21,7 @@ export default function TrendDetail() {
 
   const summary = useMemo(() => {
     if (!trend) return '';
-    return trend.summary || trend.description || trend.analysis || 'Signal important détecté par le flux de veille.';
+    return trend.summary || trend.description || trend.excerpt || 'Signal important détecté par le flux de veille.';
   }, [trend]);
 
   const getPredictionBadgeStyle = (value) => {
@@ -120,7 +120,7 @@ export default function TrendDetail() {
                 </Button>
               )}
               <Button type="button" variant="primary" onClick={() => navigate(`/ai/${trend?._id || trend?.id}`)} disabled={!trend}>
-                Faire analyser avec l’IA
+                Ouvrir le rapport
               </Button>
               <Button type="button" variant="ghost" onClick={handleToggleSave} disabled={saving} style={{ opacity: saving ? 0.8 : 1 }}>
                 {trend?.isSaved ? 'Retirer' : 'Sauvegarder'}
@@ -223,28 +223,17 @@ export default function TrendDetail() {
                     </div>
                   </div>
 
-                  {trend.idea && (
-                    <div className="panel-card card-content">
-                      <div className="section-heading">
-                        <div>
-                          <small>Inspiration</small>
-                          <h2>Idée de contenu</h2>
-                        </div>
-                      </div>
-                      <p>{trend.idea}</p>
-                    </div>
-                  )}
                 </section>
 
                 <aside className="detail-sidebar">
                   <div className="panel-card card-content ai-panel">
                     <div className="section-heading">
                       <div>
-                        <small>Analyse IA</small>
-                        <h3>Espace dédié</h3>
+                      <small>Rapport</small>
+                      <h3>Espace dédié</h3>
                       </div>
                     </div>
-                    <p>Le widget statique est remplacé par un espace de recherche IA dédié au signal sélectionné.</p>
+                    <p>Ouvrez un rapport dédié pour comprendre le potentiel de ce signal.</p>
                     <Button type="button" variant="primary" onClick={() => navigate(`/ai/${trend?._id || trend?.id}`)}>
                       Ouvrir l’espace d’analyse
                     </Button>
