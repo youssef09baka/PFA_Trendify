@@ -18,6 +18,7 @@ Thumbs.db
 
 # Build
 dist/
+artifacts/
 
 # Python
 __pycache__/

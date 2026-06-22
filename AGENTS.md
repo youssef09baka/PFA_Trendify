@@ -1,90 +1,110 @@
-# AI Trend Predictor — Agent Guide
+# Trendify - Agent Guide
 
-## Quick start
+## Quick Start
 
 ```bash
-cd backend && npm install && npm run dev    # Express API (port 3000)
-cd frontend && npm install && npm run dev   # Vite dev server (proxy /api -> :3000)
+cd backend && npm install && npm run dev
+cd frontend && npm install && npm run dev
 ```
 
-Root `package.json` references `start-dev.ps1` / `stop-dev.ps1` — those scripts **do not exist** (broken). Use individual `npm run dev` per package instead.
+Root commands are also available:
 
-## Architecture — three packages in one repo
+```bash
+npm run dev:backend
+npm run dev:frontend
+npm test
+npm run build
+npm run lint
+```
+
+## Architecture
 
 | Directory | Tech | Entry | Module system |
 |-----------|------|-------|---------------|
-| `backend/` | Node 20, Express 4, Mongoose 8 | `server.js` → `app.js` | **CommonJS** (`type: commonjs`) |
-| `frontend/` | React 19, Vite, Tailwind v4, React Router v7 | `src/main.jsx` → `App.jsx` | **ESM** (`type: module`) |
-| `ml-model/` | Python 3.12, Flask, scikit-learn | `app.py` (port 5001) | — |
+| `backend/` | Node 20, Express 4, Mongoose 8 | `server.js` -> `app.js` | CommonJS |
+| `frontend/` | React 19, Vite, Tailwind v4, React Router v7 | `src/main.jsx` -> `App.jsx` | ESM |
+| `ml-model/` | Python 3.12, Flask, scikit-learn | `app.py` | Experimental artifact |
 
-**Backend starts a background feed sync on boot** (`services/feedSync.js`), plus media backfill/repair tasks. No need to trigger manually.
+The backend starts background feed sync on boot through `backend/services/feedSync.js`.
 
-## Key commands
+## Backend Commands
 
-### Backend
-- `npm run dev` — nodemon hot-reload on `server.js`
-- `npm start` — production `node server.js`
-- `npm test` — **Node.js built-in test runner**: `node --test test/*.js`
-- `node archive/scripts/<script>.js` — archived backend utilities (21 scripts: AI provider comparison, data audits, scoring verification, etc.)
+- `npm run dev` - nodemon hot reload
+- `npm start` - production server
+- `npm test` - Node.js built-in test runner
+- `node archive/scripts/<script>.js` - archived audit and utility scripts
 
-### Frontend
-- `npm run dev` — Vite dev server
-- `npm run build` — Vite production build
-- `npm run lint` — ESLint (flat config, `eslint.config.js`)
-- `npm run preview` — serve built app (used in Docker: port 4173)
+## Frontend Commands
 
-### ML model
-- `python app.py` — Flask server on port 5001
-- `python train.py` — trains model on `data/Redit_data.csv`, saves to `models/trend_predictor.pkl`
+- `npm run dev` - Vite dev server
+- `npm run build` - production build
+- `npm run lint` - ESLint
+- `npm run preview` - serve built app
 
-### Docker
-- `docker-compose up` — starts mongo (27017), backend (5000), frontend (4173)
-- ML model has its own `Dockerfile` but is **not** in `docker-compose.yml`
+## ML Model
 
-## Env setup
+`ml-model/` is intentionally not integrated into the runtime backend. It remains a PFA presentation artifact because the current Reddit collection no longer provides enough stable engagement features, such as comment counts, for reliable live prediction.
 
-Backend `.env` (required vars — no `.env.example` exists):
+Runtime prediction uses `backend/services/mlService.js`, which wraps the internal score-based classifier in `potentialClassifier.js`.
+
+## Docker
+
+`docker-compose up` starts:
+
+- MongoDB on port 27017
+- backend on port 5000
+- frontend preview on port 4173
+
+The ML model has its own Dockerfile but is not part of `docker-compose.yml`.
+
+## Environment
+
+Use `.env.example` as the template.
+
+Required backend variables:
+
+```text
+MONGO_URI=<mongodb-uri>
+JWT_SECRET=<long-random-secret>
+GROQ_API_KEY=<gsk_...>
 ```
-MONGO_URI=<mongodb+srv://...>
-JWT_SECRET=<secret>
-OPENROUTER_API_KEY=<sk-or-v1-...>
+
+Useful optional variables:
+
+```text
+GROQ_MODEL=llama-3.3-70b-versatile
+SERPAPI_KEY=<serpapi-key>
+FRONTEND_URL=http://localhost:4173
+PORT=5000
+REDDIT_CLIENT_ID=<optional>
+REDDIT_CLIENT_SECRET=<optional>
+REDDIT_DISABLED_SUBREDDITS=entertainment,cybersecurity,space
 ```
 
-Optional: `GROQ_API_KEY`, `GOOGLE_CSE_API_KEY`, `GOOGLE_CSE_ENGINE_ID`, `PORT` (default 5000, but dev `.env` overrides to 3000), `REDDIT_CLIENT_ID`/`SECRET`, etc.
+Never commit real `.env` values.
 
-**The committed `.env` contains real credentials** — avoid committing changes to it.
-
-## API routes
+## Main API Routes
 
 | Route | Auth | Purpose |
 |-------|------|---------|
-| `POST /api/users/signup` | No | Register (rate limited: 30/15min) |
-| `POST /api/users/login` | No | Login (rate limited) |
-| `PUT /api/users/preferences` | JWT | Update user preferences |
-| `GET /api/users/profile` | JWT | Get current user |
+| `POST /api/users/signup` | No | Register |
+| `POST /api/users/login` | No | Login |
+| `PUT /api/users/preferences` | JWT | Update preferences |
+| `GET /api/users/profile` | JWT | Current profile |
 | `GET /api/users/saved-trends` | JWT | Saved trends |
 | `GET /api/feed` | JWT | Personalized feed |
+| `GET /api/feed/search` | JWT | Dedicated search |
 | `GET /api/feed/:id` | JWT | Trend detail |
-| `POST /api/feed/:id/analyze` | JWT | AI analysis (consumes quota) |
+| `POST /api/feed/:id/analyze` | JWT | Fresh Groq analysis |
 | `POST /api/feed/:id/save` | JWT | Save trend |
 | `DELETE /api/feed/:id/save` | JWT | Unsave trend |
+| `POST /api/assistant/chat` | JWT | Trendi assistant |
 
-Rate limits: general 600 req/15min, auth 30 req/15min.
+## Runtime Notes
 
-## Testing quirks
-
-- Tests use **Node.js `node:test`** (built-in, no Jest/Mocha). Run with `npm test` from `backend/`.
-- Tests stub `require.cache` directly (no mocking library). They swap module exports in/out per scenario.
-- 4 test files in `backend/test/`. All stub MongoDB + OpenRouter calls.
-- No frontend tests exist.
-
-## Notable conventions
-
-- **AI analysis quota**: Each user has `aiRemaining` (default 1000, daily reset). Quota is reserved atomically via `findOneAndUpdate` before calling OpenRouter.
-- **Trend caching**: Fetched trends cached in-memory for 10 min (`TREND_CACHE_DURATION_MS`).
-- **ML prediction**: `backend/services/mlService.js` uses **internal score-based classifier** (`potentialClassifier.js`), not the Flask ML service. HIGH >= 70, LOW < 70.
-- **Mongoose** `strictQuery: true`, `autoIndex: false` (production safety).
-- **Vite dev server** proxies `/api` → `http://localhost:3000`.
-- **No CI/CD** — no `.github/` workflows.
-
-## JSON/API responses follow `{ success: bool, data/error: ... }` pattern.
+- AI analysis depends exclusively on Groq.
+- No local AI fallback report is generated.
+- Trend analysis is generated on demand and is not persisted in MongoDB.
+- Feed preferences use strict category filtering.
+- Mongoose `autoIndex` is disabled; schema indexes document the expected production indexes.
+- `artifacts/` is ignored and should not be committed.

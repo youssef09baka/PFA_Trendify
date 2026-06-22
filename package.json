@@ -2,7 +2,10 @@
   "name": "pfa-v1-dev",
   "private": true,
   "scripts": {
-    "dev:all": "powershell -ExecutionPolicy Bypass -File ./start-dev.ps1",
-    "dev:stop": "powershell -ExecutionPolicy Bypass -File ./stop-dev.ps1"
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "test": "npm --prefix backend test",
+    "build": "npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint"
   }
 }
