@@ -192,7 +192,6 @@ export default function Feed() {
   const hasMoreRef = useRef(true);
   const loadingRef = useRef(false);
   const observerRef = useRef(null);
-  const fallbackTimerRef = useRef(null);
   const observerActiveRef = useRef(false);
 
   const showToast = (msg) => setToast(msg);
@@ -349,37 +348,6 @@ export default function Feed() {
     if (observerRef.current && observerActiveRef.current) return;
     createObserver();
   }, [meta.hasMore, loading, loadNextPage, filter, createObserver]);
-
-  useEffect(() => {
-    if (!hasMoreRef.current || loadingRef.current) {
-      if (fallbackTimerRef.current) {
-        window.clearTimeout(fallbackTimerRef.current);
-        fallbackTimerRef.current = null;
-      }
-      return;
-    }
-
-    const scheduledPage = pageRef.current;
-    if (fallbackTimerRef.current) {
-      window.clearTimeout(fallbackTimerRef.current);
-    }
-
-    fallbackTimerRef.current = window.setTimeout(() => {
-      if (!hasMoreRef.current || loadingRef.current) return;
-      if (pageRef.current !== scheduledPage) return;
-      if (!observerRef.current || !observerActiveRef.current) {
-        createObserver();
-      }
-      void loadNextPage();
-    }, 3500);
-
-    return () => {
-      if (fallbackTimerRef.current) {
-        window.clearTimeout(fallbackTimerRef.current);
-        fallbackTimerRef.current = null;
-      }
-    };
-  }, [baseData.length, meta.hasMore, loading, loadingMore, loadNextPage, filter, createObserver]);
 
   const handleSave = async (id) => {
     const isSaved = saved.includes(id);

@@ -69,6 +69,39 @@ const clampFeedLimit = (value) => {
   return Math.min(Math.floor(parsed), 100);
 };
 
+const PREFERENCE_MAPPING = {
+  tech: ['Tech'],
+  gaming: ['Gaming'],
+  business: ['Business'],
+  education: ['Science'],
+  health: ['Science'],
+  society: ['Social', 'Discussion'],
+  startup: ['Startups'],
+  creator: ['Social', 'Entertainment', 'Web Culture']
+};
+
+const uniqueValues = (items = []) => [...new Set(items.map((item) => String(item || '').trim()).filter(Boolean))];
+const uniqueLower = (items = []) => uniqueValues(items).map((item) => item.toLowerCase());
+
+const buildPersonalizationProfile = (preferences = []) => {
+  const activePreferences = uniqueLower(preferences).filter((pref) => PREFERENCE_MAPPING[pref]);
+  if (!activePreferences.length) {
+    return { personalized: false, activePreferences: [], allowedCategories: [] };
+  }
+
+  const allowedCategories = [];
+
+  activePreferences.forEach((pref) => {
+    allowedCategories.push(...PREFERENCE_MAPPING[pref]);
+  });
+
+  return {
+    personalized: true,
+    activePreferences,
+    allowedCategories: uniqueValues(allowedCategories)
+  };
+};
+
 const getFeed = asyncHandler(async (req, res, next) => {
   const user = req.user;
 
@@ -84,8 +117,21 @@ const getFeed = asyncHandler(async (req, res, next) => {
     .map((value) => value.trim())
     .filter(Boolean);
   const runtimeSeed = Math.random();
+  const personalizationProfile = buildPersonalizationProfile(user?.preferences || []);
+  const requestedPage = Math.max(1, Number(page) || 1);
+  const requestedLimit = Number(limit);
 
-  const stored = await getFeedTrends({ page, limit, category, source, sort, viral, seenIds, runtimeSeed });
+  const stored = await getFeedTrends({
+    page: requestedPage,
+    limit: requestedLimit,
+    category,
+    categories: personalizationProfile.personalized ? personalizationProfile.allowedCategories : undefined,
+    source,
+    sort,
+    viral,
+    seenIds,
+    runtimeSeed
+  });
   const storedTrends = stored.data || [];
   const savedSet = new Set((user?.savedTrends || []).map(String));
 
@@ -96,14 +142,16 @@ const getFeed = asyncHandler(async (req, res, next) => {
   }
 
   if (storedTrends && storedTrends.length > 0 && !forceRefresh) {
-    let filteredStored = storedTrends;
-    if (user?.preferences?.length > 0) {
-      const prefs = user.preferences.map(p => p.toLowerCase());
-      const matched = storedTrends.filter(trend => prefs.some(pref => String(trend.title || '').toLowerCase().includes(pref)));
-      if (matched.length > 0) filteredStored = matched;
-    }
-
-    const finalStored = filteredStored.length > 0 ? filteredStored : storedTrends;
+    const finalStored = storedTrends;
+    const responseMeta = {
+      ...(stored.meta || { total: finalStored.length, sourceCounts: {}, categoryCounts: {} }),
+      page: requestedPage,
+      limit: requestedLimit,
+      totalPages: Math.max(1, Math.ceil(Number(stored.meta?.total || finalStored.length) / requestedLimit)),
+      hasMore: requestedPage < Math.max(1, Math.ceil(Number(stored.meta?.total || finalStored.length) / requestedLimit)),
+      personalized: personalizationProfile.personalized,
+      activePreferences: personalizationProfile.activePreferences
+    };
 
     const items = await Promise.all(finalStored.map(async (trend) => ({
       id: trend._id,
@@ -129,7 +177,7 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
     return res.status(200).json({
       items,
-      meta: stored.meta || { total: finalStored.length, page, limit, totalPages: 1, hasMore: false, sourceCounts: {}, categoryCounts: {} },
+      meta: responseMeta,
       user: {
         aiRemaining: user?.aiRemaining ?? 0
       }
@@ -164,16 +212,11 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
   const persistedTrends = await saveTrends(enrichedTrends);
 
-  let filteredTrends = persistedTrends;
-  if (user?.preferences?.length > 0) {
-    filteredTrends = persistedTrends.filter((trend) =>
-      user.preferences.some((pref) =>
-        trend.title.toLowerCase().includes(pref.toLowerCase())
-      )
-    );
-  }
-
-  const finalTrends = filteredTrends.length > 0 ? filteredTrends : persistedTrends;
+  const filteredTrends = personalizationProfile.personalized
+    ? persistedTrends.filter((trend) => personalizationProfile.allowedCategories.includes(String(trend.category || '').trim()))
+    : persistedTrends;
+  const pageStart = (requestedPage - 1) * requestedLimit;
+  const finalTrends = filteredTrends.slice(pageStart, pageStart + requestedLimit);
 
   const items = await Promise.all(finalTrends.map(async (trend) => ({
     id: trend._id,
@@ -200,11 +243,13 @@ const getFeed = asyncHandler(async (req, res, next) => {
   const response = {
     items,
     meta: {
-      total: stored.meta?.total || finalTrends.length,
-      page: stored.meta?.page || page,
-      limit: stored.meta?.limit || limit,
-      totalPages: stored.meta?.totalPages || 1,
-      hasMore: stored.meta?.hasMore || false
+      total: stored.meta?.total || filteredTrends.length,
+      page: requestedPage,
+      limit: requestedLimit,
+      totalPages: Math.max(1, Math.ceil(Number(stored.meta?.total || filteredTrends.length) / requestedLimit)),
+      hasMore: requestedPage < Math.max(1, Math.ceil(Number(stored.meta?.total || filteredTrends.length) / requestedLimit)),
+      personalized: personalizationProfile.personalized,
+      activePreferences: personalizationProfile.activePreferences
     },
     user: {
       aiRemaining: user?.aiRemaining ?? 0

@@ -414,9 +414,13 @@ const saveTrends = async (trends) => {
 
 const normalizeStoredTrends = (trends = []) => scoreTrends(Array.isArray(trends) ? trends.map(generateMlFeatures) : []);
 
-const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 'score', viral, seenIds = [], runtimeSeed } = {}) => {
+const getFeedTrends = async ({ page = 1, limit = 12, category, categories, source, sort = 'score', viral, seenIds = [], runtimeSeed } = {}) => {
   const query = {};
-  if (category) query.category = category;
+  if (Array.isArray(categories) && categories.length > 0) {
+    query.category = { $in: categories };
+  } else if (category) {
+    query.category = category;
+  }
   if (source) {
     query.source = { $regex: new RegExp(source, 'i') };
   }
@@ -452,12 +456,11 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, source, sort = 's
     ])
   ]);
 
-  // Use MongoDB stored data only - dynamic media enrichment disabled
-  const scoredItems = normalizeStoredTrends(items);
+  // Use MongoDB stored scores as-is - dynamic media enrichment disabled
   const seed = Number(runtimeSeed ?? Math.random());
   // Only apply the expensive/mixing reorder for explicit ranking modes.
   // Do not alter the strict chronological order when sorting by newest.
-  const mixedItems = Number(page) === 1 && sort !== 'newest' ? mixFeedItems(scoredItems, { seenIds, seed }) : scoredItems;
+  const mixedItems = Number(page) === 1 && sort !== 'newest' ? mixFeedItems(items, { seenIds, seed }) : items;
   const sourceCounts = Object.fromEntries((sourceCountsResult || []).map((entry) => [entry._id || 'Autre', Number(entry.count) || 0]));
   const categoryCounts = Object.fromEntries((categoryCountsResult || []).map((entry) => [entry._id || 'Non catégorisé', Number(entry.count) || 0]));
   const totalPages = Math.max(1, Math.ceil(total / Number(limit)));

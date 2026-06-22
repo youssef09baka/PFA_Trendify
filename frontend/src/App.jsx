@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import PrivateRoute from './components/PrivateRoute';
+import AssistantWidget from './components/AssistantWidget';
 
 import LandingPage  from './pages/LandingPage';
 import LoginPage    from './pages/Login';
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="/ai/:id"      element={<PrivateRoute><AIWorkspace /></PrivateRoute>} />
             <Route path="*"            element={<Navigate to="/" replace />} />
           </Routes>
+          <AssistantWidget />
         </Router>
       </AuthProvider>
     </ThemeProvider>

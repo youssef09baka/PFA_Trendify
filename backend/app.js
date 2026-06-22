@@ -9,6 +9,7 @@ const mongoSanitize = require("express-mongo-sanitize");
 const connectDB = require("./config/db");
 const userRoutes = require("./routes/userRoutes");
 const feedRoutes = require("./routes/feedRoutes");
+const assistantRoutes = require("./routes/assistantRoutes");
 const requestLogger = require("./middleware/requestLogger");
 const notFound = require("./middleware/notFoundMiddleware");
 const errorHandler = require("./middleware/errorMiddleware");
@@ -45,6 +46,7 @@ app.use(requestLogger);
 
 app.use("/api/users", userRoutes);
 app.use("/api/feed", feedRoutes);
+app.use("/api/assistant", assistantRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ success: true, message: "Backend running" });

@@ -17,7 +17,7 @@ const CATEGORIES = [
 ];
 
 export default function Preferences() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [selected, setSelected] = useState(() => Array.isArray(user?.preferences) ? user.preferences : []);
   const [loading,  setLoading]  = useState(false);
   const [message, setMessage] = useState('');
@@ -35,7 +35,9 @@ export default function Preferences() {
     setMessage('');
     try {
       const { data } = await api.put('/users/preferences', { preferences: selected });
-      setSelected(data.preferences || selected);
+      const savedPreferences = data.preferences || selected;
+      setSelected(savedPreferences);
+      updateUser({ preferences: savedPreferences });
       setMessage('Préférences enregistrées. Redirection vers le flux...');
       setTimeout(() => navigate('/feed'), 700);
     } catch (err) {
