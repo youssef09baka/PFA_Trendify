@@ -24,13 +24,35 @@ const trendSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     default: {}
   },
-  analysis: {
+  credibilityScore: {
+    type: Number,
+    default: 0
+  },
+  credibilityConfidence: {
+    type: String,
+    enum: ["low", "medium", "high"],
+    default: "low"
+  },
+  verificationStatus: {
+    type: String,
+    enum: ["verified", "partially_verified", "unverified", "unverifiable", "disputed"],
+    default: "unverified"
+  },
+  verifiedSources: {
+    type: [mongoose.Schema.Types.Mixed],
+    default: []
+  },
+  credibilityExplanation: {
     type: String,
     default: ""
   },
-  idea: {
-    type: String,
-    default: ""
+  isFakeNews: {
+    type: Boolean,
+    default: false
+  },
+  credibilitySignals: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
   },
   excerpt: {
     type: String,
@@ -121,6 +143,18 @@ const trendSchema = new mongoose.Schema({
   }
 }, {
   timestamps: true
+});
+
+trendSchema.index({ score: -1, updatedAt: -1 });
+trendSchema.index({ fetchedAt: -1, createdAt: -1 });
+trendSchema.index({ category: 1, score: -1 });
+trendSchema.index({ source: 1 });
+trendSchema.index({ verificationStatus: 1, credibilityScore: -1 });
+trendSchema.index({
+  title: "text",
+  tags: "text",
+  category: "text",
+  excerpt: "text"
 });
 
 module.exports = mongoose.model("Trend", trendSchema);

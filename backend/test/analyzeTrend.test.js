@@ -7,9 +7,9 @@ const withStubbedModules = async (scenario = 'real') => {
   const originalTrendModel = require.cache[require.resolve('../models/Trend')];
   const originalUserModel = require.cache[require.resolve('../models/User')];
 
-  const state = { generateCalls: 0, updateCalls: 0, reservedQuotaCalls: 0 };
+  const state = { generateCalls: 0, updateCalls: 0, reservedQuotaCalls: 0, refundedQuotaCalls: 0 };
 
-  const isFallbackScenario = scenario === 'fallback';
+  const isOldFallbackScenario = scenario === 'old-fallback-values';
   const isFreshScenario = scenario === 'fresh' || scenario === 'quota';
 
   const validTrendId = '507f191e810c19729de860ea';
@@ -21,13 +21,13 @@ const withStubbedModules = async (scenario = 'real') => {
     exports: {
       getTrendById: async () => ({
         _id: validTrendId,
-        title: isFallbackScenario ? 'Fallback trend' : 'Stored trend',
+        title: isOldFallbackScenario ? 'Old fallback trend' : 'Stored trend',
         source: 'Reddit',
         category: 'Tech',
         score: 80,
         scoreDetails: {},
-        analysis: isFallbackScenario ? 'AI unavailable' : isFreshScenario ? '' : 'Stored analysis',
-        idea: isFallbackScenario ? 'No idea available' : isFreshScenario ? '' : 'Stored idea',
+        analysis: isOldFallbackScenario ? 'AI unavailable' : isFreshScenario ? '' : 'Stored analysis',
+        idea: isOldFallbackScenario ? 'No idea available' : isFreshScenario ? '' : 'Stored idea',
         link: '',
         image: '',
         thumbnail: '',
@@ -51,7 +51,10 @@ const withStubbedModules = async (scenario = 'real') => {
         }
         return null;
       },
-      findByIdAndUpdate: async () => ({ aiRemaining: 1 })
+      findByIdAndUpdate: async () => {
+        state.refundedQuotaCalls += 1;
+        return { aiRemaining: 1 };
+      }
     }
   };
 
@@ -60,10 +63,15 @@ const withStubbedModules = async (scenario = 'real') => {
     filename: require.resolve('../services/aiService'),
     loaded: true,
     exports: {
-      generateBatchAnalysis: async () => [],
       generateTrendAnalysis: async () => {
         state.generateCalls += 1;
-        return { status: 'openrouter', summary: 'Fresh analysis', opportunity: 'Fresh idea' };
+        if (scenario === 'ai-error') {
+          const error = new Error('Analyse temporairement indisponible.');
+          error.statusCode = 503;
+          error.status = 'ai_unavailable';
+          throw error;
+        }
+        return { status: 'groq', summary: 'Fresh analysis', opportunity: 'Fresh idea' };
       }
     }
   };
@@ -73,9 +81,12 @@ const withStubbedModules = async (scenario = 'real') => {
     filename: require.resolve('../models/Trend'),
     loaded: true,
     exports: {
-      findByIdAndUpdate: () => ({
-        lean: async () => ({ _id: 'trend-1' })
-      })
+      findByIdAndUpdate: () => {
+        state.updateCalls += 1;
+        return {
+          lean: async () => ({ _id: 'trend-1' })
+        };
+      }
     }
   };
 
@@ -110,23 +121,37 @@ test('analyzeTrend always regenerates analysis even when stored values exist', a
   const { state, nextError, res, statusCode } = await withStubbedModules('real');
 
   assert.equal(nextError, null);
-  assert.equal(state.generateCalls, 1, 'stored analysis should not bypass OpenRouter');
+  assert.equal(state.generateCalls, 1, 'stored analysis should not bypass Groq');
+  assert.equal(state.updateCalls, 0, 'fresh analysis must not be stored on Trend');
   assert.equal(state.reservedQuotaCalls, 1, 'fresh analysis should reserve AI quota');
   assert.equal(statusCode, 200);
-  assert.equal(res.body.analysis.status, 'openrouter');
+  assert.equal(res.body.analysis.status, 'groq');
   assert.equal(res.body.analysis.summary, 'Fresh analysis');
   assert.equal(res.body.analysis.opportunity, 'Fresh idea');
 });
 
 test('analyzeTrend regenerates analysis when old fallback values exist', async () => {
-  const { state, nextError, res, statusCode } = await withStubbedModules('fallback');
+  const { state, nextError, res, statusCode } = await withStubbedModules('old-fallback-values');
 
   assert.equal(nextError, null);
-  assert.equal(state.generateCalls, 1, 'fallback cache values should trigger fresh OpenRouter analysis');
+  assert.equal(state.generateCalls, 1, 'old cache values should trigger fresh Groq analysis');
+  assert.equal(state.updateCalls, 0, 'regeneration must not be stored on Trend');
   assert.equal(statusCode, 200);
   assert.notEqual(res.body.analysis.status, 'stored');
   assert.equal(res.body.analysis.summary, 'Fresh analysis');
   assert.equal(res.body.analysis.opportunity, 'Fresh idea');
+});
+
+test('analyzeTrend returns ai_unavailable and refunds quota when Groq fails', async () => {
+  const { state, nextError, res } = await withStubbedModules('ai-error');
+
+  assert.equal(res.body, null);
+  assert.equal(state.generateCalls, 1, 'analysis should be attempted once');
+  assert.equal(state.refundedQuotaCalls, 1, 'quota should be restored after AI failure');
+  assert.ok(nextError, 'Groq failure should be passed to error middleware');
+  assert.equal(nextError.statusCode, 503);
+  assert.equal(nextError.status, 'ai_unavailable');
+  assert.equal(nextError.message, 'Analyse temporairement indisponible.');
 });
 
 test('analyzeTrend reserves AI quota atomically and returns updated balance', async () => {

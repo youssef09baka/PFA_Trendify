@@ -18,7 +18,16 @@ router.post("/login", authLimiter, loginUser);
 router.put("/preferences", protect, updatePreferences);
 
 router.get("/profile", protect, (req, res) => {
-  res.json(req.user);
+  res.json({
+    id: req.user._id,
+    name: req.user.name,
+    email: req.user.email,
+    preferences: req.user.preferences || [],
+    savedTrends: req.user.savedTrends || [],
+    aiRemaining: req.user.aiRemaining,
+    aiLastReset: req.user.aiLastReset,
+    createdAt: req.user.createdAt
+  });
 });
 
 router.get('/saved-trends', protect, getSavedTrends);

@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Trend = require("../models/Trend");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { Types } = require("mongoose");
 const asyncHandler = require("../middleware/asyncHandler");
 const { JWT_EXPIRATION, JWT_SECRET } = require("../config/config");
 
@@ -129,17 +130,11 @@ const updatePreferences = asyncHandler(async (req, res, next) => {
 });
 
 const saveTrend = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user._id);
   const trendId = req.params.id;
-
-  if (!user) {
-    const error = new Error('User not found');
-    error.statusCode = 404;
+  if (!Types.ObjectId.isValid(String(trendId))) {
+    const error = new Error('Invalid trend ID format');
+    error.statusCode = 400;
     return next(error);
-  }
-
-  if (user.savedTrends.map(String).includes(String(trendId))) {
-    return res.status(200).json({ message: 'Already saved', isSaved: true });
   }
 
   // check trend exists
@@ -150,34 +145,50 @@ const saveTrend = asyncHandler(async (req, res, next) => {
     return next(error);
   }
 
-  user.savedTrends.push(trend._id);
-  await user.save();
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: req.user._id, savedTrends: { $ne: trend._id } },
+    { $addToSet: { savedTrends: trend._id } },
+    { new: true }
+  );
 
-  // increment savedCount (best-effort)
+  if (!updatedUser) {
+    return res.status(200).json({ message: 'Already saved', isSaved: true });
+  }
+
   await Trend.findByIdAndUpdate(trend._id, { $inc: { savedCount: 1 } }).catch(() => null);
 
   res.status(200).json({ message: 'Saved', isSaved: true });
 });
 
 const unsaveTrend = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user._id);
   const trendId = req.params.id;
-
-  if (!user) {
-    const error = new Error('User not found');
-    error.statusCode = 404;
+  if (!Types.ObjectId.isValid(String(trendId))) {
+    const error = new Error('Invalid trend ID format');
+    error.statusCode = 400;
     return next(error);
   }
 
-  const idx = user.savedTrends.map(String).indexOf(String(trendId));
-  if (idx === -1) {
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: req.user._id, savedTrends: trendId },
+    { $pull: { savedTrends: trendId } },
+    { new: true }
+  );
+
+  if (!updatedUser) {
+    const existingUser = await User.exists({ _id: req.user._id });
+    if (!existingUser) {
+      const error = new Error('User not found');
+      error.statusCode = 404;
+      return next(error);
+    }
+
     return res.status(200).json({ message: 'Not saved', isSaved: false });
   }
 
-  user.savedTrends.splice(idx, 1);
-  await user.save();
-
-  await Trend.findByIdAndUpdate(trendId, { $inc: { savedCount: -1 } }).catch(() => null);
+  await Trend.findOneAndUpdate(
+    { _id: trendId, savedCount: { $gt: 0 } },
+    { $inc: { savedCount: -1 } }
+  ).catch(() => null);
 
   res.status(200).json({ message: 'Unsaved', isSaved: false });
 });
@@ -203,7 +214,6 @@ const getSavedTrends = asyncHandler(async (req, res, next) => {
     source: t.source,
     category: t.category,
     image: t.image,
-    shortAnalysis: t.analysis ? (t.analysis.length > 240 ? t.analysis.slice(0,237)+'...' : t.analysis) : '',
     ml_prediction: t.ml_prediction,
     createdAt: t.createdAt,
     savedCount: t.savedCount || 0

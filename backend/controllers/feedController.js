@@ -9,12 +9,13 @@ const Trend = require("../models/Trend");
 const User = require("../models/User");
 const { Types } = require("mongoose");
 const { getRealTrends } = require("../services/data");
-const { TREND_PERSIST_LIMIT, TREND_ANALYSIS_LIMIT } = require("../config/config");
-const { generateBatchAnalysis, generateTrendAnalysis } = require("../services/aiService");
+const { TREND_PERSIST_LIMIT } = require("../config/config");
+const { generateTrendAnalysis } = require("../services/aiService");
 const { predictTrend } = require("../services/mlService");
 const { saveTrends, scoreTrends, getFeedTrends, getTrendById, getRelatedTrends } = require("../services/trendService");
 
 const ALLOWED_PREDICTIONS = ['HIGH', 'LOW', 'UNAVAILABLE'];
+const SEARCH_SCAN_LIMIT = 500;
 
 const normalizePredictionValue = (value) => {
   if (value === null) return null;
@@ -67,6 +68,66 @@ const clampFeedLimit = (value) => {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed < 1) return 12;
   return Math.min(Math.floor(parsed), 100);
+};
+
+const clampSearchLimit = (value) => {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 1) return 20;
+  return Math.min(Math.floor(parsed), 50);
+};
+
+const escapeRegex = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const normalizeSearchText = (value) => String(value || '')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase()
+  .trim();
+
+const buildTrendSearchQuery = (rawQuery) => {
+  const query = String(rawQuery || '').trim();
+  if (!query) return null;
+
+  const pattern = new RegExp(escapeRegex(query), 'i');
+  return {
+    $or: [
+      { title: pattern },
+      { tags: pattern },
+      { category: pattern },
+      { excerpt: pattern },
+      { link: pattern }
+    ]
+  };
+};
+
+const calculateSearchRelevance = (trend, rawQuery) => {
+  const query = normalizeSearchText(rawQuery);
+  if (!query) return 0;
+
+  const words = query.split(/\s+/).filter((word) => word.length > 1);
+  const title = normalizeSearchText(trend.title);
+  const category = normalizeSearchText(trend.category);
+  const tags = Array.isArray(trend.tags) ? normalizeSearchText(trend.tags.join(' ')) : '';
+  const excerpt = normalizeSearchText(trend.excerpt);
+  const link = normalizeSearchText(trend.link);
+
+  let relevance = 0;
+  if (title === query) relevance += 100;
+  if (title.includes(query)) relevance += 70;
+  if (tags.includes(query)) relevance += 45;
+  if (category.includes(query)) relevance += 35;
+  if (excerpt.includes(query)) relevance += 28;
+  if (link.includes(query)) relevance += 20;
+
+  words.forEach((word) => {
+    if (title.includes(word)) relevance += 14;
+    if (tags.includes(word)) relevance += 8;
+    if (category.includes(word)) relevance += 6;
+    if (excerpt.includes(word)) relevance += 5;
+    if (link.includes(word)) relevance += 4;
+  });
+
+  return relevance;
 };
 
 const PREFERENCE_MAPPING = {
@@ -160,14 +221,16 @@ const getFeed = asyncHandler(async (req, res, next) => {
       score: trend.score,
       source: trend.source,
       category: trend.category,
+      credibilityScore: trend.credibilityScore || 0,
+      credibilityConfidence: trend.credibilityConfidence || 'low',
+      verificationStatus: trend.verificationStatus || 'unverified',
+      isFakeNews: Boolean(trend.isFakeNews),
       popularity: trend.popularity || 0,
       growth: trend.growth || 0,
       image: trend.image || '',
       video: trend.video || '',
       thumbnail: trend.thumbnail || '',
       mediaType: trend.mediaType || 'none',
-      analysis: trend.analysis || '',
-      idea: trend.idea || '',
       link: trend.link || '',
       ml_prediction: await refreshRedditPrediction(trend),
       createdAt: trend.createdAt,
@@ -192,20 +255,17 @@ const getFeed = asyncHandler(async (req, res, next) => {
   }
 
   const scoredTrends = scoreTrends(rawTrends).slice(0, Math.max(24, Number(TREND_PERSIST_LIMIT || 1000)));
-  const analysisBatch = scoredTrends.slice(0, Math.min(scoredTrends.length, Number(TREND_ANALYSIS_LIMIT || 250)));
 
   if (forceRefresh && user) {
     user.aiRemaining = Math.max(0, (user.aiRemaining || 0) - 1);
     await user.save();
   }
 
-  const trends = await generateBatchAnalysis(analysisBatch);
-
   const predictions = await Promise.all(
-    trends.map((trend) => predictTrend(trend))
+    scoredTrends.map((trend) => predictTrend(trend))
   );
 
-  const enrichedTrends = trends.map((trend, index) => ({
+  const enrichedTrends = scoredTrends.map((trend, index) => ({
     ...trend,
     ml_prediction: predictions[index]
   }));
@@ -225,14 +285,16 @@ const getFeed = asyncHandler(async (req, res, next) => {
     score: trend.score,
     source: trend.source,
     category: trend.category,
+    credibilityScore: trend.credibilityScore || 0,
+    credibilityConfidence: trend.credibilityConfidence || 'low',
+    verificationStatus: trend.verificationStatus || 'unverified',
+    isFakeNews: Boolean(trend.isFakeNews),
     popularity: trend.popularity || 0,
     growth: trend.growth || 0,
     image: trend.image || '',
     video: trend.video || '',
     thumbnail: trend.thumbnail || '',
     mediaType: trend.mediaType || 'none',
-    analysis: trend.analysis || '',
-    idea: trend.idea || '',
     link: trend.link || '',
     ml_prediction: await refreshRedditPrediction(trend),
     createdAt: trend.createdAt,
@@ -257,6 +319,74 @@ const getFeed = asyncHandler(async (req, res, next) => {
   };
 
   res.status(200).json(response);
+});
+
+const searchTrends = asyncHandler(async (req, res) => {
+  const query = String(req.query.q || '').trim();
+  const limit = clampSearchLimit(req.query.limit);
+  const mongoQuery = buildTrendSearchQuery(query);
+
+  if (!mongoQuery) {
+    return res.status(200).json({
+      items: [],
+      meta: {
+        query,
+        total: 0,
+        limit
+      }
+    });
+  }
+
+  const trends = await Trend.find(mongoQuery)
+    .select('title source category score image video thumbnail mediaType link tags excerpt createdAt savedCount ml_prediction credibilityScore credibilityConfidence verificationStatus isFakeNews')
+    .sort({ score: -1, createdAt: -1 })
+    .limit(SEARCH_SCAN_LIMIT)
+    .lean();
+
+  const savedSet = new Set((req.user?.savedTrends || []).map(String));
+  const ranked = trends
+    .map((trend) => ({
+      ...trend,
+      searchRelevance: calculateSearchRelevance(trend, query)
+    }))
+    .filter((trend) => trend.searchRelevance > 0)
+    .sort((a, b) => {
+      if (b.searchRelevance !== a.searchRelevance) return b.searchRelevance - a.searchRelevance;
+      return Number(b.score || 0) - Number(a.score || 0);
+    });
+
+  const items = ranked.slice(0, limit).map((trend) => ({
+    id: trend._id,
+    _id: trend._id,
+    title: trend.title,
+    score: trend.score,
+    source: trend.source,
+    category: trend.category,
+    image: trend.image || '',
+    video: trend.video || '',
+    thumbnail: trend.thumbnail || '',
+    mediaType: trend.mediaType || 'none',
+    link: trend.link || '',
+    tags: Array.isArray(trend.tags) ? trend.tags : [],
+    credibilityScore: trend.credibilityScore || 0,
+    credibilityConfidence: trend.credibilityConfidence || 'low',
+    verificationStatus: trend.verificationStatus || 'unverified',
+    isFakeNews: Boolean(trend.isFakeNews),
+    ml_prediction: safePredictionValue(trend.ml_prediction),
+    createdAt: trend.createdAt,
+    savedCount: trend.savedCount || 0,
+    isSaved: savedSet.has(String(trend._id))
+  }));
+
+  res.status(200).json({
+    items,
+    meta: {
+      query,
+      total: ranked.length,
+      limit,
+      searchedFields: ['title', 'tags', 'category', 'excerpt', 'link']
+    }
+  });
 });
 
 const getTrendDetail = asyncHandler(async (req, res, next) => {
@@ -293,11 +423,15 @@ const getTrendDetail = asyncHandler(async (req, res, next) => {
     id: trend._id,
     title: trend.title,
     excerpt: trend.excerpt || '',
-    analysis: trend.analysis || '',
-    idea: trend.idea || '',
     ml_prediction: safePredictionValue(trend.ml_prediction),
     score: trend.score || 0,
     scoreDetails: trend.scoreDetails || {},
+    credibilityScore: trend.credibilityScore || 0,
+    credibilityConfidence: trend.credibilityConfidence || 'low',
+    verificationStatus: trend.verificationStatus || 'unverified',
+    verifiedSources: Array.isArray(trend.verifiedSources) ? trend.verifiedSources : [],
+    credibilityExplanation: trend.credibilityExplanation || '',
+    isFakeNews: Boolean(trend.isFakeNews),
     source: trend.source,
     category: trend.category,
     image: trend.image || '',
@@ -365,25 +499,7 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
     throw error;
   }
 
-  const persistedAnalysis = analysis?.summary || trend.analysis || '';
-  const persistedIdea = analysis?.opportunity || trend.idea || '';
-  const mlPredictionObject = await predictTrend(trend);
-  const mlPrediction = safePredictionValue(mlPredictionObject);
-
-  await Trend.findByIdAndUpdate(
-    trend._id,
-    {
-      $set: {
-        analysis: persistedAnalysis,
-        idea: persistedIdea,
-        ml_prediction: mlPrediction,
-        updatedAt: new Date()
-      }
-    },
-    { new: true }
-  ).lean().catch(() => null);
-
-  if (reservedQuota && analysis?.status !== 'openrouter') {
+  if (reservedQuota && analysis?.status !== 'groq') {
     const restoredUser = await User.findByIdAndUpdate(req.user._id, { $inc: { aiRemaining: 1 } }, { new: true }).catch(() => null);
     req.user.aiRemaining = restoredUser ? restoredUser.aiRemaining : Math.max(0, (req.user.aiRemaining || 0) + 1);
   }
@@ -396,20 +512,27 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
       category: trend.category,
       score: trend.score || 0,
       scoreDetails: trend.scoreDetails || {},
-      analysis: persistedAnalysis,
-      idea: persistedIdea,
+      analysis: analysis?.summary || '',
+      idea: analysis?.opportunity || '',
       link: trend.link || '',
       image: trend.image || '',
       thumbnail: trend.thumbnail || '',
       mediaType: trend.mediaType || 'none',
-      ml_prediction: safePredictionValue(mlPrediction)
+      ml_prediction: safePredictionValue(trend.ml_prediction)
     },
     analysis: {
       ...analysis,
-      status: analysis?.status || 'fallback'
+      status: analysis?.status || 'groq'
     },
     aiRemaining: req.user?.aiRemaining ?? 0
   });
 });
 
-module.exports = { getFeed, getTrendDetail, analyzeTrend };
+module.exports = {
+  getFeed,
+  searchTrends,
+  getTrendDetail,
+  analyzeTrend,
+  buildTrendSearchQuery,
+  calculateSearchRelevance
+};

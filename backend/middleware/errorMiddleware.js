@@ -9,7 +9,11 @@ const errorHandler = (err, req, res, next) => {
     message: err.message || "Server Error"
   };
 
-  if (process.env.NODE_ENV === "development") {
+  if (err.status) {
+    payload.status = err.status;
+  }
+
+  if (process.env.NODE_ENV === "development" && err.status !== "ai_unavailable") {
     payload.stack = err.stack;
   }
 

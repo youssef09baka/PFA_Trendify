@@ -10,6 +10,7 @@ const { isPlaceholderMediaUrl } = require('./data/mediaExtractor');
 const { computeMediaFingerprint } = require('./data/mediaUniqueness');
 const { generateMlFeatures } = require("./featureGenerator");
 const { predictTrend } = require("./mlService");
+const { evaluateTrendCredibility } = require("./credibilityService");
 
 const ALLOWED_PREDICTIONS = ['HIGH', 'LOW', 'UNAVAILABLE'];
 
@@ -363,6 +364,11 @@ const saveTrends = async (trends) => {
       }
 
       const mlPredictionValue = mlPrediction || 'UNAVAILABLE';
+      const credibility = evaluateTrendCredibility({
+        ...finalTrend,
+        source: normalizedSource,
+        category: normalizedCategory
+      });
 
       const update = {
         title: finalTrend.title,
@@ -374,8 +380,13 @@ const saveTrends = async (trends) => {
           growth: finalTrend.growth || 0,
           formula: '0.7 * popularity + 0.3 * growth'
         },
-        analysis: finalTrend.analysis || '',
-        idea: finalTrend.idea || '',
+        credibilityScore: credibility.credibilityScore,
+        credibilityConfidence: credibility.confidence,
+        verificationStatus: credibility.verificationStatus,
+        verifiedSources: credibility.verifiedSources,
+        credibilityExplanation: credibility.explanation,
+        isFakeNews: credibility.isFakeNews,
+        credibilitySignals: credibility.signals,
         ml_prediction: mlPredictionValue,
         popularity: finalTrend.popularity || 0,
         growth: finalTrend.growth || 0,

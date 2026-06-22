@@ -12,7 +12,6 @@ const PLACEHOLDER_IMAGE = process.env.PLACEHOLDER_IMAGE || 'https://via.placehol
 const AI_ANALYSIS_QUOTA = Number(process.env.AI_ANALYSIS_QUOTA || 1000);
 const TREND_INGEST_LIMIT = Number(process.env.TREND_INGEST_LIMIT || 5000);
 const TREND_PERSIST_LIMIT = Number(process.env.TREND_PERSIST_LIMIT || 1000);
-const TREND_ANALYSIS_LIMIT = Number(process.env.TREND_ANALYSIS_LIMIT || 250);
 const TREND_CACHE_DURATION_MS = Number(process.env.TREND_CACHE_DURATION_MS || 10 * 60 * 1000);
 const REDDIT_FETCH_LIMIT = Number(process.env.REDDIT_FETCH_LIMIT || 75);
 const REDDIT_MAX_RETRIES = Number(process.env.REDDIT_MAX_RETRIES || 3);
@@ -21,8 +20,10 @@ const REDDIT_CLIENT_ID = process.env.REDDIT_CLIENT_ID || '';
 const REDDIT_CLIENT_SECRET = process.env.REDDIT_CLIENT_SECRET || '';
 const REDDIT_USERNAME = process.env.REDDIT_USERNAME || '';
 const REDDIT_PASSWORD = process.env.REDDIT_PASSWORD || '';
-const REDDIT_USER_AGENT = process.env.REDDIT_USER_AGENT || 'TrendAI/1.0 (+https://trendai.local)';
+const REDDIT_USER_AGENT = process.env.REDDIT_USER_AGENT || 'Trendify/1.0 (+https://trendify.local)';
 const GOOGLE_TRENDS_LIMIT = Number(process.env.GOOGLE_TRENDS_LIMIT || 120);
+const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
 
 if (!MONGO_URI) {
   throw new Error("Missing required environment variable: MONGO_URI");
@@ -43,7 +44,6 @@ module.exports = {
   AI_ANALYSIS_QUOTA,
   TREND_INGEST_LIMIT,
   TREND_PERSIST_LIMIT,
-  TREND_ANALYSIS_LIMIT,
   TREND_CACHE_DURATION_MS,
   REDDIT_FETCH_LIMIT,
   REDDIT_MAX_RETRIES,
@@ -53,5 +53,7 @@ module.exports = {
   REDDIT_USERNAME,
   REDDIT_PASSWORD,
   REDDIT_USER_AGENT,
-  GOOGLE_TRENDS_LIMIT
+  GOOGLE_TRENDS_LIMIT,
+  GROQ_API_KEY,
+  GROQ_MODEL
 };
