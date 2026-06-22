@@ -34,9 +34,7 @@ function HotTrendCard({ trend }) {
 export default function Home() {
   const { user } = useAuth();
   const [trends, setTrends] = useState([]);
-  const [saved, setSaved] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [aiRemaining, setAiRemaining] = useState(Number(user?.aiRemaining) || 0);
 
   useEffect(() => {
     let active = true;
@@ -44,25 +42,15 @@ export default function Home() {
     async function loadHome() {
       setLoading(true);
       try {
-        const [feedResponse, savedResponse] = await Promise.all([
-          api.get('/feed', { params: { page: 1, limit: 8 } }),
-          api.get('/users/saved-trends')
-        ]);
+        const feedResponse = await api.get('/feed', { params: { page: 1, limit: 8 } });
 
         if (!active) return;
 
         const feedItems = Array.isArray(feedResponse.data?.items) ? feedResponse.data.items : [];
-        const savedItems = Array.isArray(savedResponse.data?.items) ? savedResponse.data.items : [];
         setTrends(feedItems);
-        setSaved(savedItems);
-
-        if (feedResponse.data?.user?.aiRemaining !== undefined) {
-          setAiRemaining(Number(feedResponse.data.user.aiRemaining) || 0);
-        }
       } catch {
         if (active) {
           setTrends([]);
-          setSaved([]);
         }
       } finally {
         if (active) setLoading(false);
@@ -81,7 +69,6 @@ export default function Home() {
   );
 
   const preferences = Array.isArray(user?.preferences) ? user.preferences : [];
-  const bestScore = topTrends[0]?.score;
 
   return (
     <div className="page-layout">
@@ -104,29 +91,6 @@ export default function Home() {
               Rechercher <Search size={16} />
             </Link>
           </div>
-        </section>
-
-        <section className="home-stats-grid">
-          <article>
-            <span>Tendances chargees</span>
-            <strong>{loading ? '...' : trends.length}</strong>
-            <p>Signaux disponibles dans votre premiere page.</p>
-          </article>
-          <article>
-            <span>Score le plus chaud</span>
-            <strong>{bestScore !== undefined ? formatScore(bestScore) : '--'}</strong>
-            <p>Meilleur signal observe actuellement.</p>
-          </article>
-          <article>
-            <span>Favoris</span>
-            <strong>{loading ? '...' : saved.length}</strong>
-            <p>Tendances sauvegardees pour y revenir.</p>
-          </article>
-          <article>
-            <span>Analyses restantes</span>
-            <strong>{aiRemaining}</strong>
-            <p>Credits d'analyse disponibles sur le compte.</p>
-          </article>
         </section>
 
         <div className="home-layout-grid">
