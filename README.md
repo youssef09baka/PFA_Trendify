@@ -1,222 +1,300 @@
-# AI Trend Predictor
+# Trendify
 
-## Présentation du projet
+Trendify est une plateforme de veille et d'analyse de tendances développée dans le cadre du Projet de Fin d'Année.
 
-AI Trend Predictor est une plateforme intelligente développée dans le cadre du Projet de Fin d'Année (PFA) à l'ESISA.
+Le projet aide un utilisateur à découvrir des tendances issues de Reddit et Google Trends, à les filtrer selon ses préférences, à sauvegarder les plus intéressantes et à générer des analyses stratégiques avec IA.
 
-L'objectif du projet est d'aider les créateurs de contenu, entrepreneurs et professionnels du marketing à identifier rapidement les tendances émergentes à partir de plusieurs sources de données telles que Reddit et Google Trends.
+## Objectif
 
-La plateforme collecte automatiquement les tendances, les analyse, les classe selon leur potentiel et génère des analyses assistées par intelligence artificielle afin d'aider les utilisateurs à mieux comprendre les opportunités associées à chaque sujet.
+Les tendances évoluent rapidement et les signaux utiles sont dispersés entre plusieurs sources. Trendify centralise ces signaux et les transforme en informations exploitables pour :
 
----
+- identifier les sujets émergents ;
+- comprendre pourquoi une tendance monte ;
+- détecter des opportunités business ;
+- générer des idées de contenu ;
+- personnaliser le flux selon les préférences utilisateur ;
+- interagir avec un assistant intelligent spécialisé, Trendi.
 
-## Problématique
+## Fonctionnalités
 
-Aujourd'hui, les tendances évoluent très rapidement sur Internet. Les informations sont dispersées sur plusieurs plateformes et il devient difficile d'identifier les sujets réellement porteurs.
+### Authentification
 
-Notre objectif était donc de concevoir une solution capable de :
+- inscription et connexion utilisateur ;
+- authentification JWT ;
+- routes privées protégées ;
+- quota quotidien d'analyses IA.
 
-* Collecter des tendances depuis différentes sources.
-* Nettoyer et filtrer les données récupérées.
-* Évaluer automatiquement leur pertinence.
-* Fournir une analyse claire et exploitable.
-* Présenter les résultats dans une interface simple et personnalisée.
+### Collecte et feed
 
----
+- collecte Reddit RSS ;
+- collecte Google Trends via SerpAPI ;
+- nettoyage et normalisation des tendances ;
+- suppression des doublons ;
+- scoring des tendances ;
+- persistance MongoDB ;
+- feed paginé ;
+- filtrage strict selon les préférences utilisateur.
 
-## Fonctionnalités principales
+### Recherche
 
-### Authentification sécurisée
-
-* Création de compte
-* Connexion utilisateur
-* Authentification JWT
-* Protection des routes privées
-
-### Collecte de données
-
-* Intégration Reddit
-* Intégration Google Trends
-* Fusion des données provenant de plusieurs sources
-
-### Traitement des tendances
-
-* Nettoyage des données
-* Suppression des doublons
-* Système de scoring
-* Classification du potentiel des tendances
+- page de recherche dédiée ;
+- recherche dans le titre, les tags, la catégorie, l'extrait et le lien ;
+- classement par pertinence de recherche avant le score brut.
 
 ### Analyse IA
 
-* Analyse automatique des tendances
-* Génération d'opportunités business
-* Génération d'idées de contenu
-* Interprétation du potentiel de croissance
+- génération d'un rapport stratégique à la demande ;
+- fournisseur IA actuel : Groq ;
+- aucune analyse IA stockée de manière permanente dans MongoDB ;
+- aucun fallback local simulé : si Groq est indisponible, l'interface affiche une erreur claire.
 
-### Expérience utilisateur
+### Trendi
 
-* Feed personnalisé
-* Sauvegarde des tendances
-* Préférences utilisateur
-* Consultation détaillée des tendances
+Trendi est l'assistant intelligent de Trendify.
 
----
+Il utilise les tendances disponibles dans MongoDB pour répondre comme un analyste stratégique :
 
-## Architecture générale
+- recommandations de tendances ;
+- idées business ;
+- idées de contenu ;
+- comparaison de signaux ;
+- réponses vocales via `speechSynthesis` navigateur ;
+- dictée via Web Speech API lorsque le navigateur la supporte.
 
-Le projet est composé de trois parties principales :
+### Crédibilité
+
+Trendify ajoute une couche d'évaluation de crédibilité à chaque tendance :
+
+- score de crédibilité ;
+- niveau de confiance ;
+- statut de vérification ;
+- sources reconnues lorsqu'elles sont disponibles ;
+- détection de signaux à risque dans les titres et métadonnées.
+
+
+### Favoris et profil
+
+- sauvegarde et suppression de tendances favorites ;
+- page favoris ;
+- page profil ;
+- gestion des préférences ;
+- thème clair/sombre depuis le profil.
+
+## Architecture
+
+```text
+frontend/ React + Vite
+    |
+    | HTTP /api
+    v
+backend/ Node.js + Express
+    |
+    | Mongoose
+    v
+MongoDB Atlas
+
+Sources externes:
+- Reddit
+- Google Trends / SerpAPI
+- Groq pour les analyses IA
+```
+
+## Structure
+
+```text
+PFA_V1/
+|-- backend/
+|   |-- config/
+|   |-- controllers/
+|   |-- middleware/
+|   |-- models/
+|   |-- routes/
+|   |-- services/
+|   `-- test/
+|-- frontend/
+|   |-- public/
+|   `-- src/
+|       |-- api/
+|       |-- components/
+|       |-- context/
+|       |-- pages/
+|       `-- utils/
+|-- ml-model/
+|-- docker-compose.yml
+|-- package.json
+`-- README.md
+```
+
+## Stack technique
+
+### Backend
+
+- Node.js
+- Express
+- MongoDB / Mongoose
+- JWT
+- Helmet
+- CORS
+- Express Rate Limit
+- Express Mongo Sanitize
+- Axios
 
 ### Frontend
 
-Application web développée avec :
+- React
+- Vite
+- React Router
+- Lucide React
+- Three.js
+- CSS moderne responsive
 
-* React
-* Vite
-* CSS
+### IA
 
-### Backend
-
-API REST développée avec :
-
-* Node.js
-* Express.js
-* JWT
+- Groq API
+- Modèle configurable avec `GROQ_MODEL`
 
 ### Base de données
 
-* MongoDB Atlas
-* Mongoose
+- MongoDB Atlas
+- Mongoose
+- indexes définis dans le modèle `Trend`
 
-### Services externes
+## Module ML
 
-* Reddit
-* Google Trends
-* OpenRouter
+Le dossier `ml-model/` contient un module de prédiction expérimental basé sur des données historiques.
 
----
-
-## Fonctionnement général
-
-1. Les données sont récupérées depuis Reddit et Google Trends.
-2. Les tendances sont nettoyées et filtrées.
-3. Un score est attribué à chaque tendance selon plusieurs critères.
-4. Le système classe les tendances selon leur potentiel.
-5. L'utilisateur consulte les tendances dans son feed personnalisé.
-6. Une analyse IA peut être générée pour obtenir davantage d'informations sur la tendance sélectionnée.
-
----
-
-## Structure du projet
-
-```text
-PFA_V1
-│
-├── backend
-│   ├── controllers
-│   ├── services
-│   ├── routes
-│   ├── middleware
-│   └── models
-│
-├── frontend
-│   ├── pages
-│   ├── components
-│   ├── services
-│   └── utils
-│
-├── docs
-│
-└── README.md
-```
-
----
+Ce module complète la partie data du projet et illustre une approche de classification du potentiel des tendances. L'application principale utilise un système de scoring explicable pour classer les tendances collectées et les présenter dans le feed.
 
 ## Installation
 
-### Backend
+### Prérequis
+
+- Node.js 20 ou plus
+- npm
+- MongoDB Atlas ou MongoDB local
+- clé Groq
+- clé SerpAPI si Google Trends est activé
+
+### Variables d'environnement
+
+Copier `.env.example` et créer un `.env` dans le backend.
+
+Variables minimales :
+
+```env
+MONGO_URI=mongodb+srv://...
+JWT_SECRET=un-secret-long-et-aleatoire
+GROQ_API_KEY=gsk_...
+GROQ_MODEL=llama-3.3-70b-versatile
+SERPAPI_KEY=...
+FRONTEND_URL=http://localhost:4173
+PORT=3000
+```
+
+Ne jamais committer les vraies clés API.
+
+## Commandes
+
+Depuis la racine :
+
+```bash
+npm run dev:backend
+npm run dev:frontend
+npm test
+npm run lint
+npm run build
+```
+
+Backend uniquement :
 
 ```bash
 cd backend
 npm install
+npm run dev
 npm start
+npm test
 ```
 
-### Frontend
+Frontend uniquement :
 
 ```bash
 cd frontend
 npm install
 npm run dev
+npm run lint
+npm run build
+npm run preview
 ```
 
----
+## API principale
 
-## Variables d'environnement
+| Route | Auth | Description |
+|-------|------|-------------|
+| `POST /api/users/signup` | Non | Créer un compte |
+| `POST /api/users/login` | Non | Connexion |
+| `GET /api/users/profile` | Oui | Profil utilisateur |
+| `PUT /api/users/preferences` | Oui | Mise à jour des préférences |
+| `GET /api/users/saved-trends` | Oui | Tendances sauvegardées |
+| `GET /api/feed` | Oui | Feed personnalisé |
+| `GET /api/feed/search` | Oui | Recherche dédiée |
+| `GET /api/feed/:id` | Oui | Détail d'une tendance |
+| `POST /api/feed/:id/analyze` | Oui | Générer une analyse IA |
+| `POST /api/feed/:id/save` | Oui | Sauvegarder une tendance |
+| `DELETE /api/feed/:id/save` | Oui | Retirer une tendance sauvegardée |
+| `POST /api/assistant/chat` | Oui | Assistant Trendi |
 
-Créer un fichier `.env` dans le backend :
+## Tests et validation
 
-```env
-MONGO_URI=
-JWT_SECRET=
-OPENROUTER_API_KEY=
+État final validé :
+
+```text
+npm test       PASS
+npm run lint   PASS
+npm run build  PASS
 ```
 
----
+Le build frontend peut afficher un avertissement Vite sur la taille du bundle. Cet avertissement n'empêche pas le build.
 
-## Équipe du projet
+
+## Équipe
 
 ### MAKHOUKH Youssef
 
-**Chef de projet & Développeur Backend**
+Chef de projet, développeur backend et intégration IA.
 
 Responsabilités :
 
-* Architecture backend
-* Développement des API
-* Authentification JWT
-* Gestion du feed
-* Intégration IA
-* Optimisation du système
+- architecture backend ;
+- API Express ;
+- authentification JWT ;
+- feed ;
+- intégration IA ;
+- optimisation performance.
 
 ### BOUHLAL Mouad
 
-**Data Engineer**
+Data engineer.
 
 Responsabilités :
 
-* Intégration Reddit
-* Intégration Google Trends
-* Collecte des données
-* Nettoyage et filtrage
-* Pipeline de scoring
+- collecte Reddit ;
+- collecte Google Trends ;
+- nettoyage des données ;
+- pipeline de scoring ;
+- audit des sources.
 
 ### BENKELTOUM Abdessalam
 
-**Développeur Frontend**
+Développeur frontend.
 
 Responsabilités :
 
-* Développement de l'interface utilisateur
-* Intégration Frontend / Backend
-* Expérience utilisateur
-* Pages et composants React
-
----
-
-## Perspectives d'amélioration
-
-Plusieurs évolutions peuvent être envisagées :
-
-* Ajout de nouvelles sources de données
-* Notifications en temps réel
-* Amélioration du système de prédiction
-* Tableau de bord analytique avancé
-* Déploiement SaaS complet
-
----
+- interface React ;
+- expérience utilisateur ;
+- navigation ;
+- pages produit ;
+- intégration API.
 
 ## Conclusion
 
-AI Trend Predictor est une plateforme de veille intelligente permettant d'identifier, d'analyser et d'exploiter les tendances émergentes provenant de différentes sources de données.
-
-Ce projet nous a permis de mettre en pratique des compétences en développement web, traitement de données, intégration d'API, intelligence artificielle et gestion de projet dans un contexte réel.
+Trendify est une plateforme complète de détection, scoring, personnalisation et analyse de tendances. Le projet combine collecte de données, traitement backend, interface moderne, analyse IA et assistant intelligent pour transformer des signaux web en informations exploitables.
