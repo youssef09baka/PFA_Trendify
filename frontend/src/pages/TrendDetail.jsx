@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import WorldMap from 'react-svg-worldmap';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
 import { ArrowLeft, ExternalLink, Sparkles, Clock, ArrowRight } from 'lucide-react';
@@ -10,6 +11,91 @@ import LoadingSkeleton from '../components/LoadingSkeleton';
 import { formatScore } from '../utils/ui';
 import { getCardMediaUrl } from '../utils/media';
 
+function GeoInterestSection({ trend }) {
+  const geoInterest = Array.isArray(trend?.geoInterest)
+    ? trend.geoInterest
+      .map((item) => ({
+        country: String(item.country || '').trim(),
+        countryCode: String(item.countryCode || '').trim().toLowerCase(),
+        value: Number(item.value || 0)
+      }))
+      .filter((item) => item.country && item.countryCode.length === 2 && Number.isFinite(item.value) && item.value > 0)
+      .sort((a, b) => b.value - a.value)
+    : [];
+
+  const isGoogleTrends = String(trend?.source || '').toLowerCase().includes('google');
+
+  if (!isGoogleTrends) {
+    return (
+      <div className="panel-card card-content geo-interest-card">
+        <div className="section-heading">
+          <div>
+            <small>Google Trends</small>
+            <h2>Intérêt par région</h2>
+          </div>
+        </div>
+        <p className="geo-empty">Les données géographiques ne sont pas disponibles pour cette source.</p>
+      </div>
+    );
+  }
+
+  if (!geoInterest.length) {
+    return (
+      <div className="panel-card card-content geo-interest-card">
+        <div className="section-heading">
+          <div>
+            <small>Données réelles Google Trends</small>
+            <h2>Intérêt par région</h2>
+          </div>
+        </div>
+        <p className="geo-empty">Aucune donnée géographique Google Trends n'est encore disponible dans Trendify pour cette tendance.</p>
+      </div>
+    );
+  }
+
+  const mapData = geoInterest.map((item) => ({
+    country: item.countryCode,
+    value: item.value
+  }));
+  const topCountries = geoInterest.slice(0, 10);
+
+  return (
+    <div className="panel-card card-content geo-interest-card">
+      <div className="section-heading">
+        <div>
+          <small>Données réelles Google Trends</small>
+          <h2>Intérêt par région</h2>
+        </div>
+      </div>
+
+      <div className="geo-interest-layout">
+        <div className="geo-map-shell">
+          <WorldMap
+            data={mapData}
+            color="#2563eb"
+            size="responsive"
+            frame={false}
+            richInteraction
+            valueSuffix=""
+            tooltipTextFunction={({ countryName, countryValue }) => `${countryName} : ${countryValue || 0}`}
+          />
+        </div>
+
+        <div className="geo-ranking">
+          <h3>Top 10 pays</h3>
+          <ol>
+            {topCountries.map((item) => (
+              <li key={`${item.countryCode}-${item.country}`}>
+                <span>{item.country}</span>
+                <strong>{item.value}</strong>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function TrendDetail() {
   const { id } = useParams();
@@ -188,6 +274,8 @@ export default function TrendDetail() {
                       <p>{trend.savedCount ? `${trend.savedCount} sauvegarde${trend.savedCount > 1 ? 's' : ''}` : 'Aucun enregistrement encore.'}</p>
                     </div>
                   </div>
+
+                  <GeoInterestSection trend={trend} />
 
                   <div className="panel-card card-content">
                     <div className="section-heading">

@@ -330,6 +330,26 @@ const chunkArray = (items, size) => {
   return chunks;
 };
 
+const normalizeGeoInterest = (items = []) => (Array.isArray(items) ? items : [])
+  .map((item) => {
+    const country = String(item?.country || item?.location || '').trim();
+    const countryCode = String(item?.countryCode || item?.geo || '').trim().toUpperCase();
+    const value = Number(item?.value ?? item?.extracted_value ?? 0);
+
+    if (!country || countryCode.length !== 2 || !Number.isFinite(value) || value <= 0) {
+      return null;
+    }
+
+    return {
+      country,
+      countryCode,
+      value
+    };
+  })
+  .filter(Boolean)
+  .sort((a, b) => b.value - a.value)
+  .slice(0, 25);
+
 const saveTrends = async (trends) => {
   const normalizedInput = Array.isArray(trends) ? trends : [];
 
@@ -408,6 +428,10 @@ const saveTrends = async (trends) => {
         tags: Array.isArray(finalTrend.tags) ? finalTrend.tags : [],
         slug
       };
+
+      if (Array.isArray(finalTrend.geoInterest)) {
+        update.geoInterest = normalizeGeoInterest(finalTrend.geoInterest);
+      }
 
       return Trend.findOneAndUpdate(
         { slug },

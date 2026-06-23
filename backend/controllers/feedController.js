@@ -13,9 +13,66 @@ const { TREND_PERSIST_LIMIT } = require("../config/config");
 const { generateTrendAnalysis } = require("../services/aiService");
 const { predictTrend } = require("../services/mlService");
 const { saveTrends, scoreTrends, getFeedTrends, getTrendById, getRelatedTrends } = require("../services/trendService");
+const { getInterestByRegion, extractGoogleTrendsQuery } = require("../services/data/googleTrendsService");
 
 const ALLOWED_PREDICTIONS = ['HIGH', 'LOW', 'UNAVAILABLE'];
 const SEARCH_SCAN_LIMIT = 500;
+const CATEGORY_SCAN_LIMIT = 700;
+
+const FEED_CATEGORY_MAPPING = {
+  football: {
+    label: 'Football',
+    terms: ['football', 'soccer', 'fifa', 'uefa', 'premier league', 'champions league', 'world cup', 'ligue 1', 'liga', 'serie a', 'bundesliga']
+  },
+  gaming: {
+    label: 'Gaming',
+    terms: ['gaming', 'game', 'games', 'xbox', 'playstation', 'steam', 'nintendo', 'gta', 'esports', 'esport', 'twitch', 'rockstar']
+  },
+  ia: {
+    label: 'IA',
+    terms: ['ia', 'ai', 'artificial intelligence', 'intelligence artificielle', 'openai', 'chatgpt', 'gemini', 'claude', 'llm']
+  },
+  business: {
+    label: 'Business',
+    terms: ['business', 'market', 'finance', 'startup', 'revenue', 'growth', 'company', 'enterprise', 'stock', 'bourse']
+  },
+  crypto: {
+    label: 'Crypto',
+    terms: ['bitcoin', 'ethereum', 'solana', 'crypto', 'cryptomonnaie', 'blockchain', 'web3', 'btc', 'eth']
+  },
+  creators: {
+    label: 'Créateurs',
+    terms: ['youtube', 'tiktok', 'instagram', 'streamer', 'creator', 'createur', 'créateur', 'content', 'influencer']
+  },
+  social: {
+    label: 'Réseaux Sociaux',
+    terms: ['social media', 'reseaux sociaux', 'réseaux sociaux', 'twitter', 'instagram', 'tiktok', 'facebook', 'threads', 'viral']
+  },
+  news: {
+    label: 'Actualités',
+    terms: ['politics', 'elections', 'government', 'breaking news', 'international', 'news', 'world', 'politique', 'election']
+  },
+  health: {
+    label: 'Santé',
+    terms: ['health', 'sante', 'santé', 'medical', 'medicine', 'medecine', 'wellness', 'fitness', 'nutrition', 'hospital']
+  },
+  education: {
+    label: 'Éducation',
+    terms: ['education', 'school', 'learning', 'course', 'university', 'formation', 'ecole', 'école', 'apprentissage']
+  },
+  tech: {
+    label: 'Tech',
+    terms: ['tech', 'technology', 'technologie', 'software', 'hardware', 'cloud', 'cyber', 'data', 'app', 'developer']
+  },
+  science: {
+    label: 'Science',
+    terms: ['science', 'research', 'study', 'space', 'biology', 'climate', 'physics', 'medicine', 'genetics', 'nasa']
+  },
+  startups: {
+    label: 'Startups',
+    terms: ['startup', 'startups', 'founder', 'launch', 'incubator', 'accelerator', 'scaleup', 'seed', 'unicorn', 'saas']
+  }
+};
 
 const normalizePredictionValue = (value) => {
   if (value === null) return null;
@@ -83,6 +140,80 @@ const normalizeSearchText = (value) => String(value || '')
   .replace(/[\u0300-\u036f]/g, '')
   .toLowerCase()
   .trim();
+
+const normalizeCategoryKey = (value) => normalizeSearchText(value).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+const getFeedCategoryDefinition = (value) => {
+  const key = normalizeCategoryKey(value);
+  return FEED_CATEGORY_MAPPING[key] ? { key, ...FEED_CATEGORY_MAPPING[key] } : null;
+};
+
+const trendSemanticText = (trend) => normalizeSearchText([
+  trend?.title,
+  trend?.category,
+  trend?.excerpt,
+  trend?.link,
+  Array.isArray(trend?.tags) ? trend.tags.join(' ') : ''
+].filter(Boolean).join(' '));
+
+const trendMatchesFeedCategory = (trend, categoryDefinition) => {
+  if (!categoryDefinition) return true;
+  const haystack = trendSemanticText(trend);
+  return categoryDefinition.terms.some((term) => {
+    const normalizedTerm = normalizeSearchText(term);
+    if (!normalizedTerm) return false;
+    if (normalizedTerm.includes(' ')) return haystack.includes(normalizedTerm);
+    return new RegExp(`\\b${escapeRegex(normalizedTerm)}\\b`, 'i').test(haystack);
+  });
+};
+
+const filterTrendsByFeedCategory = (trends = [], categoryDefinition) => (
+  categoryDefinition ? trends.filter((trend) => trendMatchesFeedCategory(trend, categoryDefinition)) : trends
+);
+
+const shouldFetchGeoInterestOnDemand = (trend) => (
+  trend
+  && String(trend.source || '').toLowerCase().includes('google')
+  && (!Array.isArray(trend.geoInterest) || trend.geoInterest.length === 0)
+);
+
+const resolveGoogleTrendsGeoInterest = async (trend) => {
+  if (!shouldFetchGeoInterestOnDemand(trend)) return Array.isArray(trend?.geoInterest) ? trend.geoInterest : [];
+
+  const query = extractGoogleTrendsQuery(trend.link) || trend.title;
+  if (!query) return [];
+
+  const geoInterest = await getInterestByRegion(query);
+  if (geoInterest.length && trend._id) {
+    await Trend.findByIdAndUpdate(
+      trend._id,
+      { $set: { geoInterest, updatedAt: new Date() } },
+      { new: true }
+    ).catch(() => null);
+  }
+
+  return geoInterest;
+};
+
+const buildFeedCategoryQuery = (categoryDefinition) => {
+  if (!categoryDefinition) return {};
+  const regexes = categoryDefinition.terms.map((term) => {
+    const normalizedTerm = normalizeSearchText(term);
+    const pattern = normalizedTerm.includes(' ')
+      ? escapeRegex(normalizedTerm)
+      : `\\b${escapeRegex(normalizedTerm)}\\b`;
+    return new RegExp(pattern, 'i');
+  });
+  return {
+    $or: [
+      ...regexes.map((regex) => ({ title: regex })),
+      ...regexes.map((regex) => ({ tags: regex })),
+      ...regexes.map((regex) => ({ category: regex })),
+      ...regexes.map((regex) => ({ excerpt: regex })),
+      ...regexes.map((regex) => ({ link: regex }))
+    ]
+  };
+};
 
 const buildTrendSearchQuery = (rawQuery) => {
   const query = String(rawQuery || '').trim();
@@ -181,12 +312,72 @@ const getFeed = asyncHandler(async (req, res, next) => {
   const personalizationProfile = buildPersonalizationProfile(user?.preferences || []);
   const requestedPage = Math.max(1, Number(page) || 1);
   const requestedLimit = Number(limit);
+  const categoryDefinition = getFeedCategoryDefinition(category);
+  const explicitCategoryFilterActive = Boolean(categoryDefinition || category);
+  const exactCategory = categoryDefinition ? undefined : category;
+  const applyPersonalization = personalizationProfile.personalized && !explicitCategoryFilterActive;
+  const savedSet = new Set((user?.savedTrends || []).map(String));
+
+  if (categoryDefinition && !forceRefresh) {
+    const semanticQuery = buildFeedCategoryQuery(categoryDefinition);
+    const semanticCandidates = await Trend.find(semanticQuery)
+      .sort({ score: -1, createdAt: -1 })
+      .limit(CATEGORY_SCAN_LIMIT)
+      .select('title source category score image video thumbnail mediaType link tags excerpt createdAt savedCount ml_prediction credibilityScore credibilityConfidence verificationStatus isFakeNews popularity growth')
+      .lean();
+    const semanticFiltered = filterTrendsByFeedCategory(semanticCandidates, categoryDefinition);
+    const semanticStart = (requestedPage - 1) * requestedLimit;
+    const semanticPageItems = semanticFiltered.slice(semanticStart, semanticStart + requestedLimit);
+
+    const items = await Promise.all(semanticPageItems.map(async (trend) => ({
+      id: trend._id,
+      _id: trend._id,
+      title: trend.title,
+      score: trend.score,
+      source: trend.source,
+      category: trend.category,
+      credibilityScore: trend.credibilityScore || 0,
+      credibilityConfidence: trend.credibilityConfidence || 'low',
+      verificationStatus: trend.verificationStatus || 'unverified',
+      isFakeNews: Boolean(trend.isFakeNews),
+      popularity: trend.popularity || 0,
+      growth: trend.growth || 0,
+      image: trend.image || '',
+      video: trend.video || '',
+      thumbnail: trend.thumbnail || '',
+      mediaType: trend.mediaType || 'none',
+      link: trend.link || '',
+      ml_prediction: await refreshRedditPrediction(trend),
+      createdAt: trend.createdAt,
+      savedCount: trend.savedCount || 0,
+      isSaved: savedSet.has(String(trend._id))
+    })));
+
+    return res.status(200).json({
+      items,
+      meta: {
+        total: semanticFiltered.length,
+        page: requestedPage,
+        limit: requestedLimit,
+        totalPages: Math.max(1, Math.ceil(semanticFiltered.length / requestedLimit)),
+        hasMore: requestedPage < Math.max(1, Math.ceil(semanticFiltered.length / requestedLimit)),
+        personalized: personalizationProfile.personalized,
+        activePreferences: personalizationProfile.activePreferences,
+        categoryFilter: categoryDefinition.key,
+        categoryLabel: categoryDefinition.label,
+        categoryTerms: categoryDefinition.terms
+      },
+      user: {
+        aiRemaining: user?.aiRemaining ?? 0
+      }
+    });
+  }
 
   const stored = await getFeedTrends({
     page: requestedPage,
     limit: requestedLimit,
-    category,
-    categories: personalizationProfile.personalized ? personalizationProfile.allowedCategories : undefined,
+    category: exactCategory,
+    categories: applyPersonalization ? personalizationProfile.allowedCategories : undefined,
     source,
     sort,
     viral,
@@ -194,7 +385,6 @@ const getFeed = asyncHandler(async (req, res, next) => {
     runtimeSeed
   });
   const storedTrends = stored.data || [];
-  const savedSet = new Set((user?.savedTrends || []).map(String));
 
   if (forceRefresh && user && typeof user.aiRemaining === 'number' && user.aiRemaining <= 0) {
     const error = new Error("Votre quota d'analyses IA est épuisé. Revenez demain.");
@@ -272,9 +462,10 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
   const persistedTrends = await saveTrends(enrichedTrends);
 
-  const filteredTrends = personalizationProfile.personalized
-    ? persistedTrends.filter((trend) => personalizationProfile.allowedCategories.includes(String(trend.category || '').trim()))
-    : persistedTrends;
+  const categoryFilteredTrends = filterTrendsByFeedCategory(persistedTrends, categoryDefinition);
+  const filteredTrends = applyPersonalization
+    ? categoryFilteredTrends.filter((trend) => personalizationProfile.allowedCategories.includes(String(trend.category || '').trim()))
+    : categoryFilteredTrends;
   const pageStart = (requestedPage - 1) * requestedLimit;
   const finalTrends = filteredTrends.slice(pageStart, pageStart + requestedLimit);
 
@@ -311,7 +502,10 @@ const getFeed = asyncHandler(async (req, res, next) => {
       totalPages: Math.max(1, Math.ceil(Number(stored.meta?.total || filteredTrends.length) / requestedLimit)),
       hasMore: requestedPage < Math.max(1, Math.ceil(Number(stored.meta?.total || filteredTrends.length) / requestedLimit)),
       personalized: personalizationProfile.personalized,
-      activePreferences: personalizationProfile.activePreferences
+      activePreferences: personalizationProfile.activePreferences,
+      categoryFilter: categoryDefinition?.key || exactCategory || null,
+      categoryLabel: categoryDefinition?.label || exactCategory || null,
+      categoryTerms: categoryDefinition?.terms || []
     },
     user: {
       aiRemaining: user?.aiRemaining ?? 0
@@ -407,6 +601,7 @@ const getTrendDetail = asyncHandler(async (req, res, next) => {
   }
 
   const isSaved = new Set((user?.savedTrends || []).map(String)).has(String(trend._id));
+  const geoInterest = await resolveGoogleTrendsGeoInterest(trend);
 
   const related = await getRelatedTrends(trend._id, { category: trend.category, tags: trend.tags || [], source: trend.source, limit: 6 }).catch(() => []);
 
@@ -439,6 +634,7 @@ const getTrendDetail = asyncHandler(async (req, res, next) => {
     thumbnail: trend.thumbnail || '',
     mediaType: trend.mediaType || 'none',
     link: trend.link || '',
+    geoInterest,
     createdAt: trend.createdAt,
     updatedAt: trend.updatedAt,
     fetchedAt: trend.fetchedAt,
@@ -534,5 +730,7 @@ module.exports = {
   getTrendDetail,
   analyzeTrend,
   buildTrendSearchQuery,
-  calculateSearchRelevance
+  calculateSearchRelevance,
+  getFeedCategoryDefinition,
+  trendMatchesFeedCategory
 };

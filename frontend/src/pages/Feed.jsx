@@ -158,6 +158,22 @@ function FeedCard({ trend, isSaved, onSave, onView }) {
 
 const PAGE_SIZE = 24;
 
+const FEED_CATEGORY_OPTIONS = [
+  { key: 'football', label: 'Football', icon: '⚽' },
+  { key: 'gaming', label: 'Gaming', icon: '🎮' },
+  { key: 'ia', label: 'IA', icon: '🤖' },
+  { key: 'business', label: 'Business', icon: '💼' },
+  { key: 'crypto', label: 'Crypto', icon: '₿' },
+  { key: 'creators', label: 'Créateurs', icon: '🎥' },
+  { key: 'social', label: 'Réseaux Sociaux', icon: '📱' },
+  { key: 'news', label: 'Actualités', icon: '📰' },
+  { key: 'health', label: 'Santé', icon: '🩺' },
+  { key: 'education', label: 'Éducation', icon: '🎓' },
+  { key: 'tech', label: 'Tech', icon: '💻' },
+  { key: 'science', label: 'Science', icon: '🔬' },
+  { key: 'startups', label: 'Startups', icon: '🚀' }
+];
+
 const dedupeTrends = (items = []) => {
   const seen = new Map();
   return (items || []).filter((item) => {
@@ -188,6 +204,7 @@ export default function Feed() {
   const loadingRef = useRef(false);
   const observerRef = useRef(null);
   const observerActiveRef = useRef(false);
+  const requestSeqRef = useRef(0);
 
   const showToast = (msg) => setToast(msg);
 
@@ -213,7 +230,7 @@ export default function Feed() {
   const fetchFeed = useCallback(async (requestedPage = 1, reset = false) => {
     const nextPage = Number.isFinite(requestedPage) ? Number(requestedPage) : pageRef.current + 1;
 
-    if (loadingRef.current || (!reset && !hasMoreRef.current)) {
+    if ((loadingRef.current && !reset) || (!reset && !hasMoreRef.current)) {
       return;
     }
 
@@ -222,15 +239,28 @@ export default function Feed() {
     }
 
     loadingRef.current = true;
-    if (reset) setLoading(true);
+    const requestId = requestSeqRef.current + 1;
+    requestSeqRef.current = requestId;
+    if (reset) {
+      pageRef.current = 0;
+      hasMoreRef.current = true;
+      setBaseData([]);
+      setLoading(true);
+    }
     else setLoadingMore(true);
 
-    let params = { page: nextPage, limit: PAGE_SIZE, seen: getSeenTrendIds().join(',') };
+    const params = {
+      page: nextPage,
+      limit: PAGE_SIZE,
+      seen: getSeenTrendIds().join(','),
+      ...(categoryFilter !== 'all' ? { category: categoryFilter } : {})
+    };
 
     try {
       const response = await api.get('/feed', { params });
 
       const { data } = response;
+      if (requestId !== requestSeqRef.current) return;
       const rawItems = Array.isArray(data?.items) ? data.items : [];
       const normalized = dedupeTrends(rawItems.map((t) => ({ ...t, _enriching: false })));
       const nextHasMore = Boolean(data?.meta?.hasMore);
@@ -264,11 +294,13 @@ export default function Feed() {
       });
       showToast('Impossible de charger le flux pour le moment.');
     } finally {
-      loadingRef.current = false;
-      if (reset) setLoading(false);
-      else setLoadingMore(false);
+      if (requestId === requestSeqRef.current) {
+        loadingRef.current = false;
+        if (reset) setLoading(false);
+        else setLoadingMore(false);
+      }
     }
-  }, []);
+  }, [categoryFilter]);
 
   const loadNextPage = useCallback(() => {
     if (loadingRef.current || !hasMoreRef.current) return false;
@@ -363,14 +395,7 @@ export default function Feed() {
   };
 
   const visibleTrends = baseData.filter((t) => !hidden.includes(t._id || t.id));
-  const categoryOptions = Array.from(new Set(
-    visibleTrends
-      .map((trend) => String(trend.category || '').trim())
-      .filter(Boolean)
-  )).slice(0, 8);
-  const filteredTrends = visibleTrends.filter((trend) => (
-    categoryFilter === 'all' || String(trend.category || '').trim() === categoryFilter
-  ));
+  const filteredTrends = visibleTrends;
 
   // Preserve strict chronological order when the feed is already sorted by newest.
   const mixedTrends = applyFeedMix(filteredTrends, getSeenTrendIds(), {
@@ -418,16 +443,16 @@ export default function Feed() {
               >
                 Toutes
               </Button>
-              {categoryOptions.map((category) => (
+              {FEED_CATEGORY_OPTIONS.map((category) => (
                 <Button
-                  key={category}
+                  key={category.key}
                   type="button"
-                  variant={categoryFilter === category ? 'primary' : 'ghost'}
-                  className={categoryFilter === category ? 'feed-chip active' : 'feed-chip'}
-                  onClick={() => setCategoryFilter(category)}
+                  variant={categoryFilter === category.key ? 'primary' : 'ghost'}
+                  className={categoryFilter === category.key ? 'feed-chip active' : 'feed-chip'}
+                  onClick={() => setCategoryFilter(category.key)}
                   style={{ padding: '6px 12px' }}
                 >
-                  {category}
+                  <span aria-hidden="true">{category.icon}</span> {category.label}
                 </Button>
               ))}
             </div>

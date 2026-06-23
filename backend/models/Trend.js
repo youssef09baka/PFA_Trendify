@@ -140,6 +140,24 @@ const trendSchema = new mongoose.Schema({
   tags: {
     type: [String],
     default: []
+  },
+  geoInterest: {
+    type: [{
+      country: {
+        type: String,
+        trim: true
+      },
+      countryCode: {
+        type: String,
+        trim: true,
+        uppercase: true
+      },
+      value: {
+        type: Number,
+        min: 0
+      }
+    }],
+    default: []
   }
 }, {
   timestamps: true

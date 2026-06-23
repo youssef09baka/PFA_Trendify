@@ -5581,3 +5581,90 @@ body {
     animation: none !important;
   }
 }
+/* Google Trends geo interest section */
+.geo-interest-card {
+  overflow: hidden;
+}
+
+.geo-interest-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(220px, 0.8fr);
+  gap: 22px;
+  align-items: center;
+}
+
+.geo-map-shell {
+  min-width: 0;
+  border-radius: 22px;
+  border: 1px solid var(--glass-b);
+  background: rgba(37, 99, 235, 0.035);
+  padding: 14px;
+}
+
+.geo-map-shell svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.geo-ranking {
+  border-radius: 18px;
+  border: 1px solid var(--glass-b);
+  background: var(--glass);
+  padding: 16px;
+}
+
+.geo-ranking h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.geo-ranking ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 9px;
+  counter-reset: geo-country;
+}
+
+.geo-ranking li {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  color: var(--text2);
+  font-size: 13px;
+}
+
+.geo-ranking li::before {
+  counter-increment: geo-country;
+  content: counter(geo-country);
+  width: 24px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+  font-weight: 800;
+  font-size: 11px;
+}
+
+.geo-ranking strong {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.geo-empty {
+  margin: 0;
+  color: var(--text2);
+  line-height: 1.6;
+}
+
+@media (max-width: 860px) {
+  .geo-interest-layout {
+    grid-template-columns: 1fr;
+  }
+}

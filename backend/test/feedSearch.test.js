@@ -3,7 +3,9 @@ const test = require('node:test');
 
 const {
   buildTrendSearchQuery,
-  calculateSearchRelevance
+  calculateSearchRelevance,
+  getFeedCategoryDefinition,
+  trendMatchesFeedCategory
 } = require('../controllers/feedController');
 
 test('feed search builds a Mongo query across persistent trend fields', () => {
@@ -37,4 +39,59 @@ test('feed search ranks direct subject match above unrelated high-score trend', 
     'search relevance must beat unrelated raw score'
   );
   assert.equal(calculateSearchRelevance(unrelatedTrend, 'GTA 6'), 0);
+});
+
+test('feed semantic categories match title tags and original category', () => {
+  const football = getFeedCategoryDefinition('football');
+  const gaming = getFeedCategoryDefinition('gaming');
+  const crypto = getFeedCategoryDefinition('crypto');
+  const ia = getFeedCategoryDefinition('ia');
+
+  assert.ok(trendMatchesFeedCategory({
+    title: 'UEFA Champions League final dominates searches',
+    category: 'Discussion',
+    tags: ['sports']
+  }, football));
+
+  assert.ok(trendMatchesFeedCategory({
+    title: 'GTA 6 trailer rumors accelerate',
+    category: 'Search Trends',
+    tags: ['Rockstar']
+  }, gaming));
+
+  assert.ok(trendMatchesFeedCategory({
+    title: 'Bitcoin and Solana rebound after market correction',
+    category: 'Discussion',
+    tags: ['finance']
+  }, crypto));
+
+  assert.ok(trendMatchesFeedCategory({
+    title: 'OpenAI launches new assistant features',
+    category: 'Tech',
+    tags: ['software']
+  }, ia));
+});
+
+test('feed semantic categories avoid broad partial matches', () => {
+  const ia = getFeedCategoryDefinition('ia');
+  const football = getFeedCategoryDefinition('football');
+  const social = getFeedCategoryDefinition('social');
+
+  assert.equal(trendMatchesFeedCategory({
+    title: 'Daily holiday shopping discussion',
+    category: 'Discussion',
+    tags: ['community']
+  }, ia), false);
+
+  assert.equal(trendMatchesFeedCategory({
+    title: 'Legal reforms dominate international news',
+    category: 'Actualités',
+    tags: ['politics']
+  }, football), false);
+
+  assert.equal(trendMatchesFeedCategory({
+    title: 'Xbox showcase reveals new games',
+    category: 'Gaming',
+    tags: ['console']
+  }, social), false);
 });
