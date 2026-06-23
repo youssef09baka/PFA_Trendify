@@ -11,14 +11,19 @@ const chatWithAssistant = asyncHandler(async (req, res) => {
     });
   }
 
-  const result = await askAssistant(message);
+  const result = await askAssistant(message, req.body?.context || {});
 
   res.status(200).json({
     success: true,
     data: {
       answer: result.answer,
       status: result.status,
-      trendsUsed: result.trendsUsed
+      trendsUsed: result.trendsUsed,
+      trends: Array.isArray(result.trends) ? result.trends : [],
+      action: result.action || null,
+      pendingAction: result.pendingAction || null,
+      intent: result.intent || result.status,
+      confidence: result.confidence || null
     }
   });
 });

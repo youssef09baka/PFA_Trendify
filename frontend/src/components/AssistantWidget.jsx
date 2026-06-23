@@ -1,17 +1,39 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { MessageCircle, Mic, Send, Square, Volume2, X } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowUpRight, BarChart3, CheckCircle2, Mic, MicOff, Send, Sparkles, Square, Volume2, X } from 'lucide-react';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { formatScore } from '../utils/ui';
 
 const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition;
 const STORAGE_KEY = 'trendi-conversation';
+const WAKE_WORD_STORAGE_PREFIX = 'trendify_trendi_wake_word';
 const VOICE_SEND_DELAY_MS = 900;
+const PENDING_ACTION_TTL_MS = 120000;
 const SpeechSynthesisApi = window.speechSynthesis;
+const THINKING_STEPS = [
+  'Analyse des signaux',
+  'Evaluation du potentiel',
+  'Recherche des opportunites',
+  'Verification des sources',
+  'Construction de la reponse'
+];
 
 const debugVoice = (...args) => {
   if (import.meta.env.DEV) console.debug('[Trendi Voice]', ...args);
 };
+
+const normalizeVoiceText = (value) => String(value || '')
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-z0-9]+/g, ' ')
+  .trim();
+
+const isWakeWord = (value) => /\b(ok|okay|hey|salut)\s+(trendi|trendy|trendie|trend y|trend dit)\b/.test(normalizeVoiceText(value));
+
+const getWakeWordStorageKey = (user) => `${WAKE_WORD_STORAGE_PREFIX}:${user?.id || user?._id || user?.email || 'anonymous'}`;
 
 const sanitizeForSpeech = (value) => String(value || '')
   .replace(/```[\s\S]*?```/g, ' ')
@@ -66,9 +88,22 @@ const initialMessages = [
   }
 ];
 
+const getTrendId = (trend) => trend?._id || trend?.id;
+
+const compactTrend = (trend) => ({
+  id: getTrendId(trend),
+  title: trend?.title || 'Tendance detectee',
+  score: trend?.score || 0,
+  source: trend?.source || 'Source inconnue',
+  category: trend?.category || 'General',
+  link: trend?.link || ''
+});
+
 export default function AssistantWidget() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const { dark, toggle: toggleTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState(() => {
     try {
@@ -80,25 +115,97 @@ export default function AssistantWidget() {
   });
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [thinkingIndex, setThinkingIndex] = useState(0);
   const [playingKey, setPlayingKey] = useState('');
   const [listening, setListening] = useState(false);
+  const [voiceModeOpen, setVoiceModeOpen] = useState(false);
   const [voiceStatus, setVoiceStatus] = useState('');
   const [voiceError, setVoiceError] = useState('');
+  const [actionFeedback, setActionFeedback] = useState('');
   const [speechReady, setSpeechReady] = useState(() => Boolean(SpeechSynthesisApi));
+  const [wakeWordEnabled, setWakeWordEnabled] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
   const recognitionRef = useRef(null);
+  const wakeRecognitionRef = useRef(null);
+  const wakeListeningRef = useRef(false);
   const shouldListenRef = useRef(false);
+  const voiceModeOpenRef = useRef(false);
+  const voiceProcessingRef = useRef(false);
+  const loadingRef = useRef(false);
+  const listeningRef = useRef(false);
+  const playingKeyRef = useRef('');
   const finalTranscriptRef = useRef('');
   const voiceSendTimerRef = useRef(null);
+  const pendingActionTimerRef = useRef(null);
   const speechRequestRef = useRef(0);
   const listRef = useRef(null);
 
   const speechSupported = Boolean(SpeechRecognitionApi);
   const canSend = useMemo(() => input.trim().length > 0 && !loading, [input, loading]);
+  const voiceActivity = loading ? 'thinking' : playingKey ? 'speaking' : listening ? 'listening' : 'idle';
+  const lastActionableTrend = useMemo(() => {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      const actions = messages[index]?.actions;
+      if (Array.isArray(actions) && actions.length) return actions[0];
+    }
+    return null;
+  }, [messages]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(messages.slice(-20)));
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, open]);
+
+  useEffect(() => {
+    if (!actionFeedback) return undefined;
+    const timer = window.setTimeout(() => setActionFeedback(''), 2800);
+    return () => window.clearTimeout(timer);
+  }, [actionFeedback]);
+
+  useEffect(() => {
+    voiceModeOpenRef.current = voiceModeOpen;
+  }, [voiceModeOpen]);
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
+
+  useEffect(() => {
+    listeningRef.current = listening;
+  }, [listening]);
+
+  useEffect(() => {
+    playingKeyRef.current = playingKey;
+  }, [playingKey]);
+
+  useEffect(() => {
+    if (!user) return undefined;
+    const storageKey = getWakeWordStorageKey(user);
+    const refreshWakePreference = () => {
+      setWakeWordEnabled(localStorage.getItem(storageKey) === 'true');
+    };
+
+    refreshWakePreference();
+    window.addEventListener('trendi-wake-word-change', refreshWakePreference);
+    window.addEventListener('storage', refreshWakePreference);
+
+    return () => {
+      window.removeEventListener('trendi-wake-word-change', refreshWakePreference);
+      window.removeEventListener('storage', refreshWakePreference);
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!loading) {
+      return undefined;
+    }
+
+    const timer = window.setInterval(() => {
+      setThinkingIndex((index) => (index + 1) % THINKING_STEPS.length);
+    }, 1600);
+
+    return () => window.clearInterval(timer);
+  }, [loading]);
 
   useEffect(() => {
     if (!SpeechSynthesisApi) return undefined;
@@ -133,7 +240,6 @@ export default function AssistantWidget() {
   }, []);
 
   const isPublicPage = ['/', '/login', '/signup'].includes(location.pathname);
-  if (!user || isPublicPage) return null;
 
   const stopSpeech = () => {
     speechRequestRef.current += 1;
@@ -142,17 +248,19 @@ export default function AssistantWidget() {
   };
 
   const speak = (text, messageKey) => {
-    if (!text) return;
+    if (!text) return false;
     if (playingKey === messageKey) {
       stopSpeech();
-      return;
+      restartVoiceLoop();
+      return false;
     }
 
     const cleanText = sanitizeForSpeech(text);
-    if (!cleanText) return;
+    if (!cleanText) return false;
     if (!SpeechSynthesisApi || typeof SpeechSynthesisUtterance === 'undefined') {
       setVoiceError('La lecture vocale du navigateur est indisponible.');
-      return;
+      restartVoiceLoop();
+      return false;
     }
 
     setVoiceError('');
@@ -176,13 +284,17 @@ export default function AssistantWidget() {
       if (requestId === speechRequestRef.current) setPlayingKey(messageKey);
     };
     utterance.onend = () => {
-      if (requestId === speechRequestRef.current) setPlayingKey('');
+      if (requestId === speechRequestRef.current) {
+        setPlayingKey('');
+        restartVoiceLoop();
+      }
     };
     utterance.onerror = (event) => {
       if (requestId !== speechRequestRef.current) return;
       console.error('[Trendi Voice] SpeechSynthesis error', event);
       setVoiceError('La lecture vocale du navigateur a été interrompue.');
       setPlayingKey('');
+      restartVoiceLoop();
     };
 
     console.info('[Trendi Voice] Lecture navigateur', {
@@ -193,14 +305,110 @@ export default function AssistantWidget() {
 
     setPlayingKey(messageKey);
     SpeechSynthesisApi.speak(utterance);
+    return true;
   };
 
-  const stopVoice = () => {
+  const stopVoice = ({ close = false } = {}) => {
     shouldListenRef.current = false;
+    voiceProcessingRef.current = false;
+    if (close) voiceModeOpenRef.current = false;
     window.clearTimeout(voiceSendTimerRef.current);
+    window.clearTimeout(pendingActionTimerRef.current);
     recognitionRef.current?.stop?.();
+    stopSpeech();
     setListening(false);
     setVoiceStatus('');
+    if (close) setVoiceModeOpen(false);
+  };
+
+  const stopWakeWordListener = () => {
+    wakeListeningRef.current = false;
+    try {
+      wakeRecognitionRef.current?.stop?.();
+    } catch (error) {
+      debugVoice('wake stop failed', error);
+    }
+    wakeRecognitionRef.current = null;
+  };
+
+  const restartVoiceLoop = (delay = 450) => {
+    if (!voiceModeOpenRef.current || !speechSupported) return;
+    window.setTimeout(() => {
+      if (!voiceModeOpenRef.current || listeningRef.current || loadingRef.current || playingKeyRef.current) return;
+      startVoice({ continuousMode: true });
+    }, delay);
+  };
+
+  const activateFromWakeWord = () => {
+    stopWakeWordListener();
+    setOpen(true);
+    voiceModeOpenRef.current = true;
+    setVoiceModeOpen(true);
+    setVoiceError('');
+    setVoiceStatus('Oui, je vous ecoute.');
+    setMessages((prev) => [...prev, { role: 'assistant', content: 'Oui, je vous ecoute.', actions: [] }]);
+
+    window.setTimeout(() => {
+      const started = speak('Oui, je vous ecoute.', `wake-${Date.now()}`);
+      if (!started) restartVoiceLoop(250);
+    }, 120);
+  };
+
+  const startWakeWordListener = () => {
+    if (!speechSupported || wakeListeningRef.current || voiceModeOpenRef.current || listeningRef.current || loadingRef.current) return;
+
+    const recognition = new SpeechRecognitionApi();
+    recognition.lang = 'fr-FR';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.maxAlternatives = 1;
+    wakeRecognitionRef.current = recognition;
+    wakeListeningRef.current = true;
+
+    recognition.onresult = (event) => {
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const transcript = String(event.results[index]?.[0]?.transcript || '');
+        debugVoice('wake transcript', transcript);
+        if (isWakeWord(transcript)) {
+          debugVoice('wake word detected', transcript);
+          console.info('[Trendi Wake Word] detected', transcript);
+          activateFromWakeWord();
+          return;
+        }
+      }
+    };
+
+    recognition.onerror = (event) => {
+      debugVoice('wake onerror', event.error);
+      console.error('[Trendi Wake Word] SpeechRecognition error', {
+        error: event.error,
+        message: event.message || '',
+        type: event.type,
+        timeStamp: event.timeStamp
+      });
+      wakeListeningRef.current = false;
+      wakeRecognitionRef.current = null;
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        setVoiceError('Autorisez le microphone pour utiliser l’activation vocale.');
+      }
+    };
+
+    recognition.onend = () => {
+      wakeListeningRef.current = false;
+      wakeRecognitionRef.current = null;
+      if (wakeWordEnabled && !voiceModeOpenRef.current && !listeningRef.current && !loadingRef.current) {
+        window.setTimeout(() => startWakeWordListener(), 700);
+      }
+    };
+
+    try {
+      recognition.start();
+      debugVoice('wake listener started');
+    } catch (error) {
+      wakeListeningRef.current = false;
+      wakeRecognitionRef.current = null;
+      debugVoice('wake start failed', error);
+    }
   };
 
   const scheduleVoiceSend = (recognition) => {
@@ -210,13 +418,116 @@ export default function AssistantWidget() {
       if (!finalText) return;
 
       debugVoice('send final transcript', finalText);
-      shouldListenRef.current = false;
+      voiceProcessingRef.current = true;
       recognition.stop();
-      void sendMessage(finalText);
+      void sendMessage(finalText, { fromVoice: true });
     }, VOICE_SEND_DELAY_MS);
   };
 
-  const sendMessage = async (value = input) => {
+  const showAction = (message, { appendMessage = true } = {}) => {
+    setActionFeedback(message);
+    if (appendMessage) {
+      setMessages((prev) => [...prev, { role: 'assistant', content: message, actions: [] }]);
+    }
+  };
+
+  const rememberPendingAction = (action) => {
+    window.clearTimeout(pendingActionTimerRef.current);
+    if (!action?.action || !action?.target) {
+      setPendingAction(null);
+      return;
+    }
+
+    const nextPendingAction = {
+      ...action
+    };
+    console.info('[TRENDI] ACTION DETECTEE pending', nextPendingAction);
+    setPendingAction(nextPendingAction);
+    pendingActionTimerRef.current = window.setTimeout(() => {
+      setPendingAction(null);
+    }, PENDING_ACTION_TTL_MS);
+  };
+
+  const getActivePendingAction = () => {
+    return pendingAction;
+  };
+
+  const applyPreferenceCommand = async (preferenceId) => {
+    const nextPreferences = [preferenceId];
+    await api.put('/users/preferences', { preferences: nextPreferences });
+    updateUser({ preferences: nextPreferences });
+    navigate('/feed');
+  };
+
+  const executeAssistantAction = async (action) => {
+    if (!action || action.type !== 'action') return false;
+
+    console.info('[TRENDI] ACTION DETECTEE frontend', action);
+    try {
+      if (action.action === 'navigate' && action.target) {
+        navigate(action.target);
+        showAction(action.message || 'Navigation effectuee.', { appendMessage: false });
+        console.info('[TRENDI] ACTION EXECUTEE', action);
+        return true;
+      }
+
+      if (action.action === 'theme') {
+        if (action.target === 'dark' && !dark) toggleTheme();
+        if (action.target === 'light' && dark) toggleTheme();
+        showAction(action.message || 'Theme mis a jour.', { appendMessage: false });
+        console.info('[TRENDI] ACTION EXECUTEE', action);
+        return true;
+      }
+
+      if (action.action === 'filter' && action.target) {
+        await applyPreferenceCommand(action.target);
+        showAction(action.message || `Filtre ${action.target} applique.`, { appendMessage: false });
+        console.info('[TRENDI] ACTION EXECUTEE', action);
+        return true;
+      }
+
+      if (action.action === 'search' && action.target) {
+        navigate(`/search?q=${encodeURIComponent(action.target)}`);
+        showAction(action.message || `Recherche ${action.target} lancee.`, { appendMessage: false });
+        console.info('[TRENDI] ACTION EXECUTEE', action);
+        return true;
+      }
+
+      if (action.action === 'open_trend') {
+        const trendId = action.target && action.target !== 'current' ? action.target : lastActionableTrend?.id;
+        if (!trendId) {
+          showAction("Choisis d'abord une tendance, puis je l'ouvrirai.");
+          console.warn('[TRENDI] ACTION ECHOUEE', { action, cause: 'missing_trend_id' });
+          return true;
+        }
+        navigate(`/feed/${trendId}`);
+        showAction(action.message || "J'ouvre cette tendance.", { appendMessage: false });
+        console.info('[TRENDI] ACTION EXECUTEE', action);
+        return true;
+      }
+
+      if (action.action === 'analyze') {
+        const trendId = action.target && action.target !== 'current' ? action.target : lastActionableTrend?.id;
+        if (!trendId) {
+          showAction("Choisis d'abord une tendance, puis je lancerai l'analyse.");
+          console.warn('[TRENDI] ACTION ECHOUEE', { action, cause: 'missing_trend_id' });
+          return true;
+        }
+        navigate(`/ai/${trendId}`);
+        showAction(action.message || "Je lance l'analyse.", { appendMessage: false });
+        console.info('[TRENDI] ACTION EXECUTEE', action);
+        return true;
+      }
+
+      console.warn('[TRENDI] ACTION ECHOUEE', { action, cause: 'unsupported_action' });
+      return false;
+    } catch (error) {
+      console.error('[TRENDI] ACTION ECHOUEE', { action, cause: error?.message || error });
+      return false;
+    }
+  };
+
+  const sendMessage = async (value = input, options = {}) => {
     const message = value.trim();
     if (!message || loading) return;
 
@@ -225,21 +536,75 @@ export default function AssistantWidget() {
     setMessages((prev) => [...prev, { role: 'user', content: message }]);
 
     try {
-      const { data } = await api.post('/assistant/chat', { message });
+      const activePendingAction = getActivePendingAction();
+      const { data } = await api.post('/assistant/chat', {
+        message,
+        context: {
+          lastTrend: lastActionableTrend || null,
+          pendingAction: activePendingAction,
+          recentMessages: messages.slice(-6).map((item) => ({
+            role: item.role,
+            content: item.content
+          }))
+        }
+      });
       const answer = data?.data?.answer || 'Je n’ai pas pu produire une réponse exploitable.';
-      setMessages((prev) => [...prev, { role: 'assistant', content: answer }]);
+      const assistantAction = data?.data?.action || null;
+      const nextPendingAction = data?.data?.pendingAction || null;
+      const actions = Array.isArray(data?.data?.trends)
+        ? data.data.trends.map(compactTrend).filter((trend) => trend.id).slice(0, 3)
+        : [];
+      console.info('[TRENDI] BACKEND RESPONSE', {
+        status: data?.data?.status,
+        intent: data?.data?.intent,
+        confidence: data?.data?.confidence,
+        action: assistantAction,
+        pendingAction: nextPendingAction
+      });
+      setMessages((prev) => [...prev, { role: 'assistant', content: answer, actions: assistantAction ? [] : actions }]);
+      if (nextPendingAction) {
+        rememberPendingAction(nextPendingAction);
+      } else if (assistantAction || activePendingAction) {
+        setPendingAction(null);
+      }
+      if (assistantAction) {
+        const executed = await executeAssistantAction(assistantAction);
+        if (!executed) {
+          showAction("Je n'ai pas pu executer cette action.");
+        }
+        if (options.fromVoice || voiceModeOpen) {
+          window.setTimeout(() => {
+            const started = speak(answer, `voice-${Date.now()}`);
+            if (!started) restartVoiceLoop();
+          }, 80);
+        } else {
+          restartVoiceLoop();
+        }
+      } else if (options.fromVoice || voiceModeOpen) {
+        window.setTimeout(() => {
+          const started = speak(answer, `voice-${Date.now()}`);
+          if (!started) restartVoiceLoop();
+        }, 80);
+      }
     } catch (error) {
       const answer = error.response?.data?.status === 'ai_unavailable'
         ? 'Trendi indisponible\n\nLe moteur IA est actuellement inaccessible. Veuillez réessayer dans quelques instants.'
         : (error.response?.data?.message || 'Trendi est momentanément indisponible.');
       setMessages((prev) => [...prev, { role: 'assistant', content: answer }]);
+      restartVoiceLoop();
     } finally {
+      voiceProcessingRef.current = false;
       setLoading(false);
     }
   };
 
-  const startVoice = () => {
+  const startVoice = ({ openVoiceMode = false, continuousMode = false } = {}) => {
     setVoiceError('');
+    if (openVoiceMode) {
+      stopWakeWordListener();
+      voiceModeOpenRef.current = true;
+      setVoiceModeOpen(true);
+    }
     if (!speechSupported) {
       setVoiceError('Votre navigateur ne supporte pas la reconnaissance vocale.');
       debugVoice('speech recognition unsupported');
@@ -247,6 +612,7 @@ export default function AssistantWidget() {
     }
     if (loading) return;
     if (listening) {
+      if (continuousMode) return;
       debugVoice('manual stop');
       stopVoice();
       return;
@@ -275,6 +641,10 @@ export default function AssistantWidget() {
         type: event.type,
         timeStamp: event.timeStamp
       });
+      if (event.error === 'aborted' && voiceProcessingRef.current && voiceModeOpenRef.current) {
+        setVoiceStatus('');
+        return;
+      }
       const errorMessages = {
         'not-allowed': 'Permission microphone refusée.',
         'service-not-allowed': 'Service vocal du navigateur indisponible ou bloqué.',
@@ -343,8 +713,65 @@ export default function AssistantWidget() {
     }
   };
 
+  useEffect(() => {
+    if (!user || isPublicPage || !wakeWordEnabled || voiceModeOpen || !speechSupported) {
+      stopWakeWordListener();
+      return undefined;
+    }
+
+    startWakeWordListener();
+    return () => stopWakeWordListener();
+    // The listener is intentionally controlled by stable state flags only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isPublicPage, wakeWordEnabled, voiceModeOpen, speechSupported]);
+
+  if (!user || isPublicPage) return null;
+
   return (
     <div className="assistant-widget">
+      {voiceModeOpen ? (
+        <section className={`assistant-voice-stage assistant-voice-stage--${voiceActivity}`} aria-label="Mode vocal Trendi">
+          <div className="assistant-voice-backdrop" />
+          <div className="assistant-voice-shell">
+            <button type="button" className="assistant-voice-close" onClick={() => stopVoice({ close: true })} aria-label="Fermer le mode vocal">
+              <X size={18} />
+            </button>
+            <div className="assistant-voice-topline">
+              <span>Mode vocal</span>
+              <strong>Trendi</strong>
+            </div>
+            <div className="assistant-orb" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="assistant-voice-copy">
+              <h2>
+                {voiceActivity === 'speaking'
+                  ? 'Trendi vous repond'
+                  : voiceActivity === 'thinking'
+                    ? THINKING_STEPS[thinkingIndex]
+                    : voiceActivity === 'listening'
+                      ? 'Je vous ecoute'
+                      : 'Pret a analyser une tendance'}
+              </h2>
+              <p>{voiceError || voiceStatus || 'Posez une question sur une opportunite, une tendance ou un marche.'}</p>
+            </div>
+            <div className="assistant-voice-controls">
+              <button
+                type="button"
+                className={listening ? 'assistant-voice-control is-active' : 'assistant-voice-control'}
+                onClick={() => startVoice()}
+                disabled={loading}
+                aria-label={listening ? 'Arreter le micro' : 'Activer le micro'}
+              >
+                {listening ? <MicOff size={20} /> : <Mic size={20} />}
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {open ? (
         <section className="assistant-panel" aria-label="Assistant Trendi">
           <header className="assistant-header">
@@ -357,6 +784,13 @@ export default function AssistantWidget() {
             </button>
           </header>
 
+          {actionFeedback ? (
+            <div className="assistant-action-feedback" role="status">
+              <CheckCircle2 size={15} />
+              <span>{actionFeedback}</span>
+            </div>
+          ) : null}
+
           <div ref={listRef} className="assistant-messages">
             {messages.map((message, index) => {
               const messageKey = `${message.role}-${index}`;
@@ -364,6 +798,28 @@ export default function AssistantWidget() {
               return (
                 <div key={messageKey} className={`assistant-message assistant-message--${message.role}`}>
                   <p>{message.content}</p>
+                  {message.role === 'assistant' && Array.isArray(message.actions) && message.actions.length ? (
+                    <div className="assistant-trend-actions">
+                      {message.actions.map((trend) => (
+                        <article key={trend.id} className="assistant-trend-card">
+                          <div>
+                            <span>{trend.source} · {trend.category}</span>
+                            <strong>{trend.title}</strong>
+                          </div>
+                          <b>{formatScore(trend.score)}</b>
+                          <div className="assistant-trend-links">
+                            <a href={`/feed/${trend.id}`}>Voir la tendance</a>
+                            <a href={`/ai/${trend.id}`}>Voir le rapport</a>
+                            {trend.link ? (
+                              <a href={trend.link} target="_blank" rel="noreferrer">
+                                Source <ArrowUpRight size={12} />
+                              </a>
+                            ) : null}
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : null}
                   {message.role === 'assistant' ? (
                     <button
                       type="button"
@@ -380,8 +836,14 @@ export default function AssistantWidget() {
               );
             })}
             {loading ? (
-              <div className="assistant-message assistant-message--assistant">
-                <p>Trendi analyse les signaux de la plateforme...</p>
+              <div className="assistant-thinking-card">
+                <div className="assistant-thinking-icon">
+                  <Sparkles size={16} />
+                </div>
+                <div>
+                  <span>{THINKING_STEPS[thinkingIndex]}</span>
+                  <p>Trendi construit une reponse utile et actionnable.</p>
+                </div>
               </div>
             ) : null}
           </div>
@@ -396,7 +858,7 @@ export default function AssistantWidget() {
             <button
               type="button"
               className={listening ? 'assistant-voice is-listening' : 'assistant-voice'}
-              onClick={startVoice}
+              onClick={() => startVoice({ openVoiceMode: true })}
               disabled={loading}
               aria-label="Dicter une question"
               title={speechSupported ? 'Dicter une question' : 'Reconnaissance vocale indisponible'}
@@ -427,7 +889,7 @@ export default function AssistantWidget() {
         </section>
       ) : (
         <button type="button" className="assistant-launcher" onClick={() => setOpen(true)} aria-label="Ouvrir Trendi">
-          <MessageCircle size={18} />
+          <BarChart3 size={18} />
           Trendi
         </button>
       )}

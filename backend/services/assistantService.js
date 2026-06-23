@@ -10,6 +10,7 @@ const NO_RELEVANT_TRENDS_MESSAGE = "Aucune tendance pertinente trouvée pour cet
 
 const FORBIDDEN_PUBLIC_TERMS = /\b(MongoDB|OpenRouter|Groq|API|backend|collection|base de donnees|base de données|database|sources internes|source interne|systeme|système|contexte|Google Trends score|score\s+\d+|score)\b/gi;
 const ENGLISH_LEAK_PATTERN = /\b(score of|there is|businesses|potential|trending|opportunity|recommendation)\b/i;
+const ACADEMIC_STYLE_PATTERN = /\b(je vais prendre un peu de recul|il est important de noter que|avant de repondre a votre question|avant de répondre à votre question|il est essentiel de considerer|il est essentiel de considérer|je vous recommande fortement|en fin de compte|cependant|d'autre part|cela depend de nombreux facteurs|cela dépend de nombreux facteurs)\b/gi;
 
 const TOPIC_STOPWORDS = new Set([
   "je", "j", "veux", "savoir", "connaitre", "connaître", "donne", "donnes", "moi", "sur", "la", "le", "les", "un", "une", "des",
@@ -27,7 +28,8 @@ const TOPIC_ALIASES = {
   sante: ["sante", "santé", "health", "medical", "wellness", "fitness"],
   santé: ["sante", "santé", "health", "medical", "wellness", "fitness"],
   sport: ["sport", "nba", "football", "basket", "tennis", "match", "finals"],
-  business: ["business", "finance", "startup", "market", "revenue", "stock"],
+  business: ["business", "finance", "startup", "market", "revenue", "stock", "crypto", "bitcoin", "ethereum"],
+  crypto: ["crypto", "bitcoin", "btc", "ethereum", "eth", "solana"],
   technologie: ["technologie", "technology", "tech", "software", "cyber", "data"],
   tech: ["tech", "technologie", "technology", "software", "cyber", "data"]
 };
@@ -43,9 +45,195 @@ const escapeRegex = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g
 
 const sanitizePublicAnswer = (value) => String(value || "")
   .replace(FORBIDDEN_PUBLIC_TERMS, "")
+  .replace(ACADEMIC_STYLE_PATTERN, "")
   .replace(/\s+([.,;:!?])/g, "$1")
   .replace(/[ \t]{2,}/g, " ")
   .trim();
+
+const includesAny = (text, phrases) => phrases.some((phrase) => text.includes(phrase));
+
+const hasWord = (text, words) => words.some((word) => new RegExp(`\\b${escapeRegex(word)}\\b`, "i").test(text));
+
+const preferenceIntents = [
+  { id: "gaming", label: "Gaming", words: ["gaming", "game", "jeux", "jeu video", "jeux video", "gamer"] },
+  { id: "business", label: "Business", words: ["business", "finance", "marche", "entreprise"] },
+  { id: "tech", label: "Tech", words: ["tech", "technologie", "technologies", "digital"] },
+  { id: "startup", label: "Startup", words: ["startup", "startups"] },
+  { id: "health", label: "Sante", words: ["sante", "medical", "bien etre", "health"] },
+  { id: "society", label: "Societe", words: ["societe", "social", "society"] },
+  { id: "creator", label: "Createurs", words: ["createur", "createurs", "creator", "contenu"] },
+  { id: "education", label: "Education", words: ["education", "ecole", "formation", "apprentissage"] }
+];
+
+const navigationIntents = [
+  { target: "/home", label: "Accueil", message: "J'ouvre Accueil.", words: ["accueil", "home", "page accueil"] },
+  { target: "/feed", label: "Explorer", message: "J'ouvre Explorer.", words: ["explorer", "feed", "flux"] },
+  { target: "/favorites", label: "Favoris", message: "J'ouvre Favoris.", words: ["favoris", "favori", "sauvegardes", "sauvegarde", "enregistres", "bookmarks"] },
+  { target: "/profile", label: "Profil", message: "J'ouvre Profil.", words: ["profil", "profile", "compte"] },
+  { target: "/profile", label: "Preferences", message: "J'ouvre Preferences.", words: ["preferences", "preference", "parametres", "settings"] },
+  { target: "/search", label: "Recherche", message: "J'ouvre Recherche.", words: ["recherche", "chercher", "search"] }
+];
+
+const buildIntent = (category, confidence, extra = {}) => ({
+  category,
+  confidence: Math.max(0, Math.min(1, confidence)),
+  ...extra
+});
+
+const getConversationalAnswer = (message) => {
+  const normalized = normalizeSearchText(message);
+
+  if (/^(salut|bonjour|bonsoir|coucou|hello|hi|salam)$/.test(normalized)) {
+    return "Salut. Comment puis-je t'aider aujourd'hui ?";
+  }
+
+  if (/^(merci|merci beaucoup|thanks)$/.test(normalized)) {
+    return "Avec plaisir. Tu veux explorer une autre tendance ?";
+  }
+
+  if (/^(au revoir|bye|a plus|a bientot)$/.test(normalized)) {
+    return "A bientot. Reviens quand tu veux analyser un nouveau signal.";
+  }
+
+  if (/^(comment vas tu|ca va|comment ca va)$/.test(normalized)) {
+    return "Ca va bien. Je suis pret a t'aider sur les tendances du moment.";
+  }
+
+  if (/^(qui es tu|qui etes vous|tu es qui)$/.test(normalized)) {
+    return "Je suis Trendi. Je peux t'aider a analyser des tendances, trouver des opportunites et explorer les signaux detectes sur Trendify.";
+  }
+
+  return "Je peux t'aider a trouver une tendance, comparer des opportunites ou generer une idee de contenu. Tu veux commencer par quel sujet ?";
+};
+
+const buildAction = (action, target, message, extra = {}) => ({
+  type: "action",
+  action,
+  target,
+  message,
+  ...extra
+});
+
+const normalizePendingAction = (pendingAction) => {
+  if (!pendingAction || typeof pendingAction !== "object") return null;
+  const action = String(pendingAction.action || "").trim();
+  const target = String(pendingAction.target || "").trim();
+  const message = String(pendingAction.message || "").trim();
+  if (!["navigate", "theme", "filter", "search", "open_trend", "analyze"].includes(action) || !target) return null;
+  return buildAction(action, target, message || "Action confirmee.", {
+    confidence: Number(pendingAction.confidence || 0.86)
+  });
+};
+
+const isConfirmationMessage = (normalized) => [
+  "oui", "oui vas y", "vas y", "confirme", "je confirme", "d accord", "daccord", "ok", "okay", "fais le", "fait le"
+].includes(normalized);
+
+const classifyAssistantIntent = (message, clientContext = {}) => {
+  const raw = String(message || "").trim();
+  const normalized = normalizeSearchText(raw);
+  if (!normalized) return buildIntent("empty", 1);
+
+  const pendingAction = normalizePendingAction(clientContext.pendingAction);
+  if (pendingAction && isConfirmationMessage(normalized)) {
+    return buildIntent("confirmation", 0.96, {
+      action: pendingAction
+    });
+  }
+
+  const conversationExact = [
+    "salut", "bonjour", "bonsoir", "coucou", "hello", "hi", "salam",
+    "merci", "merci beaucoup", "ok", "okay", "oui", "super", "parfait", "ca marche",
+    "d accord", "daccord", "au revoir", "bye", "a plus", "a bientot",
+    "comment vas tu", "ca va", "comment ca va", "qui es tu", "qui etes vous", "tu es qui"
+  ];
+
+  if (conversationExact.includes(normalized)) {
+    return buildIntent("conversation", 0.98);
+  }
+
+  if (includesAny(normalized, ["que peux tu faire", "aide moi", "aide-moi", "comment tu peux m aider", "comment ca marche"])) {
+    return buildIntent("help", 0.92);
+  }
+
+  const searchMatch = raw.match(/\b(?:cherche|recherche|trouve|chercher)\s+(.{2,80})$/i);
+  if (searchMatch?.[1]) {
+    const query = searchMatch[1].trim();
+    return buildIntent("search", 0.94, {
+      action: buildAction("search", query, `Recherche ${query} lancee.`, { confidence: 0.94 })
+    });
+  }
+
+  const themeVerb = hasWord(normalized, ["active", "activer", "mets", "met", "remets", "remet", "passe", "basculer", "bascule", "change", "changer", "prefere", "veux"]);
+  const darkTarget = includesAny(normalized, ["mode sombre", "theme sombre", "theme noir", "interface sombre", "mode noir", "site en noir", "dark mode"]) || hasWord(normalized, ["sombre", "noir", "dark"]);
+  const lightTarget = includesAny(normalized, ["mode clair", "theme clair", "interface claire", "light mode"]) || hasWord(normalized, ["clair", "blanc", "light"]);
+
+  if (darkTarget && (themeVerb || includesAny(normalized, ["dark mode", "theme sombre", "mode sombre", "mode noir"]))) {
+    return buildIntent("theme", themeVerb ? 0.95 : 0.78, {
+      action: buildAction("theme", "dark", "Mode sombre active.", { confidence: themeVerb ? 0.95 : 0.78 })
+    });
+  }
+
+  if (lightTarget && (themeVerb || includesAny(normalized, ["light mode", "theme clair", "mode clair"]))) {
+    return buildIntent("theme", themeVerb ? 0.95 : 0.78, {
+      action: buildAction("theme", "light", "Mode clair active.", { confidence: themeVerb ? 0.95 : 0.78 })
+    });
+  }
+
+  const filterVerb = hasWord(normalized, ["filtre", "filtrer", "affiche", "montre", "voir", "passe"]) || includesAny(normalized, ["je veux voir", "montre moi", "affiche moi"]);
+  if (filterVerb || hasWord(normalized, ["preference", "preferences"])) {
+    const match = preferenceIntents.find((item) => includesAny(normalized, item.words));
+    if (match) {
+      return buildIntent("preferences", 0.9, {
+        action: buildAction("filter", match.id, `Filtre ${match.label} applique.`, { confidence: 0.9 })
+      });
+    }
+  }
+
+  const naturalSearchMatch = normalized.match(/\b(?:montre|affiche|voir)\s+(?:moi\s+)?(?:les\s+)?tendances?\s+(.{2,80})$/i);
+  if (naturalSearchMatch?.[1]) {
+    const query = naturalSearchMatch[1].trim().toUpperCase() === "IA" ? "IA" : naturalSearchMatch[1].trim();
+    return buildIntent("search", 0.9, {
+      action: buildAction("search", query, `Recherche ${query} lancee.`, { confidence: 0.9 })
+    });
+  }
+
+  const analysisTarget = includesAny(normalized, ["celle la", "celle ci", "cette tendance", "ce signal", "le premier", "la premiere", "premier resultat"]);
+  if ((hasWord(normalized, ["ouvre", "ouvrir", "affiche", "voir"]) && analysisTarget) || includesAny(normalized, ["ouvre le premier", "ouvre la premiere"])) {
+    return buildIntent("analysis", 0.9, {
+      action: buildAction("open_trend", clientContext?.lastTrend?.id || "current", "J'ouvre cette tendance.", { confidence: 0.9 })
+    });
+  }
+
+  if ((hasWord(normalized, ["analyse", "analyser", "rapport"]) && (analysisTarget || hasWord(normalized, ["lance", "ouvre", "affiche", "voir"]))) || includesAny(normalized, ["analyse celle la", "analyse celle ci", "lance une analyse"])) {
+    return buildIntent("analysis", 0.92, {
+      action: buildAction("analyze", clientContext?.lastTrend?.id || "current", "Je lance l'analyse.", { confidence: 0.92 })
+    });
+  }
+
+  const navigationVerb = hasWord(normalized, ["ouvre", "ouvrir", "va", "aller", "affiche", "montre", "emmene", "emmener", "navigue", "naviguer", "accede", "acceder", "passe"]) || includesAny(normalized, ["je veux explorer", "je veux aller", "conduis moi"]);
+  const navigationTarget = navigationIntents.find((item) => includesAny(normalized, item.words));
+  if (navigationTarget && navigationVerb) {
+    return buildIntent("navigation", 0.93, {
+      action: buildAction("navigate", navigationTarget.target, navigationTarget.message, { confidence: 0.93 })
+    });
+  }
+
+  if (navigationTarget && !navigationVerb) {
+    return buildIntent("navigation", 0.86, {
+      action: buildAction("navigate", navigationTarget.target, navigationTarget.message, { confidence: 0.86 })
+    });
+  }
+
+  return buildIntent("trend_search", 0.72);
+};
+
+const parseAssistantAction = (message, clientContext = {}) => {
+  const intent = classifyAssistantIntent(message, clientContext);
+  return intent.action || null;
+};
+
+const detectAssistantIntent = (message, clientContext = {}) => classifyAssistantIntent(message, clientContext).category;
 
 const createAssistantUnavailableError = () => {
   const error = new Error("Trendi est temporairement indisponible.");
@@ -131,6 +319,15 @@ const formatTrendContext = (trends) => trends.map((trend, index) => [
   `Tags: ${Array.isArray(trend.tags) && trend.tags.length ? trend.tags.join(", ") : "Non renseignes"}`
 ].join("\n")).join("\n\n");
 
+const formatActionableTrend = (trend) => ({
+  id: String(trend?._id || trend?.id || ""),
+  title: trend?.title || "",
+  source: trend?.source || "",
+  category: trend?.category || "",
+  score: Number(trend?.score || 0),
+  link: trend?.link || ""
+});
+
 const buildTopicMongoQuery = (topic) => {
   if (!topic?.hasTopic || !topic.terms.length) return {};
 
@@ -161,7 +358,7 @@ const getTopTrendContext = async (message = "") => {
   const rawTrends = await Trend.find(query)
     .sort({ score: -1 })
     .limit(limit)
-    .select("title source category score tags")
+    .select("title source category score tags link")
     .lean();
 
   const trends = topic.hasTopic ? rankRelevantTrends(rawTrends, topic) : rawTrends.slice(0, MAX_CONTEXT_TRENDS);
@@ -181,19 +378,27 @@ const requestAssistantAnswer = async (cleanMessage, context, topic) => {
     "https://api.groq.com/openai/v1/chat/completions",
     {
       model: GROQ_MODEL,
-      max_tokens: 1100,
+      max_tokens: 520,
       temperature: 0.18,
       messages: [
         {
           role: "system",
-          content: `Tu es Trendi, l'assistant expert de Trendify.
+          content: `Tu es Trendi, l'assistant vocal et naturel de Trendify.
 
-Tu n'es pas un chatbot generaliste et tu n'es pas un moteur de recherche.
-Tu reponds comme un consultant startup, un analyste marche et un expert de veille strategique.
-Tu utilises uniquement les tendances fournies, mais tu ne parles jamais de donnees techniques.
-Si l'utilisateur a donne un sujet precis, tu dois rester strictement sur ce sujet.
-Ne recommande jamais une tendance hors sujet, meme si elle semble plus importante.
+Tu parles comme Siri, ChatGPT Voice ou Gemini Live: court, direct, humain.
+Tu n'ecris jamais comme un professeur, un rapport, ou un consultant corporate.
+Tu reponds d'abord, puis tu poses une petite question utile si cela aide.
+Tu utilises uniquement les tendances fournies, sans parler de technique.
+Si l'utilisateur donne un sujet precis, reste strictement sur ce sujet.
+Ne recommande jamais une tendance hors sujet.
 Reponds toujours en francais.
+
+Format obligatoire:
+- 3 a 8 phrases maximum.
+- Phrases courtes.
+- Pas de long paragraphe.
+- Si tu listes, utilise 3 a 5 puces maximum.
+- Termine souvent par une question naturelle.
 
 Termes interdits en sortie:
 - MongoDB
@@ -221,11 +426,22 @@ Termes interdits en sortie:
 
 Regles de qualite:
 - Ne donne jamais une simple liste brute de titres.
-- Chaque reponse doit contenir interpretation, raisonnement et action concrete.
+- Chaque reponse doit donner une interpretation simple et une action possible.
 - Ne revele pas les chiffres techniques de priorisation.
 - Si plusieurs tendances existent, fais un classement argumente et conclus par un choix clair.
 - Si la question porte sur un sujet precis, classe uniquement les tendances liees a ce sujet.
-- Si le sujet est gaming, le persona doit etre gaming: joueurs, createurs gaming, studios, streamers, medias gaming ou marques entertainment.`
+- Si le sujet est gaming, parle a des joueurs, createurs gaming, studios, streamers ou medias gaming.
+
+Phrases interdites:
+- Je vais prendre un peu de recul
+- Il est important de noter que
+- Avant de repondre a votre question
+- Il est essentiel de considerer
+- Je vous recommande fortement
+- En fin de compte
+- Cependant
+- D'autre part
+- Cela depend de nombreux facteurs`
         },
         {
           role: "user",
@@ -252,7 +468,36 @@ ${cleanMessage}`
   return sanitizePublicAnswer(response?.data?.choices?.[0]?.message?.content || "");
 };
 
-const askAssistant = async (message) => {
+const normalizeClientTrend = (trend) => {
+  if (!trend || typeof trend !== "object") return null;
+  const id = String(trend.id || trend._id || "").trim();
+  const title = String(trend.title || "").trim();
+  if (!id || !title) return null;
+
+  return {
+    _id: id,
+    id,
+    title,
+    source: String(trend.source || ""),
+    category: String(trend.category || ""),
+    score: Number(trend.score || 0),
+    tags: Array.isArray(trend.tags) ? trend.tags : [],
+    link: String(trend.link || "")
+  };
+};
+
+const shouldUseLastTrendContext = (message, clientContext = {}) => {
+  const lastTrend = normalizeClientTrend(clientContext.lastTrend);
+  if (!lastTrend) return false;
+  const normalized = normalizeSearchText(message);
+  return includesAny(normalized, [
+    "celle la", "celle ci", "cette tendance", "ce signal", "la dessus", "sur ca",
+    "donne moi des idees business", "idees business", "idees de contenu", "plus de details",
+    "pour cette tendance", "pour ce sujet"
+  ]);
+};
+
+const askAssistant = async (message, clientContext = {}) => {
   const cleanMessage = sanitizeMessage(message);
   if (!cleanMessage) {
     const error = new Error("Message assistant vide.");
@@ -260,12 +505,71 @@ const askAssistant = async (message) => {
     throw error;
   }
 
-  const { trends, context, topic } = await getTopTrendContext(cleanMessage);
+  const intent = classifyAssistantIntent(cleanMessage, clientContext);
+  console.info("[TRENDI] INTENTION DETECTEE", {
+    message: cleanMessage,
+    intent: intent.category,
+    confidence: intent.confidence,
+    action: intent.action?.action || null,
+    target: intent.action?.target || null,
+    pendingAction: intent.pendingAction?.action || null
+  });
+
+  if (intent.action) {
+    return {
+      answer: intent.action.message,
+      status: "action",
+      trendsUsed: 0,
+      trends: [],
+      action: intent.action,
+      pendingAction: null,
+      intent: intent.category,
+      confidence: intent.confidence
+    };
+  }
+
+  if (intent.category === "clarification") {
+    return {
+      answer: intent.answer || "Tu veux que j'ouvre une page ou que je lance une recherche ?",
+      status: "clarification",
+      trendsUsed: 0,
+      trends: [],
+      action: null,
+      pendingAction: intent.pendingAction || null,
+      intent: intent.category,
+      confidence: intent.confidence
+    };
+  }
+
+  if (intent.category === "conversation" || intent.category === "help") {
+    return {
+      answer: getConversationalAnswer(cleanMessage),
+      status: intent.category,
+      trendsUsed: 0,
+      trends: [],
+      action: null,
+      pendingAction: null,
+      intent: intent.category,
+      confidence: intent.confidence
+    };
+  }
+
+  const lastTrend = shouldUseLastTrendContext(cleanMessage, clientContext) ? normalizeClientTrend(clientContext.lastTrend) : null;
+  const contextSource = lastTrend
+    ? { trends: [lastTrend], context: formatTrendContext([lastTrend]), topic: { hasTopic: true, phrase: normalizeSearchText(lastTrend.title), terms: normalizeSearchText(lastTrend.title).split(/\s+/).filter(Boolean).slice(0, 8) } }
+    : await getTopTrendContext(cleanMessage);
+  const { trends, context, topic } = contextSource;
+
   if (!trends.length) {
     return {
       answer: topic?.hasTopic ? NO_RELEVANT_TRENDS_MESSAGE : "Je n'ai pas encore assez de tendances exploitables pour repondre correctement.",
       status: topic?.hasTopic ? "no_relevant_trends" : "empty",
-      trendsUsed: 0
+      trendsUsed: 0,
+      trends: [],
+      action: null,
+      pendingAction: null,
+      intent: intent.category,
+      confidence: intent.confidence
     };
   }
 
@@ -277,7 +581,12 @@ const askAssistant = async (message) => {
     return {
       answer,
       status: "groq",
-      trendsUsed: trends.length
+      trendsUsed: trends.length,
+      trends: trends.map(formatActionableTrend).filter((trend) => trend.id).slice(0, 3),
+      action: null,
+      pendingAction: null,
+      intent: intent.category,
+      confidence: intent.confidence
     };
   } catch (error) {
     if (error?.status === "ai_unavailable") throw error;
@@ -290,6 +599,10 @@ module.exports = {
   askAssistant,
   getTopTrendContext,
   sanitizePublicAnswer,
+  classifyAssistantIntent,
+  detectAssistantIntent,
+  getConversationalAnswer,
+  parseAssistantAction,
   extractTopicTerms,
   calculateTrendRelevance,
   createAssistantUnavailableError

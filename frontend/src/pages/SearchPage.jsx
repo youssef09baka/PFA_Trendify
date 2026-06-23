@@ -59,7 +59,7 @@ function SearchResultCard({ trend }) {
 
 export default function SearchPage() {
   const navigate = useNavigate();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => new URLSearchParams(window.location.search).get('q') || '');
   const [recent, setRecent] = useState(readRecentSearches);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);

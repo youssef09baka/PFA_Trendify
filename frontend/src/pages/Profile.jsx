@@ -14,12 +14,17 @@ import {
   Globe,
   GraduationCap,
   HeartPulse,
+  Mic,
   Moon,
   Music,
   Rocket,
   Sun,
   UserRound
 } from 'lucide-react';
+
+const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition;
+const WAKE_WORD_STORAGE_PREFIX = 'trendify_trendi_wake_word';
+const getWakeWordStorageKey = (user) => `${WAKE_WORD_STORAGE_PREFIX}:${user?.id || user?._id || user?.email || 'anonymous'}`;
 
 const CATEGORIES = [
   { id: 'tech', label: 'Technologie', sub: 'IA, Dev, Data', icon: <Cpu size={22} />, color: '#2563EB' },
@@ -36,6 +41,8 @@ export default function Profile() {
   const { user, updateUser } = useAuth();
   const { dark, toggle: toggleTheme } = useTheme();
   const [selected, setSelected] = useState(() => Array.isArray(user?.preferences) ? user.preferences : []);
+  const [wakeWordEnabled, setWakeWordEnabled] = useState(() => localStorage.getItem(getWakeWordStorageKey(user)) === 'true');
+  const [wakeWordMessage, setWakeWordMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
@@ -67,6 +74,27 @@ export default function Profile() {
 
   const activeLabels = CATEGORIES.filter((category) => selected.includes(category.id)).map((category) => category.label);
   const aiRemaining = Number(user?.aiRemaining ?? 0);
+  const speechRecognitionSupported = Boolean(SpeechRecognitionApi);
+
+  const toggleWakeWord = async () => {
+    const nextValue = !wakeWordEnabled;
+
+    if (nextValue && navigator.mediaDevices?.getUserMedia) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((track) => track.stop());
+        setWakeWordMessage('Microphone autorise. Dites "Ok Trendi" pour tester.');
+      } catch {
+        setWakeWordMessage('Autorisez le microphone pour utiliser l’activation vocale.');
+        return;
+      }
+    }
+
+    setWakeWordEnabled(nextValue);
+    localStorage.setItem(getWakeWordStorageKey(user), String(nextValue));
+    window.dispatchEvent(new Event('trendi-wake-word-change'));
+    if (!nextValue) setWakeWordMessage('Activation vocale desactivee.');
+  };
 
   return (
     <div className="page-layout">
@@ -167,6 +195,37 @@ export default function Profile() {
               <span>{dark ? 'Mode sombre actif' : 'Mode clair actif'}</span>
             </button>
           </section>
+
+          {speechRecognitionSupported ? (
+            <section className="profile-card profile-settings-card profile-voice-card">
+              <div className="profile-section-header">
+                <div>
+                  <span className="eyebrow">Assistant vocal Trendi</span>
+                  <h2>Activation vocale</h2>
+                  <p>Autoriser Trendi a s'activer automatiquement lorsque vous dites "Ok Trendi".</p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className={wakeWordEnabled ? 'profile-wake-toggle is-active' : 'profile-wake-toggle'}
+                onClick={toggleWakeWord}
+                aria-pressed={wakeWordEnabled}
+              >
+                <span className="profile-wake-icon"><Mic size={18} /></span>
+                <span>
+                  <strong>{wakeWordEnabled ? 'Activation vocale activee' : 'Activation vocale desactivee'}</strong>
+                  <small>{wakeWordEnabled ? 'Ok Trendi peut ouvrir le mode vocal.' : 'Trendi demarre uniquement au clic.'}</small>
+                </span>
+                <b>{wakeWordEnabled ? 'ON' : 'OFF'}</b>
+              </button>
+
+              <div className={wakeWordEnabled ? 'profile-wake-status is-active' : 'profile-wake-status'}>
+                {wakeWordEnabled ? '🟢 Activation vocale activée' : '⚪ Activation vocale désactivée'}
+              </div>
+              {wakeWordMessage ? <p className="profile-wake-help">{wakeWordMessage}</p> : null}
+            </section>
+          ) : null}
         </div>
       </main>
     </div>
