@@ -41,13 +41,18 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
+    console.info('[AUTH] LOGIN START');
     setError('');
     setLoading(true);
     try {
       const { data } = await api.post('/users/login', { email, password });
-      login(data.user, data.token);
+      console.info('[AUTH] LOGIN SUCCESS', { hasToken: Boolean(data.token), hasUser: Boolean(data.user) });
+      await login(data.user, data.token);
+      console.info('[AUTH] NAVIGATE FEED', { target: '/home' });
       navigate('/home');
     } catch (err) {
+      console.error('[AUTH] LOGIN FAILED', err.response?.data || err.message);
       setError(formatAuthError(err, 'Identifiants incorrects.'));
     } finally {
       setLoading(false);

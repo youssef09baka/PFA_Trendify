@@ -31,7 +31,71 @@ const normalizeVoiceText = (value) => String(value || '')
   .replace(/[^a-z0-9]+/g, ' ')
   .trim();
 
-const isWakeWord = (value) => /\b(ok|okay|hey|salut)\s+(trendi|trendy|trendie|trend y|trend dit)\b/.test(normalizeVoiceText(value));
+const compactVoiceToken = (value) => String(value || '')
+  .replace(/(.)\1{1,}/g, '$1')
+  .replace(/[^a-z0-9]/g, '');
+
+const levenshteinDistance = (left, right) => {
+  const a = compactVoiceToken(left);
+  const b = compactVoiceToken(right);
+  if (!a || !b) return Math.max(a.length, b.length);
+
+  const previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    let diagonal = previous[0];
+    previous[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const temp = previous[j];
+      previous[j] = Math.min(
+        previous[j] + 1,
+        previous[j - 1] + 1,
+        diagonal + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+      diagonal = temp;
+    }
+  }
+  return previous[b.length];
+};
+
+const wordSimilarity = (left, right) => {
+  const a = compactVoiceToken(left);
+  const b = compactVoiceToken(right);
+  if (!a || !b) return 0;
+  const maxLength = Math.max(a.length, b.length);
+  return maxLength ? 1 - levenshteinDistance(a, b) / maxLength : 0;
+};
+
+const evaluateWakeWord = (value) => {
+  const normalized = normalizeVoiceText(value);
+  const tokens = normalized.split(/\s+/).filter(Boolean);
+  const wakePrefixes = new Set(['ok', 'okay', 'hey', 'salut', 'eh', 'yo']);
+  const targetWords = ['trendi', 'trendy', 'trendie', 'trendyy', 'trendit'];
+  let bestConfidence = 0;
+  let bestToken = '';
+
+  tokens.forEach((token) => {
+    targetWords.forEach((target) => {
+      const confidence = wordSimilarity(token, target);
+      if (confidence > bestConfidence) {
+        bestConfidence = confidence;
+        bestToken = token;
+      }
+    });
+  });
+
+  const hasPrefix = tokens.some((token) => wakePrefixes.has(token));
+  const hasListenIntent = tokens.some((token) => ['ecoute', 'ecoutes', 'reveille', 'assistant'].includes(token));
+  const isDirectNameCall = tokens.length === 1 || (tokens.length <= 3 && hasListenIntent);
+  const accepted = (hasPrefix && bestConfidence >= 0.68) || (bestConfidence >= 0.86 && isDirectNameCall);
+
+  return {
+    accepted,
+    confidence: Number(bestConfidence.toFixed(2)),
+    normalized,
+    bestToken,
+    hasPrefix
+  };
+};
 
 const getWakeWordStorageKey = (user) => `${WAKE_WORD_STORAGE_PREFIX}:${user?.id || user?._id || user?.email || 'anonymous'}`;
 
@@ -125,9 +189,19 @@ export default function AssistantWidget() {
   const [speechReady, setSpeechReady] = useState(() => Boolean(SpeechSynthesisApi));
   const [wakeWordEnabled, setWakeWordEnabled] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  const [shortMemory, setShortMemory] = useState({
+    lastSubject: '',
+    lastSearch: '',
+    lastAction: null
+  });
   const recognitionRef = useRef(null);
   const wakeRecognitionRef = useRef(null);
   const wakeListeningRef = useRef(false);
+  const wakeRestartTimerRef = useRef(null);
+  const wakeStopReasonRef = useRef('');
+  const wakeWordEnabledRef = useRef(false);
+  const isPublicPageRef = useRef(false);
+  const userRef = useRef(null);
   const shouldListenRef = useRef(false);
   const voiceModeOpenRef = useRef(false);
   const voiceProcessingRef = useRef(false);
@@ -234,12 +308,23 @@ export default function AssistantWidget() {
   useEffect(() => () => {
     shouldListenRef.current = false;
     window.clearTimeout(voiceSendTimerRef.current);
+    window.clearTimeout(wakeRestartTimerRef.current);
+    wakeStopReasonRef.current = 'cleanup';
+    wakeListeningRef.current = false;
+    wakeRecognitionRef.current?.stop?.();
+    wakeRecognitionRef.current = null;
     recognitionRef.current?.stop?.();
     speechRequestRef.current += 1;
     SpeechSynthesisApi?.cancel?.();
   }, []);
 
   const isPublicPage = ['/', '/login', '/signup'].includes(location.pathname);
+
+  useEffect(() => {
+    wakeWordEnabledRef.current = wakeWordEnabled;
+    isPublicPageRef.current = isPublicPage;
+    userRef.current = user;
+  }, [wakeWordEnabled, isPublicPage, user]);
 
   const stopSpeech = () => {
     speechRequestRef.current += 1;
@@ -318,16 +403,44 @@ export default function AssistantWidget() {
     stopSpeech();
     setListening(false);
     setVoiceStatus('');
-    if (close) setVoiceModeOpen(false);
+    if (close) {
+      setVoiceModeOpen(false);
+      scheduleWakeWordRestart('voice_closed', 700);
+    }
   };
 
-  const stopWakeWordListener = () => {
+  const canRunWakeWordListener = () => (
+    Boolean(userRef.current)
+    && !isPublicPageRef.current
+    && wakeWordEnabledRef.current
+    && !voiceModeOpenRef.current
+    && !listeningRef.current
+    && !loadingRef.current
+    && speechSupported
+  );
+
+  const scheduleWakeWordRestart = (reason = 'scheduled', delay = 700) => {
+    window.clearTimeout(wakeRestartTimerRef.current);
+    if (!canRunWakeWordListener()) return;
+
+    console.info('[Trendi Wake Word] listener restart scheduled', { reason, delay });
+    wakeRestartTimerRef.current = window.setTimeout(() => {
+      if (!canRunWakeWordListener() || wakeListeningRef.current) return;
+      console.info('[Trendi Wake Word] listener restarted', { reason });
+      startWakeWordListener();
+    }, delay);
+  };
+
+  const stopWakeWordListener = ({ reason = 'manual' } = {}) => {
+    window.clearTimeout(wakeRestartTimerRef.current);
+    wakeStopReasonRef.current = reason;
     wakeListeningRef.current = false;
     try {
       wakeRecognitionRef.current?.stop?.();
     } catch (error) {
       debugVoice('wake stop failed', error);
     }
+    console.info('[Trendi Wake Word] listener stopped', { reason });
     wakeRecognitionRef.current = null;
   };
 
@@ -340,9 +453,9 @@ export default function AssistantWidget() {
   };
 
   const activateFromWakeWord = () => {
-    stopWakeWordListener();
-    setOpen(true);
     voiceModeOpenRef.current = true;
+    stopWakeWordListener({ reason: 'wake_detected' });
+    setOpen(true);
     setVoiceModeOpen(true);
     setVoiceError('');
     setVoiceStatus('Oui, je vous ecoute.');
@@ -355,7 +468,18 @@ export default function AssistantWidget() {
   };
 
   const startWakeWordListener = () => {
-    if (!speechSupported || wakeListeningRef.current || voiceModeOpenRef.current || listeningRef.current || loadingRef.current) return;
+    if (!canRunWakeWordListener() || wakeListeningRef.current) {
+      console.info('[Trendi Wake Word] listener start skipped', {
+        supported: speechSupported,
+        enabled: wakeWordEnabledRef.current,
+        publicPage: isPublicPageRef.current,
+        voiceModeOpen: voiceModeOpenRef.current,
+        listening: listeningRef.current,
+        loading: loadingRef.current,
+        alreadyListening: wakeListeningRef.current
+      });
+      return;
+    }
 
     const recognition = new SpeechRecognitionApi();
     recognition.lang = 'fr-FR';
@@ -364,16 +488,32 @@ export default function AssistantWidget() {
     recognition.maxAlternatives = 1;
     wakeRecognitionRef.current = recognition;
     wakeListeningRef.current = true;
+    wakeStopReasonRef.current = '';
 
     recognition.onresult = (event) => {
       for (let index = event.resultIndex; index < event.results.length; index += 1) {
         const transcript = String(event.results[index]?.[0]?.transcript || '');
         debugVoice('wake transcript', transcript);
-        if (isWakeWord(transcript)) {
+        const wakeEvaluation = evaluateWakeWord(transcript);
+        console.info('[Trendi Wake Word] heard', {
+          transcript,
+          normalized: wakeEvaluation.normalized,
+          confidence: wakeEvaluation.confidence,
+          bestToken: wakeEvaluation.bestToken,
+          accepted: wakeEvaluation.accepted
+        });
+        if (wakeEvaluation.accepted) {
           debugVoice('wake word detected', transcript);
-          console.info('[Trendi Wake Word] detected', transcript);
+          console.info('[Trendi Wake Word] wake detected', {
+            transcript,
+            confidence: wakeEvaluation.confidence
+          });
+          console.info('[Trendi Wake Word] accepted', wakeEvaluation);
           activateFromWakeWord();
           return;
+        }
+        if (wakeEvaluation.confidence >= 0.45) {
+          console.info('[Trendi Wake Word] rejected', wakeEvaluation);
         }
       }
     };
@@ -387,27 +527,34 @@ export default function AssistantWidget() {
         timeStamp: event.timeStamp
       });
       wakeListeningRef.current = false;
-      wakeRecognitionRef.current = null;
+      if (wakeRecognitionRef.current === recognition) wakeRecognitionRef.current = null;
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        wakeStopReasonRef.current = 'permission_error';
         setVoiceError('Autorisez le microphone pour utiliser l’activation vocale.');
       }
     };
 
     recognition.onend = () => {
+      const reason = wakeStopReasonRef.current || 'browser_end';
       wakeListeningRef.current = false;
-      wakeRecognitionRef.current = null;
-      if (wakeWordEnabled && !voiceModeOpenRef.current && !listeningRef.current && !loadingRef.current) {
-        window.setTimeout(() => startWakeWordListener(), 700);
+      if (wakeRecognitionRef.current === recognition) wakeRecognitionRef.current = null;
+      console.info('[Trendi Wake Word] listener ended', { reason });
+      wakeStopReasonRef.current = '';
+      if (!['wake_detected', 'cleanup', 'permission_error'].includes(reason)) {
+        scheduleWakeWordRestart(reason, 700);
       }
     };
 
     try {
       recognition.start();
       debugVoice('wake listener started');
+      console.info('[Trendi Wake Word] listener started');
     } catch (error) {
       wakeListeningRef.current = false;
-      wakeRecognitionRef.current = null;
+      if (wakeRecognitionRef.current === recognition) wakeRecognitionRef.current = null;
       debugVoice('wake start failed', error);
+      console.error('[Trendi Wake Word] listener start failed', error);
+      scheduleWakeWordRestart('start_failed', 1200);
     }
   };
 
@@ -467,6 +614,7 @@ export default function AssistantWidget() {
       if (action.action === 'navigate' && action.target) {
         navigate(action.target);
         showAction(action.message || 'Navigation effectuee.', { appendMessage: false });
+        setShortMemory((memory) => ({ ...memory, lastAction: action }));
         console.info('[TRENDI] ACTION EXECUTEE', action);
         return true;
       }
@@ -475,6 +623,7 @@ export default function AssistantWidget() {
         if (action.target === 'dark' && !dark) toggleTheme();
         if (action.target === 'light' && dark) toggleTheme();
         showAction(action.message || 'Theme mis a jour.', { appendMessage: false });
+        setShortMemory((memory) => ({ ...memory, lastAction: action }));
         console.info('[TRENDI] ACTION EXECUTEE', action);
         return true;
       }
@@ -482,6 +631,7 @@ export default function AssistantWidget() {
       if (action.action === 'filter' && action.target) {
         await applyPreferenceCommand(action.target);
         showAction(action.message || `Filtre ${action.target} applique.`, { appendMessage: false });
+        setShortMemory((memory) => ({ ...memory, lastAction: action, lastSubject: action.target }));
         console.info('[TRENDI] ACTION EXECUTEE', action);
         return true;
       }
@@ -489,6 +639,7 @@ export default function AssistantWidget() {
       if (action.action === 'search' && action.target) {
         navigate(`/search?q=${encodeURIComponent(action.target)}`);
         showAction(action.message || `Recherche ${action.target} lancee.`, { appendMessage: false });
+        setShortMemory((memory) => ({ ...memory, lastAction: action, lastSearch: action.target, lastSubject: action.target }));
         console.info('[TRENDI] ACTION EXECUTEE', action);
         return true;
       }
@@ -502,6 +653,7 @@ export default function AssistantWidget() {
         }
         navigate(`/feed/${trendId}`);
         showAction(action.message || "J'ouvre cette tendance.", { appendMessage: false });
+        setShortMemory((memory) => ({ ...memory, lastAction: action }));
         console.info('[TRENDI] ACTION EXECUTEE', action);
         return true;
       }
@@ -515,6 +667,7 @@ export default function AssistantWidget() {
         }
         navigate(`/ai/${trendId}`);
         showAction(action.message || "Je lance l'analyse.", { appendMessage: false });
+        setShortMemory((memory) => ({ ...memory, lastAction: action }));
         console.info('[TRENDI] ACTION EXECUTEE', action);
         return true;
       }
@@ -541,6 +694,7 @@ export default function AssistantWidget() {
         message,
         context: {
           lastTrend: lastActionableTrend || null,
+          shortMemory,
           pendingAction: activePendingAction,
           recentMessages: messages.slice(-6).map((item) => ({
             role: item.role,
@@ -554,6 +708,13 @@ export default function AssistantWidget() {
       const actions = Array.isArray(data?.data?.trends)
         ? data.data.trends.map(compactTrend).filter((trend) => trend.id).slice(0, 3)
         : [];
+      if (actions.length) {
+        setShortMemory((memory) => ({
+          ...memory,
+          lastSubject: actions[0].title,
+          lastSearch: memory.lastSearch || actions[0].title
+        }));
+      }
       console.info('[TRENDI] BACKEND RESPONSE', {
         status: data?.data?.status,
         intent: data?.data?.intent,
@@ -601,8 +762,8 @@ export default function AssistantWidget() {
   const startVoice = ({ openVoiceMode = false, continuousMode = false } = {}) => {
     setVoiceError('');
     if (openVoiceMode) {
-      stopWakeWordListener();
       voiceModeOpenRef.current = true;
+      stopWakeWordListener({ reason: 'voice_mode_opened' });
       setVoiceModeOpen(true);
     }
     if (!speechSupported) {
@@ -715,12 +876,12 @@ export default function AssistantWidget() {
 
   useEffect(() => {
     if (!user || isPublicPage || !wakeWordEnabled || voiceModeOpen || !speechSupported) {
-      stopWakeWordListener();
+      stopWakeWordListener({ reason: voiceModeOpen ? 'voice_mode_opened' : 'cleanup' });
       return undefined;
     }
 
     startWakeWordListener();
-    return () => stopWakeWordListener();
+    return () => stopWakeWordListener({ reason: 'cleanup' });
     // The listener is intentionally controlled by stable state flags only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isPublicPage, wakeWordEnabled, voiceModeOpen, speechSupported]);

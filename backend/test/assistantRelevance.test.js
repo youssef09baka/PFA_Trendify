@@ -29,6 +29,15 @@ test('assistant keeps trend requests in trend mode', () => {
   assert.equal(detectAssistantIntent('tendances business'), 'trend_search');
 });
 
+test('assistant detects business advice intent without exact trend search', () => {
+  assert.equal(detectAssistantIntent('Je veux lancer un business mais je ne sais pas quoi faire'), 'advice');
+  assert.equal(detectAssistantIntent('que me conseilles-tu'), 'advice');
+  assert.equal(detectAssistantIntent('quelle niche choisir'), 'advice');
+  assert.equal(detectAssistantIntent("comment gagner de l'argent avec les tendances"), 'advice');
+  assert.equal(detectAssistantIntent('quelle tendance a le plus de potentiel'), 'advice');
+  assert.equal(detectAssistantIntent('je commence de zero'), 'advice');
+});
+
 test('assistant detects structured navigation actions before trend search', () => {
   const action = parseAssistantAction('ouvre-moi la page explorer');
   const preferences = parseAssistantAction('ouvre les preferences');
@@ -110,10 +119,15 @@ test('assistant treats direct theme phrases as actions', () => {
 
 test('assistant executes direct navigation, filter and search variants', () => {
   assert.equal(parseAssistantAction('passe a la page favoris').target, '/favorites');
+  assert.equal(parseAssistantAction('go favoris').target, '/favorites');
+  assert.equal(parseAssistantAction('ouvre fav').target, '/favorites');
+  assert.equal(parseAssistantAction('ouvre les favs').target, '/favorites');
   assert.equal(parseAssistantAction('passe en business').action, 'filter');
   assert.equal(parseAssistantAction('passe en business').target, 'business');
   assert.equal(parseAssistantAction('montre moi les tendances IA').action, 'search');
   assert.equal(parseAssistantAction('montre moi les tendances IA').target, 'IA');
+  assert.equal(parseAssistantAction('mets l interface en noir').target, 'dark');
+  assert.equal(parseAssistantAction('trouve moi OpenAI').target, 'OpenAI');
 });
 
 test('assistant uses short memory actions for referenced trend', () => {
@@ -172,6 +186,31 @@ test('assistant does not match solana with unrelated short sol titles', () => {
   };
 
   assert.ok(calculateTrendRelevance(solanaTrend, topic) >= 8);
+  assert.ok(calculateTrendRelevance(unrelatedTrend, topic) < 8);
+});
+
+test('assistant maps football requests to broader sport context', () => {
+  const topic = extractTopicTerms('dis-moi les tendances football');
+  const sportTrend = {
+    title: 'Champions League final attracts global attention',
+    category: 'Sport',
+    tags: ['UEFA', 'soccer'],
+    score: 35
+  };
+  const unrelatedTrend = {
+    title: 'Memorial Day 2026',
+    category: 'Search Trends',
+    tags: ['holiday'],
+    score: 99
+  };
+
+  assert.equal(topic.hasTopic, true);
+  assert.ok(topic.terms.includes('football'));
+  assert.ok(topic.terms.includes('sport'));
+  assert.ok(topic.terms.includes('soccer'));
+  assert.ok(topic.terms.includes('uefa'));
+  assert.ok(calculateTrendRelevance(sportTrend, topic) >= 8);
+  assert.ok(calculateTrendRelevance(sportTrend, topic) > calculateTrendRelevance(unrelatedTrend, topic));
   assert.ok(calculateTrendRelevance(unrelatedTrend, topic) < 8);
 });
 
