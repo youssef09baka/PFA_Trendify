@@ -118,7 +118,7 @@ export default function Favorites() {
           <div>
             <span className="eyebrow">Favoris</span>
             <h1>Vos tendances sauvegardees</h1>
-            <p>Retrouvez les signaux importants, les analyses deja generees et les opportunites a suivre.</p>
+            <p>Retrouvez les signaux importants et les opportunités à suivre.</p>
           </div>
           <Button variant="ghost" onClick={loadFavorites}>Actualiser</Button>
         </section>

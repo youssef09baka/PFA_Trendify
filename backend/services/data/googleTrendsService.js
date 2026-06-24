@@ -1,3 +1,4 @@
+const logger = require('../../utils/logger');
 const axios = require("axios");
 const googleTrends = require("google-trends-api");
 const { GOOGLE_TRENDS_LIMIT } = require("../../config/config");
@@ -73,7 +74,7 @@ const getInterestByRegion = async (query) => {
 
     return normalizeGeoInterest(data?.default?.geoMapData || []);
   } catch (error) {
-    console.warn("[Google Trends] interest by region unavailable", {
+    logger.warn("[Google Trends] interest by region unavailable", {
       query,
       message: error.message
     });

@@ -209,9 +209,38 @@ test('assistant maps football requests to broader sport context', () => {
   assert.ok(topic.terms.includes('sport'));
   assert.ok(topic.terms.includes('soccer'));
   assert.ok(topic.terms.includes('uefa'));
+  assert.equal(topic.terms.includes('a'), false);
+  assert.equal(topic.terms.includes('d'), false);
   assert.ok(calculateTrendRelevance(sportTrend, topic) >= 8);
   assert.ok(calculateTrendRelevance(sportTrend, topic) > calculateTrendRelevance(unrelatedTrend, topic));
   assert.ok(calculateTrendRelevance(unrelatedTrend, topic) < 8);
+});
+
+test('assistant avoids AI token matches inside unrelated words', () => {
+  const topic = extractTopicTerms('tendances AI');
+  const aiTrend = {
+    title: 'AI startups launch new automation tools',
+    category: 'Tech',
+    tags: ['AI'],
+    score: 35
+  };
+  const shaiTrend = {
+    title: 'DeAaron Fox fouls Shai GilgeousAlexander',
+    category: 'Sport',
+    tags: ['NBA'],
+    score: 99
+  };
+  const warTrend = {
+    title: 'Ukraine is in best position since war began',
+    category: 'News',
+    tags: ['international'],
+    score: 99
+  };
+
+  assert.equal(topic.hasTopic, true);
+  assert.ok(calculateTrendRelevance(aiTrend, topic) >= 8);
+  assert.ok(calculateTrendRelevance(shaiTrend, topic) < 8);
+  assert.ok(calculateTrendRelevance(warTrend, topic) < 8);
 });
 
 test('assistant treats business as topic only when asked as trend domain', () => {

@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 const { getRealTrends } = require("./data");
 const { saveTrends, scoreTrends } = require("./trendService");
 const { TREND_PERSIST_LIMIT } = require("../config/config");
@@ -10,16 +11,16 @@ let running = false;
 
 const runSync = async () => {
   if (running) {
-    console.info('[SYNC] previous run still active, skipping this cycle');
+    logger.info('[SYNC] previous run still active, skipping this cycle');
     return;
   }
 
   running = true;
-  console.info('[SYNC] feed sync started');
+  logger.info('[SYNC] feed sync started');
   try {
     const raw = await getRealTrends();
     if (!Array.isArray(raw) || raw.length === 0) {
-      console.warn('[SYNC] no trends fetched from sources');
+      logger.warn('[SYNC] no trends fetched from sources');
       running = false;
       return;
     }
@@ -29,12 +30,12 @@ const runSync = async () => {
 
     if (mongoose.connection && mongoose.connection.readyState === 1) {
       const persisted = await saveTrends(toPersist);
-      console.info(`[SYNC] feed sync completed — trends upserted: ${persisted.length}`);
+      logger.info(`[SYNC] feed sync completed — trends upserted: ${persisted.length}`);
     } else {
-      console.warn('[SYNC] DB not connected - skipping persistence for this run');
+      logger.warn('[SYNC] DB not connected - skipping persistence for this run');
     }
   } catch (err) {
-    console.error('[SYNC] feed sync failed:', err.message || err);
+    logger.error('[SYNC] feed sync failed:', err.message || err);
   } finally {
     running = false;
   }
@@ -46,16 +47,16 @@ const start = (intervalMs = DEFAULT_INTERVAL_MS) => {
   const intervalMinutes = Math.round(resolvedIntervalMs / (60 * 1000));
 
   // run immediately
-  runSync().catch((e) => console.error('[SYNC] immediate run failed', e));
-  timer = setInterval(() => runSync().catch((e) => console.error('[SYNC] scheduled run failed', e)), resolvedIntervalMs);
-  console.info(`[SYNC] started, intervalMs=${resolvedIntervalMs}, intervalMinutes=${intervalMinutes}, next scheduled run in ${intervalMinutes} minutes`);
+  runSync().catch((e) => logger.error('[SYNC] immediate run failed', e));
+  timer = setInterval(() => runSync().catch((e) => logger.error('[SYNC] scheduled run failed', e)), resolvedIntervalMs);
+  logger.info(`[SYNC] started, intervalMs=${resolvedIntervalMs}, intervalMinutes=${intervalMinutes}, next scheduled run in ${intervalMinutes} minutes`);
 };
 
 const stop = () => {
   if (timer) {
     clearInterval(timer);
     timer = null;
-    console.info('[SYNC] stopped');
+    logger.info('[SYNC] stopped');
   }
 };
 

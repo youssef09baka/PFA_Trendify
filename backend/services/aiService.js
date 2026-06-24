@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 const axios = require("axios");
 
 const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
@@ -148,7 +149,7 @@ const generateTrendAnalysis = async (trend) => {
     return analysis;
   } catch (error) {
     if (error?.status === "ai_unavailable") throw error;
-    console.error("TREND AI ERROR:", error.response?.data || error.message);
+    logger.warn("TREND AI ERROR:", error.response?.data || error.message);
     throw createAiUnavailableError();
   }
 };

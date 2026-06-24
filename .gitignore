@@ -1,9 +1,14 @@
 # Node
 node_modules/
 npm-debug.log
+package-lock.json.tmp
 
 # Env
 .env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
 
 # Logs
 logs/
@@ -18,7 +23,13 @@ Thumbs.db
 
 # Build
 dist/
+build/
+coverage/
 artifacts/
+tmp/
+temp/
+cache/
+.cache/
 
 # Python
 __pycache__/

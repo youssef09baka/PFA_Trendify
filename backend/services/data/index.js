@@ -1,3 +1,4 @@
+const logger = require('../../utils/logger');
 const { getRedditTrends } = require("./redditService");
 const { getGoogleTrends } = require("./googleTrendsService");
 const { TREND_INGEST_LIMIT, TREND_CACHE_DURATION_MS } = require("../../config/config");
@@ -64,7 +65,7 @@ const buildSourceBuckets = async () => {
       fetcher()
         .then((trends) => ({ name, trends: Array.isArray(trends) ? trends : [] }))
         .catch((error) => {
-          console.warn(`[DATA] ${name} failed: ${error.message}`);
+          logger.warn(`[DATA] ${name} failed: ${error.message}`);
           return { name, trends: [] };
         })
     )
@@ -78,7 +79,7 @@ const buildSourceBuckets = async () => {
 
 const getRealTrends = async () => {
   if (cache.data && Date.now() - cache.timestamp < CACHE_DURATION) {
-    console.info('[DATA] using cache');
+    logger.info('[DATA] using cache');
     return cache.data;
   }
 
@@ -96,7 +97,7 @@ const getRealTrends = async () => {
     throw error;
   }
 
-  console.info(`[DATA] trends fetched: ${trends.length} from ${sourceBuckets.length} sources`);
+  logger.info(`[DATA] trends fetched: ${trends.length} from ${sourceBuckets.length} sources`);
 
   cache = {
     data: trends,

@@ -41,6 +41,18 @@ test('feed search ranks direct subject match above unrelated high-score trend', 
   assert.equal(calculateSearchRelevance(unrelatedTrend, 'GTA 6'), 0);
 });
 
+test('feed search avoids short AI token matches inside unrelated words', () => {
+  const query = buildTrendSearchQuery('AI');
+  const titleRegex = query.$or.find((entry) => entry.title)?.title;
+
+  assert.equal(titleRegex.test('OpenAI launches new model'), false);
+  assert.equal(titleRegex.test('AI launches new model'), true);
+  assert.equal(titleRegex.test('DeAaron Fox fouls Shai GilgeousAlexander'), false);
+  assert.equal(titleRegex.test('Finnish president says Ukraine position is best since war began'), false);
+  assert.equal(calculateSearchRelevance({ title: 'AI launches new model', tags: ['AI'] }, 'AI') > 0, true);
+  assert.equal(calculateSearchRelevance({ title: 'Shai GilgeousAlexander injury update', tags: [] }, 'AI'), 0);
+});
+
 test('feed semantic categories match title tags and original category', () => {
   const football = getFeedCategoryDefinition('football');
   const gaming = getFeedCategoryDefinition('gaming');

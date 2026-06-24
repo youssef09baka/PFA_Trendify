@@ -1,3 +1,4 @@
+const logger = require('../../utils/logger');
 const axios = require('axios');
 const Parser = require('rss-parser');
 
@@ -26,7 +27,7 @@ const fetchRedditPosts = async (subreddit, limit = REDDIT_FETCH_LIMIT) => {
   const rssSubreddit = canonicalSubreddit.toLowerCase();
   const url = `https://www.reddit.com/r/${encodeURIComponent(rssSubreddit)}/.rss?limit=${requestedLimit}`;
 
-  console.info(`[Reddit RSS] fetching r/${canonicalSubreddit} from ${url}`);
+  logger.info(`[Reddit RSS] fetching r/${canonicalSubreddit} from ${url}`);
 
   try {
     const response = await axios.get(url, {
@@ -44,7 +45,7 @@ const fetchRedditPosts = async (subreddit, limit = REDDIT_FETCH_LIMIT) => {
     const feed = await parser.parseString(response.data || '');
     const entries = Array.isArray(feed?.items) ? feed.items : [];
 
-    console.info(`[Reddit RSS] fetched r/${canonicalSubreddit}: status=${response.status}, entries=${entries.length}`);
+    logger.info(`[Reddit RSS] fetched r/${canonicalSubreddit}: status=${response.status}, entries=${entries.length}`);
 
     const posts = entries
       .map((entry, index) => {
@@ -80,10 +81,10 @@ const fetchRedditPosts = async (subreddit, limit = REDDIT_FETCH_LIMIT) => {
       })
       .filter(Boolean);
 
-    console.info(`[Reddit RSS] produced ${posts.length} valid trends for r/${canonicalSubreddit}`);
+    logger.info(`[Reddit RSS] produced ${posts.length} valid trends for r/${canonicalSubreddit}`);
     return posts;
   } catch (error) {
-    console.error(`[Reddit RSS] failed for r/${canonicalSubreddit}: ${error.message || error}`);
+    logger.error(`[Reddit RSS] failed for r/${canonicalSubreddit}: ${error.message || error}`);
     throw error;
   }
 };

@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 const errorHandler = (err, req, res, next) => {
   if (res.headersSent) {
     return next(err);
@@ -17,7 +18,12 @@ const errorHandler = (err, req, res, next) => {
     payload.stack = err.stack;
   }
 
-  console.error(`[ERROR] ${req.method} ${req.originalUrl} ${statusCode} - ${err.message}`);
+  const logMessage = `[ERROR] ${req.method} ${req.originalUrl} ${statusCode} - ${err.message}`;
+  if (statusCode >= 500) {
+    logger.error(logMessage);
+  } else {
+    logger.warn(logMessage);
+  }
 
   res.status(statusCode).json(payload);
 };

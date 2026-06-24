@@ -1,3 +1,4 @@
+const logger = require('../../utils/logger');
 // Reddit ingestion now prefers OAuth API. If OAuth credentials are missing, the service falls back to the RSS parser.
 const { REDDIT_FETCH_LIMIT, REDDIT_DISABLED_SUBREDDITS } = require("../../config/config");
 const { fetchRedditPosts } = require("./redditApi");
@@ -36,9 +37,9 @@ const getRedditTrends = async () => {
     try {
       const posts = await fetchRedditPosts(subreddit, limit);
       allPosts = allPosts.concat(posts || []);
-      console.info(`[Reddit] collected ${posts?.length || 0} posts from r/${subreddit}`);
+      logger.info(`[Reddit] collected ${posts?.length || 0} posts from r/${subreddit}`);
     } catch (err) {
-      console.warn(`[Reddit] source failed for r/${subreddit}: ${err.message}`);
+      logger.warn(`[Reddit] source failed for r/${subreddit}: ${err.message}`);
     }
   }
 

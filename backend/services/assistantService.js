@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 const axios = require("axios");
 const Trend = require("../models/Trend");
 
@@ -50,6 +51,12 @@ const normalizeSearchText = (value) => String(value || "")
   .replace(/[^a-z0-9]+/g, " ")
   .trim();
 const escapeRegex = (value) => String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const isMeaningfulSearchToken = (value) => {
+  const token = String(value || "").trim();
+  if (!token) return false;
+  if (/^\d+$/.test(token)) return true;
+  return token.length >= 2 && !TOPIC_STOPWORDS.has(token);
+};
 
 const sanitizePublicAnswer = (value) => String(value || "")
   .replace(FORBIDDEN_PUBLIC_TERMS, "")
@@ -321,7 +328,7 @@ const extractTopicTerms = (message) => {
   baseWords.forEach((word) => {
     terms.add(word);
     (TOPIC_ALIASES[word] || []).forEach((alias) => {
-      normalizeSearchText(alias).split(/\s+/).filter(Boolean).forEach((part) => terms.add(part));
+      normalizeSearchText(alias).split(/\s+/).filter(isMeaningfulSearchToken).forEach((part) => terms.add(part));
     });
   });
 
@@ -349,9 +356,17 @@ const calculateTrendRelevance = (trend, topic) => {
   const tags = normalizeSearchText(Array.isArray(trend?.tags) ? trend.tags.join(" ") : "");
   const fullText = trendSearchText(trend);
   let relevance = 0;
+  const containsTopicTerm = (value, term) => {
+    if (!term) return false;
+    const escaped = escapeRegex(term);
+    if (/^[a-z0-9]+$/i.test(term)) {
+      return new RegExp(`\\b${escaped}\\b`, "i").test(value);
+    }
+    return value.includes(term);
+  };
 
-  if (topic.phrase && title.includes(topic.phrase)) relevance += 80;
-  if (topic.phrase && fullText.includes(topic.phrase)) relevance += 45;
+  if (topic.phrase && containsTopicTerm(title, topic.phrase)) relevance += 80;
+  if (topic.phrase && containsTopicTerm(fullText, topic.phrase)) relevance += 45;
 
   topic.terms.forEach((term) => {
     if (!term) return;
@@ -385,9 +400,16 @@ const formatActionableTrend = (trend) => ({
 const buildTopicMongoQuery = (topic) => {
   if (!topic?.hasTopic || !topic.terms.length) return {};
 
-  const regexes = topic.terms.map((term) => new RegExp(escapeRegex(term), "i"));
+  const regexes = topic.terms
+    .filter(isMeaningfulSearchToken)
+    .map((term) => {
+      const escaped = escapeRegex(term);
+      const pattern = /^[a-z0-9]+$/i.test(term) ? `\\b${escaped}\\b` : escaped;
+      return new RegExp(pattern, "i");
+    });
   const phraseRegex = topic.phrase ? new RegExp(escapeRegex(topic.phrase), "i") : null;
   const allRegexes = phraseRegex ? [phraseRegex, ...regexes] : regexes;
+  if (!allRegexes.length) return {};
 
   return {
     $or: [
@@ -579,7 +601,7 @@ const askAssistant = async (message, clientContext = {}) => {
   }
 
   const intent = classifyAssistantIntent(cleanMessage, clientContext);
-  console.info("[TRENDI] INTENTION DETECTEE", {
+  logger.info("[TRENDI] INTENTION DETECTEE", {
     message: cleanMessage,
     intent: intent.category,
     confidence: intent.confidence,
@@ -666,7 +688,7 @@ const askAssistant = async (message, clientContext = {}) => {
     };
   } catch (error) {
     if (error?.status === "ai_unavailable") throw error;
-    console.error("ASSISTANT AI ERROR:", error.response?.data || error.message);
+    logger.warn("ASSISTANT AI ERROR:", error.response?.data || error.message);
     throw createAssistantUnavailableError();
   }
 };

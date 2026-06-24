@@ -171,6 +171,17 @@ const filterTrendsByFeedCategory = (trends = [], categoryDefinition) => (
   categoryDefinition ? trends.filter((trend) => trendMatchesFeedCategory(trend, categoryDefinition)) : trends
 );
 
+const trendMatchesAnyFeedCategory = (trend, categoryDefinitions = []) => {
+  if (!Array.isArray(categoryDefinitions) || categoryDefinitions.length === 0) return true;
+  return categoryDefinitions.some((definition) => trendMatchesFeedCategory(trend, definition));
+};
+
+const filterTrendsByAnyFeedCategory = (trends = [], categoryDefinitions = []) => (
+  Array.isArray(categoryDefinitions) && categoryDefinitions.length
+    ? trends.filter((trend) => trendMatchesAnyFeedCategory(trend, categoryDefinitions))
+    : trends
+);
+
 const shouldFetchGeoInterestOnDemand = (trend) => (
   trend
   && String(trend.source || '').toLowerCase().includes('google')
@@ -197,7 +208,13 @@ const resolveGoogleTrendsGeoInterest = async (trend) => {
 
 const buildFeedCategoryQuery = (categoryDefinition) => {
   if (!categoryDefinition) return {};
-  const regexes = categoryDefinition.terms.map((term) => {
+  return buildFeedCategoryQueryFromDefinitions([categoryDefinition]);
+};
+
+const buildFeedCategoryQueryFromDefinitions = (categoryDefinitions = []) => {
+  const terms = categoryDefinitions.flatMap((definition) => definition?.terms || []);
+  if (!terms.length) return {};
+  const regexes = terms.map((term) => {
     const normalizedTerm = normalizeSearchText(term);
     const pattern = normalizedTerm.includes(' ')
       ? escapeRegex(normalizedTerm)
@@ -219,7 +236,11 @@ const buildTrendSearchQuery = (rawQuery) => {
   const query = String(rawQuery || '').trim();
   if (!query) return null;
 
-  const pattern = new RegExp(escapeRegex(query), 'i');
+  const normalized = normalizeSearchText(query);
+  const escaped = escapeRegex(query);
+  const pattern = normalized.length <= 2 && /^[a-z0-9]+$/i.test(normalized)
+    ? new RegExp(`\\b${escapeRegex(normalized)}\\b`, 'i')
+    : new RegExp(escaped, 'i');
   return {
     $or: [
       { title: pattern },
@@ -241,35 +262,42 @@ const calculateSearchRelevance = (trend, rawQuery) => {
   const tags = Array.isArray(trend.tags) ? normalizeSearchText(trend.tags.join(' ')) : '';
   const excerpt = normalizeSearchText(trend.excerpt);
   const link = normalizeSearchText(trend.link);
+  const containsQuery = (value, needle) => {
+    if (!needle) return false;
+    if (needle.length <= 2 && /^[a-z0-9]+$/i.test(needle)) {
+      return new RegExp(`\\b${escapeRegex(needle)}\\b`, 'i').test(value);
+    }
+    return value.includes(needle);
+  };
 
   let relevance = 0;
   if (title === query) relevance += 100;
-  if (title.includes(query)) relevance += 70;
-  if (tags.includes(query)) relevance += 45;
-  if (category.includes(query)) relevance += 35;
-  if (excerpt.includes(query)) relevance += 28;
-  if (link.includes(query)) relevance += 20;
+  if (containsQuery(title, query)) relevance += 70;
+  if (containsQuery(tags, query)) relevance += 45;
+  if (containsQuery(category, query)) relevance += 35;
+  if (containsQuery(excerpt, query)) relevance += 28;
+  if (containsQuery(link, query)) relevance += 20;
 
   words.forEach((word) => {
-    if (title.includes(word)) relevance += 14;
-    if (tags.includes(word)) relevance += 8;
-    if (category.includes(word)) relevance += 6;
-    if (excerpt.includes(word)) relevance += 5;
-    if (link.includes(word)) relevance += 4;
+    if (containsQuery(title, word)) relevance += 14;
+    if (containsQuery(tags, word)) relevance += 8;
+    if (containsQuery(category, word)) relevance += 6;
+    if (containsQuery(excerpt, word)) relevance += 5;
+    if (containsQuery(link, word)) relevance += 4;
   });
 
   return relevance;
 };
 
 const PREFERENCE_MAPPING = {
-  tech: ['Tech'],
-  gaming: ['Gaming'],
-  business: ['Business'],
-  education: ['Science'],
-  health: ['Science'],
-  society: ['Social', 'Discussion'],
-  startup: ['Startups'],
-  creator: ['Social', 'Entertainment', 'Web Culture']
+  tech: ['tech', 'ia'],
+  gaming: ['gaming'],
+  business: ['business'],
+  education: ['education'],
+  health: ['health'],
+  society: ['social', 'news'],
+  startup: ['startups'],
+  creator: ['creators', 'social']
 };
 
 const uniqueValues = (items = []) => [...new Set(items.map((item) => String(item || '').trim()).filter(Boolean))];
@@ -278,19 +306,20 @@ const uniqueLower = (items = []) => uniqueValues(items).map((item) => item.toLow
 const buildPersonalizationProfile = (preferences = []) => {
   const activePreferences = uniqueLower(preferences).filter((pref) => PREFERENCE_MAPPING[pref]);
   if (!activePreferences.length) {
-    return { personalized: false, activePreferences: [], allowedCategories: [] };
+    return { personalized: false, activePreferences: [], allowedCategories: [], categoryKeys: [] };
   }
 
-  const allowedCategories = [];
+  const categoryKeys = [];
 
   activePreferences.forEach((pref) => {
-    allowedCategories.push(...PREFERENCE_MAPPING[pref]);
+    categoryKeys.push(...PREFERENCE_MAPPING[pref]);
   });
 
   return {
     personalized: true,
     activePreferences,
-    allowedCategories: uniqueValues(allowedCategories)
+    allowedCategories: uniqueValues(categoryKeys),
+    categoryKeys: uniqueValues(categoryKeys)
   };
 };
 
@@ -316,16 +345,32 @@ const getFeed = asyncHandler(async (req, res, next) => {
   const explicitCategoryFilterActive = Boolean(categoryDefinition || category);
   const exactCategory = categoryDefinition ? undefined : category;
   const applyPersonalization = personalizationProfile.personalized && !explicitCategoryFilterActive;
+  const personalizationCategoryDefinitions = applyPersonalization
+    ? personalizationProfile.categoryKeys.map(getFeedCategoryDefinition).filter(Boolean)
+    : [];
   const savedSet = new Set((user?.savedTrends || []).map(String));
+  const semanticSortOption = sort === 'score'
+    ? { score: -1, updatedAt: -1 }
+    : { fetchedAt: -1, createdAt: -1 };
+  const sortSemanticItems = (items = []) => [...items].sort((left, right) => {
+    if (sort === 'score') {
+      const scoreDiff = Number(right.score || 0) - Number(left.score || 0);
+      if (scoreDiff !== 0) return scoreDiff;
+    }
+    const rightDate = new Date(right.fetchedAt || right.createdAt || right.updatedAt || 0).getTime();
+    const leftDate = new Date(left.fetchedAt || left.createdAt || left.updatedAt || 0).getTime();
+    return rightDate - leftDate;
+  });
 
-  if (categoryDefinition && !forceRefresh) {
-    const semanticQuery = buildFeedCategoryQuery(categoryDefinition);
+  if ((categoryDefinition || personalizationCategoryDefinitions.length) && !forceRefresh) {
+    const activeCategoryDefinitions = categoryDefinition ? [categoryDefinition] : personalizationCategoryDefinitions;
+    const semanticQuery = buildFeedCategoryQueryFromDefinitions(activeCategoryDefinitions);
     const semanticCandidates = await Trend.find(semanticQuery)
-      .sort({ score: -1, createdAt: -1 })
+      .sort(semanticSortOption)
       .limit(CATEGORY_SCAN_LIMIT)
-      .select('title source category score image video thumbnail mediaType link tags excerpt createdAt savedCount ml_prediction credibilityScore credibilityConfidence verificationStatus isFakeNews popularity growth')
+      .select('title source category score image video thumbnail mediaType link tags excerpt createdAt updatedAt fetchedAt savedCount ml_prediction credibilityScore credibilityConfidence verificationStatus isFakeNews popularity growth')
       .lean();
-    const semanticFiltered = filterTrendsByFeedCategory(semanticCandidates, categoryDefinition);
+    const semanticFiltered = sortSemanticItems(filterTrendsByAnyFeedCategory(semanticCandidates, activeCategoryDefinitions));
     const semanticStart = (requestedPage - 1) * requestedLimit;
     const semanticPageItems = semanticFiltered.slice(semanticStart, semanticStart + requestedLimit);
 
@@ -363,9 +408,10 @@ const getFeed = asyncHandler(async (req, res, next) => {
         hasMore: requestedPage < Math.max(1, Math.ceil(semanticFiltered.length / requestedLimit)),
         personalized: personalizationProfile.personalized,
         activePreferences: personalizationProfile.activePreferences,
-        categoryFilter: categoryDefinition.key,
-        categoryLabel: categoryDefinition.label,
-        categoryTerms: categoryDefinition.terms
+        categoryFilter: categoryDefinition?.key || null,
+        categoryLabel: categoryDefinition?.label || null,
+        categoryTerms: categoryDefinition?.terms || [],
+        preferenceCategoryKeys: personalizationCategoryDefinitions.map((definition) => definition.key)
       },
       user: {
         aiRemaining: user?.aiRemaining ?? 0
@@ -377,7 +423,7 @@ const getFeed = asyncHandler(async (req, res, next) => {
     page: requestedPage,
     limit: requestedLimit,
     category: exactCategory,
-    categories: applyPersonalization ? personalizationProfile.allowedCategories : undefined,
+    categories: undefined,
     source,
     sort,
     viral,
@@ -464,7 +510,7 @@ const getFeed = asyncHandler(async (req, res, next) => {
 
   const categoryFilteredTrends = filterTrendsByFeedCategory(persistedTrends, categoryDefinition);
   const filteredTrends = applyPersonalization
-    ? categoryFilteredTrends.filter((trend) => personalizationProfile.allowedCategories.includes(String(trend.category || '').trim()))
+    ? filterTrendsByAnyFeedCategory(categoryFilteredTrends, personalizationCategoryDefinitions)
     : categoryFilteredTrends;
   const pageStart = (requestedPage - 1) * requestedLimit;
   const finalTrends = filteredTrends.slice(pageStart, pageStart + requestedLimit);

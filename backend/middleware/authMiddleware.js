@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 /**
  * Authentication Middleware
  * Protects routes with JWT validation and manages daily AI analysis quota reset.
@@ -83,7 +84,7 @@ const protect = async (req, res, next) => {
       }
     } catch (err) {
       // Fail silently on reset logic error to not block authentication
-      console.error('Error in AI quota reset logic:', err.message);
+      logger.error('Error in AI quota reset logic:', err.message);
     }
 
     return next();

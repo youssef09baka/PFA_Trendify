@@ -39,24 +39,24 @@ function classifyTrendPotential(trend) {
   if (score >= 70) {
     classification = 'HIGH';
     confidence = 0.85;
-    reasoning.push(`Score ${score} is >= 70 threshold`);
+    reasoning.push(`Score ${score} supérieur ou égal au seuil 70`);
   } else {
     classification = 'LOW';
     confidence = 0.70;
-    reasoning.push(`Score ${score} is < 70 threshold`);
+    reasoning.push(`Score ${score} inférieur au seuil 70`);
   }
 
   // Build explanation
   const explanations = [];
   
   if (classification === 'HIGH') {
-    explanations.push('This trend shows strong potential');
-    explanations.push(`Score of ${score} indicates proven popularity`);
-    explanations.push('Recommended for featured promotion');
+    explanations.push('Cette tendance montre un potentiel fort');
+    explanations.push(`Le score ${score} indique une traction élevée`);
+    explanations.push('Prioritaire pour une mise en avant');
   } else {
-    explanations.push('This trend shows limited potential');
-    explanations.push(`Score of ${score} indicates lower interest`);
-    explanations.push('May gain traction with continued monitoring');
+    explanations.push('Cette tendance montre un potentiel plus limité');
+    explanations.push(`Le score ${score} indique une traction plus faible`);
+    explanations.push('A suivre si le signal progresse');
   }
 
   return {

@@ -1,3 +1,4 @@
+const logger = require('../utils/logger');
 /**
  * Trend Service
  * Manages trend scoring, enrichment, media extraction, and database persistence.
@@ -65,6 +66,13 @@ const CATEGORY_KEYWORDS = [
   { category: 'Web culture', terms: ['meme', 'viral', 'trend', 'internet', 'community', 'subculture', 'web3', 'digital culture', 'meta', 'hype'] }
 ];
 
+const matchesCategoryTerm = (text, term) => {
+  const normalizedTerm = String(term || '').toLowerCase().trim();
+  if (!normalizedTerm) return false;
+  if (normalizedTerm.includes(' ')) return text.includes(normalizedTerm);
+  return new RegExp(`\\b${normalizedTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(text);
+};
+
 const normalizeSource = (source) => {
   const key = String(source || '').toLowerCase();
   if (key.includes('reddit')) return 'Reddit';
@@ -79,7 +87,7 @@ const normalizeSource = (source) => {
 const inferCategory = (title, source) => {
   const lower = String(title || '').toLowerCase();
   for (const rule of CATEGORY_KEYWORDS) {
-    if (rule.terms.some((term) => lower.includes(term))) {
+    if (rule.terms.some((term) => matchesCategoryTerm(lower, term))) {
       return rule.category;
     }
   }
@@ -184,7 +192,7 @@ const mixFeedItems = (items = [], options = {}) => {
   const mixed = ranked
     .sort((a, b) => b.mixedScore - a.mixedScore || Number(b.score || 0) - Number(a.score || 0));
 
-  console.info('[FEED-MIX] ranking', {
+  logger.info('[FEED-MIX] ranking', {
     runtimeSeed: Number(seed.toFixed(4)),
     before,
     after: mixed.slice(0, 8).map((entry) => ({ id: entry._id || entry.id || entry.slug, score: entry.score, mixedScore: entry.mixedScore, randomFactor: entry.randomFactor, freshnessBoost: entry.freshnessBoost, unseenBoost: entry.unseenBoost }))

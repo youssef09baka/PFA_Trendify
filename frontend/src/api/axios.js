@@ -21,7 +21,6 @@ api.interceptors.response.use(
     const requestUrl = err.config?.url || '';
 
     if (status === 401 && !requestUrl.includes('/users/login') && !requestUrl.includes('/users/signup')) {
-      console.warn('[AUTH] API 401 REDIRECT', { url: requestUrl });
       // session expired or invalid token: clear and redirect to login
       localStorage.removeItem('token');
       try { window.location.href = '/login?expired=1'; } catch { /* ignore */ }

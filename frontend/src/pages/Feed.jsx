@@ -252,6 +252,7 @@ export default function Feed() {
     const params = {
       page: nextPage,
       limit: PAGE_SIZE,
+      sort: sortMode === 'score' ? 'score' : 'newest',
       seen: getSeenTrendIds().join(','),
       ...(categoryFilter !== 'all' ? { category: categoryFilter } : {})
     };
@@ -280,18 +281,7 @@ export default function Feed() {
         sourceCounts: data?.meta?.sourceCounts || {},
         categoryCounts: data?.meta?.categoryCounts || {}
       }));
-    } catch (error) {
-      console.warn('[FEED-PAGINATION] request failed', {
-        page: nextPage,
-        reset,
-        status: error?.response?.status,
-        statusText: error?.response?.statusText,
-        message: error?.message,
-        code: error?.code,
-        url: error?.config?.url,
-        params,
-        timestamp: Date.now(),
-      });
+    } catch {
       showToast('Impossible de charger le flux pour le moment.');
     } finally {
       if (requestId === requestSeqRef.current) {
@@ -300,7 +290,7 @@ export default function Feed() {
         else setLoadingMore(false);
       }
     }
-  }, [categoryFilter]);
+  }, [categoryFilter, sortMode]);
 
   const loadNextPage = useCallback(() => {
     if (loadingRef.current || !hasMoreRef.current) return false;

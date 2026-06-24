@@ -1,3 +1,4 @@
+const logger = require('../../utils/logger');
 const axios = require('axios');
 const { fetchRedditPosts: fetchRedditPostsFromRss } = require('./redditRss');
 const {
@@ -83,7 +84,7 @@ const fetchRedditPosts = async (subreddit, limit = REDDIT_FETCH_LIMIT) => {
   }
 
   if (!hasOAuthConfig()) {
-    console.warn('[Reddit API] OAuth configuration missing, falling back to RSS ingestion');
+    logger.warn('[Reddit API] OAuth configuration missing, falling back to RSS ingestion');
     return fetchRedditPostsFromRss(canonicalSubreddit, requestedLimit);
   }
 
@@ -154,13 +155,13 @@ const fetchRedditPosts = async (subreddit, limit = REDDIT_FETCH_LIMIT) => {
     } catch (error) {
       lastError = error;
       if (attempt < REDDIT_MAX_RETRIES - 1) {
-        console.warn(`[Reddit API] attempt ${attempt + 1} failed for r/${canonicalSubreddit}: ${error.message}`);
+        logger.warn(`[Reddit API] attempt ${attempt + 1} failed for r/${canonicalSubreddit}: ${error.message}`);
       }
     }
   }
 
   if (lastError) {
-    console.warn(`[Reddit API] falling back to RSS after ${REDDIT_MAX_RETRIES} attempts for r/${canonicalSubreddit}: ${lastError.message}`);
+    logger.warn(`[Reddit API] falling back to RSS after ${REDDIT_MAX_RETRIES} attempts for r/${canonicalSubreddit}: ${lastError.message}`);
     return fetchRedditPostsFromRss(canonicalSubreddit, requestedLimit);
   }
 

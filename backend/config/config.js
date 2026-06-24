@@ -6,7 +6,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || "production";
 const JWT_EXPIRATION = process.env.JWT_EXPIRATION || "7d";
-const PLACEHOLDER_IMAGE = process.env.PLACEHOLDER_IMAGE || 'https://via.placeholder.com/800x450?text=No+Image';
 
 // Temporary dev/testing quota increase: keep this configurable so the limit can be raised or lowered safely.
 const AI_ANALYSIS_QUOTA = Number(process.env.AI_ANALYSIS_QUOTA || 1000);
@@ -40,7 +39,6 @@ module.exports = {
   JWT_SECRET,
   JWT_EXPIRATION,
   FRONTEND_URL,
-  PLACEHOLDER_IMAGE,
   AI_ANALYSIS_QUOTA,
   TREND_INGEST_LIMIT,
   TREND_PERSIST_LIMIT,

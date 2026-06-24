@@ -3,7 +3,6 @@ import { useAuth } from '../context/AuthContext';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
-  console.info('[AUTH] PROTECTED ROUTE CHECK', { loading, hasUser: Boolean(user) });
 
   if (loading) return <div className="p-10 text-center">Chargement...</div>;
 

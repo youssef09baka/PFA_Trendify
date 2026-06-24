@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const logger = require("../utils/logger");
 
 mongoose.set("strictQuery", true);
 
@@ -11,9 +12,9 @@ const connectDB = async () => {
       autoIndex: false,
       family: 4
     });
-    console.info(`[DB] MongoDB connected: ${conn.connection.host}`);
+    logger.info(`[DB] MongoDB connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`[DB] MongoDB error: ${error.message}`);
+    logger.error(`[DB] MongoDB error: ${error.message}`);
     process.exit(1);
   }
 };
