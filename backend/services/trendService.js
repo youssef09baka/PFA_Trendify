@@ -494,7 +494,9 @@ const saveTrends = async (trends) => {
   return persisted;
 };
 
-const normalizeStoredTrends = (trends = []) => scoreTrends(Array.isArray(trends) ? trends.map(generateMlFeatures) : []);
+const normalizeStoredTrends = (trends = []) => (
+  Array.isArray(trends) ? trends.map(generateMlFeatures) : []
+);
 
 const getFeedTrends = async ({ page = 1, limit = 12, category, categories, source, sort = 'score', viral, seenIds = [], runtimeSeed } = {}) => {
   const query = {};
