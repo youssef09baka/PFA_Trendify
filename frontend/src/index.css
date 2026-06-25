@@ -3235,6 +3235,7 @@ body {
 .ai-report-block,
 .auth-card,
 .glass-card,
+.mini-card,
 .assistant-panel {
   background: var(--surface) !important;
   border-color: var(--line) !important;
@@ -3255,6 +3256,7 @@ body {
 [data-theme="dark"] .ai-report-block,
 [data-theme="dark"] .auth-card,
 [data-theme="dark"] .glass-card,
+[data-theme="dark"] .mini-card,
 [data-theme="dark"] .assistant-panel {
   box-shadow: 0 24px 80px rgba(0,0,0,0.34) !important;
 }
