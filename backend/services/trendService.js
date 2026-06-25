@@ -201,6 +201,45 @@ const mixFeedItems = (items = [], options = {}) => {
   return mixed;
 };
 
+const interleaveItemsBySource = (items = []) => {
+  const buckets = new Map();
+  const sourceOrder = [];
+
+  for (const item of items || []) {
+    const source = String(item?.source || 'Autre');
+    if (!buckets.has(source)) {
+      buckets.set(source, []);
+      sourceOrder.push(source);
+    }
+    buckets.get(source).push(item);
+  }
+
+  if (sourceOrder.length <= 1) return items;
+
+  const mixed = [];
+  let hasItems = true;
+  while (hasItems) {
+    hasItems = false;
+    for (const source of sourceOrder) {
+      const queue = buckets.get(source);
+      if (queue && queue.length > 0) {
+        mixed.push(queue.shift());
+        hasItems = true;
+      }
+    }
+  }
+
+  return mixed;
+};
+
+const shouldBalanceSourcesForFeed = ({ category, categories, source, viral, sort }) => (
+  sort === 'newest'
+  && !category
+  && !(Array.isArray(categories) && categories.length > 0)
+  && !source
+  && !viral
+);
+
 const computeMaxValues = (trends) => {
   const maxValues = { popularity: 1, growth: 1, engagement: 1 };
   trends.forEach((trend) => {
@@ -475,7 +514,11 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, categories, sourc
     ];
   }
 
-  const skip = Math.max(0, (Number(page) - 1)) * Number(limit);
+  const pageNumber = Math.max(1, Number(page) || 1);
+  const pageLimit = Math.max(1, Number(limit) || 12);
+  const skip = Math.max(0, pageNumber - 1) * pageLimit;
+  const shouldBalanceSources = shouldBalanceSourcesForFeed({ category, categories, source, viral, sort });
+  const queryLimit = shouldBalanceSources ? Math.min(Math.max(pageLimit * pageNumber * 4, pageLimit), 500) : pageLimit;
 
   let sortOption = { fetchedAt: -1, createdAt: -1 };
   if (sort === 'score') sortOption = { score: -1, updatedAt: -1 };
@@ -486,8 +529,8 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, categories, sourc
     Trend.countDocuments(query),
     Trend.find(query)
       .sort(sortOption)
-      .skip(skip)
-      .limit(Number(limit))
+      .skip(shouldBalanceSources ? 0 : skip)
+      .limit(queryLimit)
       .lean(),
     Trend.aggregate([
       { $match: query },
@@ -501,21 +544,23 @@ const getFeedTrends = async ({ page = 1, limit = 12, category, categories, sourc
 
   // Use MongoDB stored scores as-is - dynamic media enrichment disabled
   const seed = Number(runtimeSeed ?? Math.random());
-  // Only apply the expensive/mixing reorder for explicit ranking modes.
-  // Do not alter the strict chronological order when sorting by newest.
-  const mixedItems = Number(page) === 1 && sort !== 'newest' ? mixFeedItems(items, { seenIds, seed }) : items;
+  // Keep score ranking separate, but avoid a single source monopolizing the newest feed.
+  const sourceBalancedItems = shouldBalanceSources
+    ? interleaveItemsBySource(items).slice(skip, skip + pageLimit)
+    : items;
+  const mixedItems = pageNumber === 1 && sort !== 'newest' ? mixFeedItems(sourceBalancedItems, { seenIds, seed }) : sourceBalancedItems;
   const sourceCounts = Object.fromEntries((sourceCountsResult || []).map((entry) => [entry._id || 'Autre', Number(entry.count) || 0]));
   const categoryCounts = Object.fromEntries((categoryCountsResult || []).map((entry) => [entry._id || 'Non catégorisé', Number(entry.count) || 0]));
-  const totalPages = Math.max(1, Math.ceil(total / Number(limit)));
+  const totalPages = Math.max(1, Math.ceil(total / pageLimit));
 
   return {
     data: mixedItems,
     meta: {
       total,
-      page: Number(page),
-      limit: Number(limit),
+      page: pageNumber,
+      limit: pageLimit,
       totalPages,
-      hasMore: Number(page) < totalPages,
+      hasMore: pageNumber < totalPages,
       sourceCounts,
       categoryCounts
     }

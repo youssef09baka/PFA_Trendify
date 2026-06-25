@@ -182,6 +182,43 @@ const filterTrendsByAnyFeedCategory = (trends = [], categoryDefinitions = []) =>
     : trends
 );
 
+const interleaveTrendsBySource = (trends = []) => {
+  const buckets = new Map();
+  const sourceOrder = [];
+
+  for (const trend of trends || []) {
+    const source = String(trend?.source || 'Autre');
+    if (!buckets.has(source)) {
+      buckets.set(source, []);
+      sourceOrder.push(source);
+    }
+    buckets.get(source).push(trend);
+  }
+
+  if (sourceOrder.length <= 1) return trends;
+
+  const mixed = [];
+  let hasItems = true;
+  while (hasItems) {
+    hasItems = false;
+    for (const source of sourceOrder) {
+      const queue = buckets.get(source);
+      if (queue && queue.length > 0) {
+        mixed.push(queue.shift());
+        hasItems = true;
+      }
+    }
+  }
+
+  return mixed;
+};
+
+const shouldBalanceSemanticFeed = ({ sort, source, viral }) => (
+  sort !== 'score'
+  && !source
+  && !viral
+);
+
 const shouldFetchGeoInterestOnDemand = (trend) => (
   trend
   && String(trend.source || '').toLowerCase().includes('google')
@@ -371,8 +408,11 @@ const getFeed = asyncHandler(async (req, res, next) => {
       .select('title source category score image video thumbnail mediaType link tags excerpt createdAt updatedAt fetchedAt savedCount ml_prediction credibilityScore credibilityConfidence verificationStatus isFakeNews popularity growth')
       .lean();
     const semanticFiltered = sortSemanticItems(filterTrendsByAnyFeedCategory(semanticCandidates, activeCategoryDefinitions));
+    const semanticOrdered = shouldBalanceSemanticFeed({ sort, source, viral })
+      ? interleaveTrendsBySource(semanticFiltered)
+      : semanticFiltered;
     const semanticStart = (requestedPage - 1) * requestedLimit;
-    const semanticPageItems = semanticFiltered.slice(semanticStart, semanticStart + requestedLimit);
+    const semanticPageItems = semanticOrdered.slice(semanticStart, semanticStart + requestedLimit);
 
     const items = await Promise.all(semanticPageItems.map(async (trend) => ({
       id: trend._id,
@@ -401,11 +441,11 @@ const getFeed = asyncHandler(async (req, res, next) => {
     return res.status(200).json({
       items,
       meta: {
-        total: semanticFiltered.length,
+        total: semanticOrdered.length,
         page: requestedPage,
         limit: requestedLimit,
-        totalPages: Math.max(1, Math.ceil(semanticFiltered.length / requestedLimit)),
-        hasMore: requestedPage < Math.max(1, Math.ceil(semanticFiltered.length / requestedLimit)),
+        totalPages: Math.max(1, Math.ceil(semanticOrdered.length / requestedLimit)),
+        hasMore: requestedPage < Math.max(1, Math.ceil(semanticOrdered.length / requestedLimit)),
         personalized: personalizationProfile.personalized,
         activePreferences: personalizationProfile.activePreferences,
         categoryFilter: categoryDefinition?.key || null,
