@@ -3,12 +3,12 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import WorldMap from 'react-svg-worldmap';
 import Navbar from '../components/Navbar';
 import api from '../api/axios';
-import { ArrowLeft, ExternalLink, Sparkles, Clock, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ExternalLink, ArrowRight } from 'lucide-react';
 import MediaBox from '../components/MediaBox';
 import Button from '../components/Button';
 import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
-import { formatScore } from '../utils/ui';
+import { formatScore, getTrendSummary } from '../utils/ui';
 import { getCardMediaUrl } from '../utils/media';
 
 function GeoInterestSection({ trend }) {
@@ -107,7 +107,7 @@ export default function TrendDetail() {
 
   const summary = useMemo(() => {
     if (!trend) return '';
-    return trend.summary || trend.description || trend.excerpt || 'Signal important détecté par le flux de veille.';
+    return getTrendSummary(trend);
   }, [trend]);
 
   const getPredictionBadgeStyle = (value) => {
@@ -189,7 +189,7 @@ export default function TrendDetail() {
               <Button type="button" variant="ghost" className="detail-back" onClick={() => navigate('/feed')} icon={<ArrowLeft size={16} />}>Retour au flux</Button>
               <div className="eyebrow">Signal de recherche</div>
               <h1>{trend?.title || 'Chargement du signal...'}</h1>
-              <p className="detail-intro">{summary}</p>
+              {summary ? <p className="detail-intro">{summary}</p> : null}
             </div>
 
             <div className="detail-actions">
@@ -276,40 +276,6 @@ export default function TrendDetail() {
                   </div>
 
                   <GeoInterestSection trend={trend} />
-
-                  <div className="panel-card card-content">
-                    <div className="section-heading">
-                      <div>
-                        <small>Contexte signal</small>
-                        <h2>Pourquoi ce signal mérite votre attention</h2>
-                      </div>
-                    </div>
-                    <p>{summary}</p>
-
-                    <div className="signal-bullets">
-                      <div className="signal-bullet">
-                        <div className="signal-bullet-mark">1</div>
-                        <div>
-                          <strong>Origine du signal</strong>
-                          <p>{trend.source ? `Détecté via ${trend.source}` : 'Source inconnue ou indirecte.'}</p>
-                        </div>
-                      </div>
-                      <div className="signal-bullet">
-                        <div className="signal-bullet-mark">2</div>
-                        <div>
-                          <strong>Contexte actuel</strong>
-                          <p>Ce signal est en phase de progression et mérite votre attention.</p>
-                        </div>
-                      </div>
-                      <div className="signal-bullet">
-                        <div className="signal-bullet-mark">3</div>
-                        <div>
-                          <strong>Comment l’utiliser</strong>
-                          <p>{trend.tags?.length ? `Intégrez ce signal dans les briefs liés à ${trend.tags.slice(0, 2).join(', ')}.` : 'Utilisez ce signal comme base de recherche.'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
                 </section>
 

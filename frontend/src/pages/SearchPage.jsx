@@ -6,7 +6,7 @@ import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import MediaBox from '../components/MediaBox';
 import api from '../api/axios';
-import { formatScore } from '../utils/ui';
+import { formatScore, getTrendSummary } from '../utils/ui';
 import { getCardMediaUrl } from '../utils/media';
 
 const RECENT_STORAGE_KEY = 'trendify_recent_searches';
@@ -31,7 +31,7 @@ function readRecentSearches() {
 function SearchResultCard({ trend }) {
   const id = trend._id || trend.id;
   const media = getCardMediaUrl(trend);
-  const preview = trend.excerpt || trend.summary || trend.description || `Signal ${displaySourceLabel(trend.source)} dans la categorie ${trend.category || 'generale'}.`;
+  const preview = getTrendSummary(trend, `Signal ${displaySourceLabel(trend.source)} dans la categorie ${trend.category || 'generale'}.`);
 
   return (
     <Link to={`/feed/${id}`} className="search-result-card">

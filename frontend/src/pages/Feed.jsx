@@ -13,7 +13,7 @@ import Button from '../components/Button';
 import EmptyState from '../components/EmptyState';
 import LoadingSkeleton from '../components/LoadingSkeleton';
 import MediaBox from '../components/MediaBox';
-import { formatScore } from '../utils/ui';
+import { formatScore, getTrendSummary } from '../utils/ui';
 import { getCardMediaUrl } from '../utils/media';
 import { applyFeedMix, getSeenTrendIds, rememberTrendView } from '../utils/feedMix';
 function SavedDrawer({ trends, onClose, onRemove }) {
@@ -82,18 +82,6 @@ function displaySourceLabel(source) {
   return value;
 }
 
-function formatSummary(trend) {
-  const raw = trend.excerpt || trend.summary || trend.description;
-  if (!raw) {
-    return 'Analyse rapide non disponible. Consultez la page détail pour approfondir.';
-  }
-  const cleaned = String(raw).trim();
-  if (/ai unavailable/i.test(cleaned)) {
-    return 'Contexte indisponible pour ce signal. Consultez la page détail pour approfondir.';
-  }
-  return cleaned;
-}
-
 function Toast({ msg, onClose }) {
   return (
     <div style={{ position: 'fixed', right: 20, bottom: 20, zIndex: 300 }}>
@@ -116,7 +104,7 @@ function MediaPreview({ thumb, url, alt }) {
 
 function FeedCard({ trend, isSaved, onSave, onView }) {
   const id = trend._id || trend.id || trend.title;
-  const summary = formatSummary(trend);
+  const summary = getTrendSummary(trend, 'Consultez la page détail pour approfondir ce signal.');
   const thumb = getCardMediaUrl(trend);
   const detailUrl = `/feed/${id}`;
 
@@ -131,7 +119,7 @@ function FeedCard({ trend, isSaved, onSave, onView }) {
 
           <h2 className="feed-card-title">{trend.title}</h2>
 
-          <p className="feed-summary">{summary}</p>
+          {summary ? <p className="feed-summary">{summary}</p> : null}
 
           <div className="feed-card-meta">
             <span>{formatScore(trend.score)}</span>

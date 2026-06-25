@@ -29,3 +29,26 @@ export function formatScore(value) {
   score = Math.max(0, Math.min(100, Math.round(score)));
   return `${score}/100`;
 }
+
+export function isTechnicalRedditSummary(value) {
+  const text = String(value || '').trim();
+  if (!text) return false;
+  return /^submitted by\s+\/?u\//i.test(text) || /\[link\]\s*\[comments\]/i.test(text);
+}
+
+export function cleanTrendText(value) {
+  const text = String(value || '').trim();
+  if (!text || isTechnicalRedditSummary(text) || /ai unavailable/i.test(text)) {
+    return '';
+  }
+  return text;
+}
+
+export function getTrendSummary(trend, fallback = '') {
+  const candidates = [trend?.excerpt, trend?.summary, trend?.description];
+  for (const candidate of candidates) {
+    const cleaned = cleanTrendText(candidate);
+    if (cleaned) return cleaned;
+  }
+  return fallback;
+}
