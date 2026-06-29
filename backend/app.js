@@ -33,14 +33,12 @@ const generalLimiter = rateLimit({
   message: { error: "Too many requests, please try again later." }
 });
 
-const corsOptions = {
-  origin: FRONTEND_URL,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  optionsSuccessStatus: 204
-};
+app.use(cors({
+  origin: "*",
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: "Content-Type Authorization",
 
-app.use(cors(corsOptions));
+}));
 app.use(generalLimiter);
 app.use(requestLogger);
 
