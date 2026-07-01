@@ -267,6 +267,29 @@ test('assistant treats business as topic only when asked as trend domain', () =>
   assert.ok(domainRequest.terms.includes('business'));
 });
 
+test('assistant keeps crypto investment advice on crypto context', () => {
+  const message = 'je veux investir 2000 dirhams en crypto monnaie tu me conseilles quoi';
+  const intent = classifyAssistantIntent(message);
+  const topic = extractTopicTerms(message);
+  const cryptoTrend = {
+    title: 'Bitcoin and Ethereum rebound after ETF demand rises',
+    category: 'Finance',
+    tags: ['crypto', 'bitcoin']
+  };
+  const unrelatedTrend = {
+    title: 'winter storm warning',
+    category: 'Search Trends',
+    tags: ['weather']
+  };
+
+  assert.equal(intent.category, 'advice');
+  assert.equal(topic.hasTopic, true);
+  assert.ok(topic.terms.includes('crypto'));
+  assert.equal(topic.terms.includes('dirhams'), false);
+  assert.ok(calculateTrendRelevance(cryptoTrend, topic) >= 8);
+  assert.ok(calculateTrendRelevance(unrelatedTrend, topic) < 8);
+});
+
 test('assistant public sanitizer removes technical terms', () => {
   const answer = sanitizePublicAnswer('MongoDB API backend collection score 3500000. Il est important de noter que GTA 6 monte.');
 

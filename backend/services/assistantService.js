@@ -20,7 +20,8 @@ const TOPIC_STOPWORDS = new Set([
   "idee", "idée", "idees", "idées", "business", "contenu", "contenus", "analyse", "analyser", "rapport", "pourquoi", "important",
   "startup", "startups", "creer", "créer", "faire", "trouver", "quelle", "quelles", "quel", "quels", "est", "sont", "avec",
   "dans", "pour", "par", "au", "aux", "ce", "cet", "cette", "ces", "aujourd", "hui", "actuellement", "dernières", "dernieres",
-  "dis", "dit", "parle", "montre", "affiche", "explique"
+  "dis", "dit", "parle", "montre", "affiche", "explique", "tu", "me", "te", "toi", "quoi", "conseille", "conseilles",
+  "conseil", "conseils", "investir", "investissement", "investissements", "dirham", "dirhams", "mad", "dh"
 ]);
 
 const TOPIC_ALIASES = {
@@ -52,6 +53,7 @@ const normalizeLikelyVoiceTranscript = (value) => {
     .replace(/\b(g\s*t\s*a|gta|j[' ]?etais|j[' ]?etait|j[' ]?ete|j[' ]?ai ete|jeta)\s*(six|6)\b/gi, "GTA 6")
     .replace(/\b(g\s*t\s*a|gta)\b/gi, "GTA")
     .replace(/\b(open\s*a\s*i|open\s*ai|openai)\b/gi, "OpenAI");
+  text = text.replace(/\b(?:en|dans|sur|de|des|du)\s+(crypto(?:\s+monnaie)?|cryptomonnaie|bitcoin|btc|ethereum|eth|solana)\b/gi, "sur $1");
 
   const iaContext = "(?:tendances?|sur|concernant|a propos de|recherche|chercher|cherche|trouve|montre(?:\\s+moi)?|affiche(?:\\s+moi)?|parle(?:\\s+moi)?)";
   text = text
@@ -138,6 +140,10 @@ const ADVICE_INTENT_PATTERNS = [
   "opportunités du moment",
   "quoi lancer",
   "idee de projet",
+  "investir",
+  "investissement",
+  "crypto monnaie",
+  "cryptomonnaie",
   "idée de projet"
 ];
 
@@ -523,6 +529,8 @@ Regles de qualite:
 - Si plusieurs tendances existent, fais un classement argumente et conclus par un choix clair.
 - Si la question porte sur un sujet precis, classe uniquement les tendances liees a ce sujet.
 - Si le mode est conseil business, n'effectue pas une recherche exacte: repere les domaines les plus prometteurs dans les tendances fournies, propose 1 a 3 pistes concretes et une premiere action simple.
+- Si l'utilisateur parle d'investissement ou de crypto, reste prudent: ne promets aucun gain, ne donne pas d'ordre d'achat, propose une approche educative, diversifiee et limitee au budget indique.
+- Si aucune tendance pertinente n'existe pour le sujet demande, dis-le simplement et ne propose pas de tendances hors sujet.
 - Si le sujet est gaming, parle a des joueurs, createurs gaming, studios, streamers ou medias gaming.
 
 Phrases interdites:
@@ -666,10 +674,12 @@ const askAssistant = async (message, clientContext = {}) => {
   }
 
   const contextualMessage = buildFollowUpMessage(cleanMessage, clientContext);
+  const contextualTopic = extractTopicTerms(contextualMessage);
+  const shouldUseTopicForAdvice = intent.category !== "advice" || contextualTopic.hasTopic;
   const lastTrend = shouldUseLastTrendContext(cleanMessage, clientContext) ? normalizeClientTrend(clientContext.lastTrend) : null;
   const contextSource = lastTrend
     ? { trends: [lastTrend], context: formatTrendContext([lastTrend]), topic: { hasTopic: true, phrase: normalizeSearchText(lastTrend.title), terms: normalizeSearchText(lastTrend.title).split(/\s+/).filter(Boolean).slice(0, 8) } }
-    : await getTopTrendContext(intent.category === "advice" ? "" : contextualMessage);
+    : await getTopTrendContext(shouldUseTopicForAdvice ? contextualMessage : "");
   const { trends, context, topic } = contextSource;
 
   if (!trends.length) {
