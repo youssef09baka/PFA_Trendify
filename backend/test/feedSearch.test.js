@@ -7,6 +7,7 @@ const {
   getFeedCategoryDefinition,
   trendMatchesFeedCategory
 } = require('../controllers/feedController');
+const feedRoutes = require('../routes/feedRoutes');
 
 test('feed search builds a Mongo query across persistent trend fields', () => {
   const query = buildTrendSearchQuery('GTA 6');
@@ -17,6 +18,18 @@ test('feed search builds a Mongo query across persistent trend fields', () => {
   assert.deepEqual(
     query.$or.map((entry) => Object.keys(entry)[0]),
     ['title', 'tags', 'category', 'excerpt', 'link']
+  );
+});
+
+test('feed search route is registered before dynamic trend detail route', () => {
+  const getRoutePaths = feedRoutes.stack
+    .filter((layer) => layer.route?.methods?.get)
+    .map((layer) => layer.route.path);
+
+  assert.ok(getRoutePaths.includes('/search'));
+  assert.ok(
+    getRoutePaths.indexOf('/search') < getRoutePaths.indexOf('/:id'),
+    'GET /search must be matched before GET /:id'
   );
 });
 
