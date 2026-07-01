@@ -8,7 +8,7 @@ import { formatScore } from '../utils/ui';
 
 const SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition;
 const STORAGE_KEY = 'trendi-conversation';
-const VOICE_SEND_DELAY_MS = 900;
+const VOICE_SEND_DELAY_MS = 1700;
 const PENDING_ACTION_TTL_MS = 120000;
 const SpeechSynthesisApi = window.speechSynthesis;
 const THINKING_STEPS = [
@@ -448,6 +448,7 @@ export default function AssistantWidget() {
       const activePendingAction = getActivePendingAction();
       const { data } = await api.post('/assistant/chat', {
         message,
+        source: options.fromVoice ? 'voice' : 'text',
         context: {
           lastTrend: lastActionableTrend || null,
           shortMemory,

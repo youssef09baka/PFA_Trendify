@@ -150,6 +150,21 @@ test('assistant extracts specific subject from user search intent', () => {
   assert.ok(topic.terms.includes('6'));
 });
 
+test('assistant corrects common voice transcription confusions for topics', () => {
+  const iaAction = parseAssistantAction('montre moi les tendances il y a');
+  const iaTopic = extractTopicTerms('je veux les tendances il y a');
+  const gtaTopic = extractTopicTerms("je veux savoir la derniere tendance sur j'etais six");
+
+  assert.equal(iaAction.action, 'search');
+  assert.equal(iaAction.target, 'IA');
+  assert.equal(iaTopic.hasTopic, true);
+  assert.ok(iaTopic.terms.includes('ia'));
+  assert.equal(gtaTopic.hasTopic, true);
+  assert.equal(gtaTopic.phrase, 'gta 6');
+  assert.ok(gtaTopic.terms.includes('gta'));
+  assert.ok(gtaTopic.terms.includes('6'));
+});
+
 test('assistant ranks matching trend above unrelated high-score trend', () => {
   const topic = extractTopicTerms('Je veux savoir la derniere tendance sur GTA 6');
   const gtaTrend = {

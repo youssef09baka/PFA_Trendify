@@ -44,6 +44,22 @@ const TOPIC_ALIASES = {
 };
 
 const sanitizeMessage = (value) => String(value || "").trim().slice(0, MAX_MESSAGE_LENGTH);
+const normalizeLikelyVoiceTranscript = (value) => {
+  let text = String(value || "").trim();
+  if (!text) return "";
+
+  text = text
+    .replace(/\b(g\s*t\s*a|gta|j[' ]?etais|j[' ]?etait|j[' ]?ete|j[' ]?ai ete|jeta)\s*(six|6)\b/gi, "GTA 6")
+    .replace(/\b(g\s*t\s*a|gta)\b/gi, "GTA")
+    .replace(/\b(open\s*a\s*i|open\s*ai|openai)\b/gi, "OpenAI");
+
+  const iaContext = "(?:tendances?|sur|concernant|a propos de|recherche|chercher|cherche|trouve|montre(?:\\s+moi)?|affiche(?:\\s+moi)?|parle(?:\\s+moi)?)";
+  text = text
+    .replace(new RegExp(`\\b(${iaContext})\\s+il\\s+y\\s+a\\b`, "gi"), "$1 IA")
+    .replace(/^\s*il\s+y\s+a\s*$/i, "IA");
+
+  return text.replace(/\s+/g, " ").trim();
+};
 const normalizeSearchText = (value) => String(value || "")
   .toLowerCase()
   .normalize("NFD")
@@ -181,7 +197,7 @@ const isConfirmationMessage = (normalized) => [
 ].includes(normalized);
 
 const classifyAssistantIntent = (message, clientContext = {}) => {
-  const raw = String(message || "").trim();
+  const raw = normalizeLikelyVoiceTranscript(message);
   const normalized = normalizeSearchText(raw);
   if (!normalized) return buildIntent("empty", 1);
 
@@ -304,7 +320,7 @@ const createAssistantUnavailableError = () => {
 };
 
 const extractTopicTerms = (message) => {
-  const raw = String(message || "").trim();
+  const raw = normalizeLikelyVoiceTranscript(message);
   const normalized = normalizeSearchText(raw);
   if (!normalized) return { hasTopic: false, phrase: "", terms: [] };
 
@@ -593,7 +609,7 @@ const buildFollowUpMessage = (message, clientContext = {}) => {
 };
 
 const askAssistant = async (message, clientContext = {}) => {
-  const cleanMessage = sanitizeMessage(message);
+  const cleanMessage = sanitizeMessage(normalizeLikelyVoiceTranscript(message));
   if (!cleanMessage) {
     const error = new Error("Message assistant vide.");
     error.statusCode = 400;
