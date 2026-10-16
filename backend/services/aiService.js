@@ -1,7 +1,7 @@
 const logger = require('../utils/logger');
 const axios = require("axios");
 
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 const GROQ_MAX_TOKENS = 1300;
 const GROQ_TIMEOUT_MS = 15000;
 
@@ -71,6 +71,41 @@ Interdictions absolues:
 - podcast, blog, newsletter, campagne publicitaire, contenu autour
 - faits precis non presents dans le titre, la source, la categorie ou les tags`;
 
+const ANALYSIS_JSON_SCHEMA = {
+  type: "object",
+  properties: {
+    summary: { type: "string" },
+    whyItMatters: { type: "string" },
+    whyTrendRises: { type: "string" },
+    targetAudience: { type: "string" },
+    marketAnalysis: { type: "string" },
+    opportunity: { type: "string" },
+    risks: { type: "array", items: { type: "string" } },
+    confidence: { type: "string" },
+    confidenceReason: { type: "string" },
+    recommendations: { type: "array", items: { type: "string" } },
+    businessOpportunities: { type: "array", items: { type: "string" } },
+    contentIdeas: { type: "array", items: { type: "string" } },
+    conclusion: { type: "string" }
+  },
+  required: [
+    "summary",
+    "whyItMatters",
+    "whyTrendRises",
+    "targetAudience",
+    "marketAnalysis",
+    "opportunity",
+    "risks",
+    "confidence",
+    "confidenceReason",
+    "recommendations",
+    "businessOpportunities",
+    "contentIdeas",
+    "conclusion"
+  ],
+  additionalProperties: false
+};
+
 const normalizeAnalysis = (parsed) => ({
   status: "groq",
   summary: compact(parsed?.summary),
@@ -118,7 +153,14 @@ const generateTrendAnalysis = async (trend) => {
         model: GROQ_MODEL,
         max_tokens: GROQ_MAX_TOKENS,
         temperature: 0.16,
-        response_format: { type: "json_object" },
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "trend_analysis",
+            strict: true,
+            schema: ANALYSIS_JSON_SCHEMA
+          }
+        },
         messages: [
           {
             role: "user",

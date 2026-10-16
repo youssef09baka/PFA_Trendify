@@ -2,7 +2,7 @@ const logger = require('../utils/logger');
 const axios = require("axios");
 const Trend = require("../models/Trend");
 
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
+const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
 const GROQ_TIMEOUT_MS = 15000;
 const MAX_CONTEXT_TRENDS = 20;
 const RELEVANT_CONTEXT_LIMIT = 40;

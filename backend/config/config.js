@@ -22,7 +22,7 @@ const REDDIT_PASSWORD = process.env.REDDIT_PASSWORD || '';
 const REDDIT_USER_AGENT = process.env.REDDIT_USER_AGENT || 'Trendify/1.0 (+https://trendify.local)';
 const GOOGLE_TRENDS_LIMIT = Number(process.env.GOOGLE_TRENDS_LIMIT || 120);
 const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
-const GROQ_MODEL = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
 
 if (!MONGO_URI) {
   throw new Error("Missing required environment variable: MONGO_URI");
