@@ -1,7 +1,7 @@
 const logger = require('../utils/logger');
 const axios = require("axios");
 
-const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
+const GROQ_MODEL = "openai/gpt-oss-120b";
 const GROQ_MAX_TOKENS = 3000;
 const GROQ_TIMEOUT_MS = 15000;
 

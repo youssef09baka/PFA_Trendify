@@ -27,7 +27,7 @@ test('generateTrendAnalysis allows enough output tokens for a complete structure
   let requestBody;
 
   process.env.GROQ_API_KEY = 'test-key';
-  process.env.GROQ_MODEL = 'openai/gpt-oss-120b';
+  process.env.GROQ_MODEL = 'llama-3.3-70b-versatile';
   require.cache[axiosPath] = {
     id: axiosPath,
     filename: axiosPath,
@@ -49,6 +49,7 @@ test('generateTrendAnalysis allows enough output tokens for a complete structure
     const { generateTrendAnalysis } = require('../services/aiService');
     const analysis = await generateTrendAnalysis({ title: 'Tendance de test' });
 
+    assert.equal(requestBody.model, 'openai/gpt-oss-120b');
     assert.equal(requestBody.max_tokens, 3000);
     assert.equal(analysis.status, 'groq');
     assert.equal(analysis.summary, validAnalysis.summary);
