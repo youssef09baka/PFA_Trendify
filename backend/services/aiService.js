@@ -2,7 +2,7 @@ const logger = require('../utils/logger');
 const axios = require("axios");
 
 const GROQ_MODEL = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
-const GROQ_MAX_TOKENS = 1300;
+const GROQ_MAX_TOKENS = 3000;
 const GROQ_TIMEOUT_MS = 15000;
 
 const compact = (value) => String(value || "").replace(/\s+/g, " ").trim();
@@ -144,6 +144,7 @@ const validateAnalysis = (analysis) => {
 const generateTrendAnalysis = async (trend) => {
   try {
     if (!process.env.GROQ_API_KEY) {
+      logger.error("TREND AI ERROR: GROQ_API_KEY is missing");
       throw createAiUnavailableError();
     }
 
@@ -191,7 +192,13 @@ const generateTrendAnalysis = async (trend) => {
     return analysis;
   } catch (error) {
     if (error?.status === "ai_unavailable") throw error;
-    logger.warn("TREND AI ERROR:", error.response?.data || error.message);
+    const providerMessage = error.response?.data?.error?.message || error.response?.data?.message || error.message;
+    logger.error("TREND AI ERROR:", {
+      model: GROQ_MODEL,
+      status: error.response?.status || error.statusCode || null,
+      code: error.code || null,
+      message: String(providerMessage || "Unknown provider error").slice(0, 500)
+    });
     throw createAiUnavailableError();
   }
 };
