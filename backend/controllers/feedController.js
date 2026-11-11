@@ -732,6 +732,7 @@ const getTrendDetail = asyncHandler(async (req, res, next) => {
 });
 
 const analyzeTrend = asyncHandler(async (req, res, next) => {
+  const streaming = req.aiStream === true;
   const id = String(req.params.id || '').trim();
   if (!Types.ObjectId.isValid(id)) {
     const err = new Error('Invalid trend ID format');
@@ -770,13 +771,39 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
     reservedQuota = true;
   }
 
+  const sendStreamEvent = (event, payload) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`);
+  };
+
+  if (streaming) {
+    res.status(200);
+    res.set({
+      'Content-Type': 'text/event-stream; charset=utf-8',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no'
+    });
+    res.flushHeaders?.();
+    sendStreamEvent('progress', { progress: 0, phase: 'Tendance chargée, préparation de l’analyse…' });
+  }
+
   let analysis;
   try {
-    analysis = await generateTrendAnalysis(trend);
+    analysis = await generateTrendAnalysis(
+      trend,
+      streaming ? (progress) => sendStreamEvent('progress', progress) : undefined
+    );
   } catch (error) {
     if (reservedQuota) {
       await User.findByIdAndUpdate(req.user._id, { $inc: { aiRemaining: 1 } }).catch(() => null);
       req.user.aiRemaining = Math.max(0, (req.user.aiRemaining || 0) + 1);
+    }
+    if (streaming) {
+      sendStreamEvent('error', {
+        status: error?.status || 'ai_unavailable',
+        message: error?.message || 'Analyse temporairement indisponible.'
+      });
+      return res.end();
     }
     throw error;
   }
@@ -786,7 +813,7 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
     req.user.aiRemaining = restoredUser ? restoredUser.aiRemaining : Math.max(0, (req.user.aiRemaining || 0) + 1);
   }
 
-  res.status(200).json({
+  const payload = {
     trend: {
       id: trend._id,
       title: trend.title,
@@ -807,7 +834,14 @@ const analyzeTrend = asyncHandler(async (req, res, next) => {
       status: analysis?.status || 'groq'
     },
     aiRemaining: req.user?.aiRemaining ?? 0
-  });
+  };
+
+  if (streaming) {
+    sendStreamEvent('complete', payload);
+    return res.end();
+  }
+
+  res.status(200).json(payload);
 });
 
 module.exports = {

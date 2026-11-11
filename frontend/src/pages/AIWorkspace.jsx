@@ -7,18 +7,7 @@ import EmptyState from '../components/EmptyState';
 import { ArrowLeft, Brain, Sparkles, TrendingUp } from 'lucide-react';
 import { formatScore } from '../utils/ui';
 
-const thinkingSteps = [
-  'Analyse des signaux Reddit...',
-  'Évaluation du potentiel de croissance...',
-  'Recherche des opportunités cachées...',
-  'Croisement avec les tendances mondiales...',
-  'Génération d’idées business...',
-  'Identification des signaux les plus pertinents...',
-  'Construction du rapport stratégique...',
-  'Finalisation de l’analyse...'
-];
-
-const MIN_REPORT_LOADING_MS = 5500;
+const MIN_REPORT_LOADING_MS = 2000;
 
 function normalizeList(value, limit = 5) {
   if (Array.isArray(value)) return value.filter(Boolean).slice(0, limit);
@@ -31,58 +20,7 @@ function normalizeList(value, limit = 5) {
     .slice(0, limit);
 }
 
-function AnalysisThinkingLoader({ title, complete, onReady }) {
-  const [stepIndex, setStepIndex] = useState(0);
-  const [progress, setProgress] = useState(18);
-  const completionNotifiedRef = useRef(false);
-
-  useEffect(() => {
-    if (complete) {
-      return undefined;
-    }
-
-    const stepTimer = window.setInterval(() => {
-      setStepIndex((current) => (current + 1) % thinkingSteps.length);
-    }, 2400);
-
-    const progressTimer = window.setInterval(() => {
-      setProgress((current) => {
-        if (current >= 88) return current;
-        const next = current + Math.floor(Math.random() * 8) + 3;
-        return Math.min(next, 88);
-      });
-    }, 900);
-
-    return () => {
-      window.clearInterval(stepTimer);
-      window.clearInterval(progressTimer);
-    };
-  }, [complete]);
-
-  const displayedProgress = complete ? 100 : progress;
-  const displayedStepIndex = complete ? thinkingSteps.length - 1 : stepIndex;
-
-  useEffect(() => {
-    if (!complete) {
-      completionNotifiedRef.current = false;
-      return undefined;
-    }
-
-    const revealTimer = window.setTimeout(() => {
-      if (completionNotifiedRef.current) return;
-      completionNotifiedRef.current = true;
-      onReady?.();
-    }, 850);
-
-    return () => window.clearTimeout(revealTimer);
-  }, [complete, onReady]);
-
-  const handleProgressTransitionEnd = (event) => {
-    if (!complete || event.propertyName !== 'width' || completionNotifiedRef.current) return;
-    completionNotifiedRef.current = true;
-    onReady?.();
-  };
-
+function AnalysisThinkingLoader({ title, progress, phase }) {
   return (
     <div className="analysis-thinking-loader" role="status" aria-live="polite">
       <div className="thinking-orb-wrap">
@@ -98,22 +36,22 @@ function AnalysisThinkingLoader({ title, complete, onReady }) {
           <Brain size={15} />
           Trendi prépare le rapport
         </span>
-        <h2>{complete ? 'Rapport prêt.' : 'Analyse en cours...'}</h2>
+        <h2>{progress >= 100 ? 'Rapport prêt.' : 'Analyse en cours...'}</h2>
         <p>{title ? `Signal analysé : ${title}` : 'Trendi lit les données disponibles pour construire une analyse utile.'}</p>
       </div>
 
       <div className="thinking-message-card">
         <Sparkles size={17} />
-        <span key={displayedStepIndex}>{thinkingSteps[displayedStepIndex]}</span>
+        <span>{phase}</span>
       </div>
 
-      <div className="thinking-progress" aria-label={`Progression estimée ${displayedProgress}%`}>
+      <div className="thinking-progress" aria-label={`Progression réelle ${progress}%`}>
         <div className="thinking-progress-label">
-          <span>Construction du rapport stratégique</span>
-          <strong>{displayedProgress}%</strong>
+          <span>Sections du rapport générées</span>
+          <strong>{progress}%</strong>
         </div>
         <div className="thinking-progress-track">
-          <div style={{ width: `${displayedProgress}%` }} onTransitionEnd={handleProgressTransitionEnd} />
+          <div style={{ width: `${progress}%` }} />
         </div>
       </div>
     </div>
@@ -125,33 +63,101 @@ export default function AIWorkspace() {
   const navigate = useNavigate();
   const [trend, setTrend] = useState(null);
   const [analysis, setAnalysis] = useState(null);
-  const [analysisComplete, setAnalysisComplete] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisPhase, setAnalysisPhase] = useState('Préparation de l’analyse…');
   const [reportVisible, setReportVisible] = useState(false);
   const [error, setError] = useState('');
   const loadingStartedAtRef = useRef(0);
   const minimumRevealTimerRef = useRef(null);
+  const requestControllerRef = useRef(null);
 
   const loadWorkspace = useCallback(async () => {
     if (!id) return;
 
     window.clearTimeout(minimumRevealTimerRef.current);
+    requestControllerRef.current?.abort();
+    const requestController = new AbortController();
+    requestControllerRef.current = requestController;
     loadingStartedAtRef.current = Date.now();
-    setAnalysisComplete(false);
+    setAnalysisProgress(0);
+    setAnalysisPhase('Préparation de l’analyse…');
     setReportVisible(false);
     setAnalysis(null);
     setError('');
     try {
-      const detail = await api.get(`/feed/${id}`);
-      setTrend(detail.data || null);
+      const apiBaseUrl = String(api.defaults.baseURL || '/api').replace(/\/$/, '');
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${apiBaseUrl}/feed/${id}/analyze/stream`, {
+        method: 'POST',
+        headers: {
+          Accept: 'text/event-stream',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        signal: requestController.signal
+      });
 
-      const { data } = await api.post(`/feed/${id}/analyze`);
-      setTrend((prev) => ({ ...(prev || {}), ...(data.trend || {}) }));
-      setAnalysis(data.analysis || null);
-      const elapsed = Date.now() - loadingStartedAtRef.current;
-      const remaining = Math.max(0, MIN_REPORT_LOADING_MS - elapsed);
-      minimumRevealTimerRef.current = window.setTimeout(() => {
-        setAnalysisComplete(true);
-      }, remaining);
+      if (!response.ok) {
+        if (response.status === 401 && token) {
+          localStorage.removeItem('token');
+          navigate('/login?expired=1');
+          return;
+        }
+        const payload = await response.json().catch(() => ({}));
+        const requestError = new Error(payload.message || 'La génération du rapport a échoué.');
+        requestError.response = { status: response.status, data: payload };
+        throw requestError;
+      }
+
+      if (!response.body) throw new Error('Le flux de progression est indisponible.');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let completed = false;
+      let streamError = null;
+
+      const handleEvent = (block) => {
+        const eventName = block.split(/\r?\n/).find((line) => line.startsWith('event:'))?.slice(6).trim();
+        const data = block.split(/\r?\n/)
+          .filter((line) => line.startsWith('data:'))
+          .map((line) => line.slice(5).trim())
+          .join('\n');
+        if (!eventName || !data) return;
+
+        const payload = JSON.parse(data);
+        if (eventName === 'progress') {
+          setAnalysisProgress(Math.max(0, Math.min(100, Number(payload.progress) || 0)));
+          setAnalysisPhase(payload.phase || 'Analyse en cours…');
+        } else if (eventName === 'complete') {
+          setTrend(payload.trend || null);
+          setAnalysis(payload.analysis || null);
+          completed = true;
+        } else if (eventName === 'error') {
+          streamError = new Error(payload.message || 'Le moteur IA est actuellement inaccessible.');
+          streamError.response = { status: payload.statusCode, data: payload };
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+        const blocks = buffer.split(/\r?\n\r?\n/);
+        buffer = blocks.pop() || '';
+        blocks.forEach(handleEvent);
+        if (streamError || completed || done) break;
+      }
+      reader.releaseLock();
+
+      if (streamError) throw streamError;
+      if (!completed) throw new Error('Le rapport n’a pas été reçu complètement.');
+
+      setAnalysisProgress(100);
+      setAnalysisPhase('Rapport vérifié et prêt.');
+      const remaining = Math.max(0, MIN_REPORT_LOADING_MS - (Date.now() - loadingStartedAtRef.current));
+      await new Promise((resolve) => {
+        minimumRevealTimerRef.current = window.setTimeout(resolve, remaining);
+      });
+      setReportVisible(true);
     } catch (err) {
       window.clearTimeout(minimumRevealTimerRef.current);
       const status = err?.response?.status;
@@ -163,12 +169,10 @@ export default function AIWorkspace() {
       } else {
         setError('La génération d’analyse IA n’a pas pu démarrer pour ce signal.');
       }
+    } finally {
+      if (requestControllerRef.current === requestController) requestControllerRef.current = null;
     }
-  }, [id]);
-
-  const handleReportReady = useCallback(() => {
-    setReportVisible(true);
-  }, []);
+  }, [id, navigate]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -178,6 +182,7 @@ export default function AIWorkspace() {
     return () => {
       window.clearTimeout(timer);
       window.clearTimeout(minimumRevealTimerRef.current);
+      requestControllerRef.current?.abort();
     };
   }, [loadWorkspace]);
 
@@ -241,7 +246,7 @@ export default function AIWorkspace() {
 
           <section className="ai-report-shell">
             {generating ? (
-              <AnalysisThinkingLoader title={trend?.title} complete={analysisComplete} onReady={handleReportReady} />
+              <AnalysisThinkingLoader title={trend?.title} progress={analysisProgress} phase={analysisPhase} />
             ) : error ? (
               <EmptyState title="Analyse indisponible" subtitle={error} action={<Button variant="ghost" onClick={() => navigate('/feed')}>Retour au flux</Button>} />
             ) : report ? (

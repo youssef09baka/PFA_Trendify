@@ -3,7 +3,6 @@ const axios = require("axios");
 
 const GROQ_MODEL = "openai/gpt-oss-120b";
 const GROQ_MAX_TOKENS = 3000;
-const GROQ_TIMEOUT_MS = 15000;
 
 const compact = (value) => String(value || "").replace(/\s+/g, " ").trim();
 
@@ -105,6 +104,7 @@ const ANALYSIS_JSON_SCHEMA = {
   ],
   additionalProperties: false
 };
+const ANALYSIS_FIELDS = Object.keys(ANALYSIS_JSON_SCHEMA.properties);
 
 const normalizeAnalysis = (parsed) => ({
   status: "groq",
@@ -141,36 +141,41 @@ const validateAnalysis = (analysis) => {
   );
 };
 
-const generateTrendAnalysis = async (trend) => {
+const generateTrendAnalysis = async (trend, onProgress, model = GROQ_MODEL) => {
   try {
     if (!process.env.GROQ_API_KEY) {
       logger.error("TREND AI ERROR: GROQ_API_KEY is missing");
       throw createAiUnavailableError();
     }
 
+    const requestBody = {
+      model,
+      max_tokens: GROQ_MAX_TOKENS,
+      reasoning_effort: "low",
+      temperature: 0.16,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "trend_analysis",
+          strict: true,
+          schema: ANALYSIS_JSON_SCHEMA
+        }
+      },
+      messages: [
+        {
+          role: "user",
+          content: buildPrompt(trend)
+        }
+      ],
+      ...(onProgress ? { stream: true } : {})
+    };
+
+    onProgress?.({ progress: 0, phase: "Connexion au moteur IA…" });
     const response = await axios.post(
       "https://api.groq.com/openai/v1/chat/completions",
+      requestBody,
       {
-        model: GROQ_MODEL,
-        max_tokens: GROQ_MAX_TOKENS,
-        temperature: 0.16,
-        response_format: {
-          type: "json_schema",
-          json_schema: {
-            name: "trend_analysis",
-            strict: true,
-            schema: ANALYSIS_JSON_SCHEMA
-          }
-        },
-        messages: [
-          {
-            role: "user",
-            content: buildPrompt(trend)
-          }
-        ]
-      },
-      {
-        timeout: GROQ_TIMEOUT_MS,
+        ...(onProgress ? { responseType: "stream" } : {}),
         headers: {
           Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
           "Content-Type": "application/json"
@@ -178,7 +183,48 @@ const generateTrendAnalysis = async (trend) => {
       }
     );
 
-    const text = String(response?.data?.choices?.[0]?.message?.content || "").trim();
+    let text = "";
+    if (onProgress) {
+      onProgress({ progress: 0, phase: "Le moteur IA rédige le rapport…" });
+      let pending = "";
+      const reportFields = new Set();
+      const consumeLine = (line) => {
+        if (!line.startsWith("data:")) return;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") return;
+
+        let event;
+        try {
+          event = JSON.parse(payload);
+        } catch {
+          return;
+        }
+
+        const content = event?.choices?.[0]?.delta?.content;
+        if (typeof content !== "string") return;
+        text += content;
+        ANALYSIS_FIELDS.forEach((field) => {
+          if (new RegExp(`\\"${field}\\"\\s*:`).test(text)) reportFields.add(field);
+        });
+
+        const progress = Math.min(95, Math.floor((reportFields.size / ANALYSIS_FIELDS.length) * 95));
+        onProgress({
+          progress,
+          phase: `Rédaction du rapport — ${reportFields.size}/${ANALYSIS_FIELDS.length} sections reçues…`
+        });
+      };
+
+      for await (const chunk of response.data) {
+        pending += chunk.toString();
+        const lines = pending.split(/\r?\n/);
+        pending = lines.pop() || "";
+        lines.forEach(consumeLine);
+      }
+      if (pending) consumeLine(pending);
+    } else {
+      text = String(response?.data?.choices?.[0]?.message?.content || "").trim();
+    }
+
     const jsonStart = text.indexOf("{");
     const jsonEnd = text.lastIndexOf("}");
     const jsonText = jsonStart >= 0 && jsonEnd > jsonStart ? text.slice(jsonStart, jsonEnd + 1) : text;
@@ -189,12 +235,13 @@ const generateTrendAnalysis = async (trend) => {
       throw createAiUnavailableError();
     }
 
+    onProgress?.({ progress: 100, phase: "Rapport vérifié et prêt." });
     return analysis;
   } catch (error) {
     if (error?.status === "ai_unavailable") throw error;
     const providerMessage = error.response?.data?.error?.message || error.response?.data?.message || error.message;
     logger.error("TREND AI ERROR:", {
-      model: GROQ_MODEL,
+      model,
       status: error.response?.status || error.statusCode || null,
       code: error.code || null,
       message: String(providerMessage || "Unknown provider error").slice(0, 500)

@@ -10,6 +10,10 @@ router.get("/", protect, getFeed);
 router.get('/search', protect, searchTrends);
 router.post('/repair-media', protect, repairMedia);
 router.get('/:id', protect, getTrendDetail);
+router.post('/:id/analyze/stream', protect, (req, res, next) => {
+	req.aiStream = true;
+	next();
+}, analyzeTrend);
 router.post('/:id/analyze', protect, analyzeTrend);
 router.post('/:id/save', protect, saveTrend);
 router.delete('/:id/save', protect, unsaveTrend);

@@ -7,7 +7,7 @@ const withStubbedModules = async (scenario = 'real') => {
   const originalTrendModel = require.cache[require.resolve('../models/Trend')];
   const originalUserModel = require.cache[require.resolve('../models/User')];
 
-  const state = { generateCalls: 0, updateCalls: 0, reservedQuotaCalls: 0, refundedQuotaCalls: 0 };
+  const state = { generateCalls: 0, updateCalls: 0, reservedQuotaCalls: 0, refundedQuotaCalls: 0, streamChunks: [], headers: {} };
 
   const isOldFallbackScenario = scenario === 'old-fallback-values';
   const isFreshScenario = scenario === 'fresh' || scenario === 'quota';
@@ -95,11 +95,16 @@ const withStubbedModules = async (scenario = 'real') => {
 
   const req = {
     params: { id: scenario === 'invalid-id' ? '123-not-objectid' : validTrendId },
+    aiStream: scenario === 'stream',
     user: { _id: 'user-1', aiRemaining: scenario === 'quota' ? 1 : 5, save: async () => {} }
   };
   const res = { statusCode: 200, body: null };
   res.status = (code) => { res.statusCode = code; return res; };
   res.json = (payload) => { res.body = payload; return res; };
+  res.set = (headers) => { state.headers = headers; return res; };
+  res.flushHeaders = () => {};
+  res.write = (chunk) => { state.streamChunks.push(chunk); return true; };
+  res.end = () => { res.ended = true; return res; };
   let nextError = null;
   const next = (err) => { nextError = err; };
 
@@ -162,6 +167,17 @@ test('analyzeTrend reserves AI quota atomically and returns updated balance', as
   assert.equal(state.generateCalls, 1, 'analysis should be generated when no stored analysis exists');
   assert.equal(statusCode, 200);
   assert.equal(res.body.aiRemaining, 0, 'response should reflect decremented AI quota');
+});
+
+test('analyzeTrend streams progress and the completed report over SSE', async () => {
+  const { state, nextError, res } = await withStubbedModules('stream');
+
+  assert.equal(nextError, null);
+  assert.equal(state.headers['Content-Type'], 'text/event-stream; charset=utf-8');
+  assert.equal(res.ended, true);
+  assert.match(state.streamChunks[0], /event: progress/);
+  assert.match(state.streamChunks.at(-1), /event: complete/);
+  assert.match(state.streamChunks.at(-1), /Fresh analysis/);
 });
 
 test('analyzeTrend rejects invalid trend ids before querying the database', async () => {
